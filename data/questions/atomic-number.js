@@ -1,0 +1,3 @@
+import{q}from'./_helpers.js';
+const base=[['H',1],['He',2],['Li',3],['Be',4],['B',5],['C',6],['N',7],['O',8],['F',9],['Ne',10],['Na',11],['Mg',12],['Al',13],['Si',14],['P',15],['S',16],['Cl',17],['Ar',18],['K',19],['Ca',20]];const advanced=[['Fe',26],['Co',27],['Ni',28],['Cu',29],['Zn',30],['Br',35],['Ag',47],['I',53],['Ba',56],['Pt',78],['Au',79],['Hg',80],['Pb',82]];
+export const atomicNumberQuestions=Object.freeze([...base.map(([s,n])=>q(`atomic_number_${String(n).padStart(3,'0')}`,'atomic_number',n<=10?1:2,`${s}의 원자 번호는?`,[String(n)],`${s}의 원자 번호는 ${n}이다.`,['원자번호',s],{answerMode:'integer'})),...advanced.map(([s,n],i)=>q(`atomic_number_hard_${i+1}`,'atomic_number',3,`${s}의 원자 번호는?`,[String(n)],`${s}의 원자 번호는 ${n}이다.`,['원자번호','심화',s],{answerMode:'integer'}))]);

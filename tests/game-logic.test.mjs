@@ -1,0 +1,17 @@
+﻿import test from 'node:test';
+import assert from 'node:assert/strict';
+import {TRAINING_MODES,getTrainingMode} from '../data/training-modes.js';
+import {QUESTIONS,validateQuestions} from '../data/questions.js';
+import {QuestionEngine,evaluateAnswer} from '../assets/js/question-engine.js';
+import {GameCore} from '../assets/js/game-core.js';
+import {ToadDialogueSelector} from '../data/dialogues/toad-dialogues.js';
+import {GameStorage,migrateSave} from '../assets/js/storage.js';
+
+test('catalog and question IDs are unique and valid',()=>{assert.equal(new Set(TRAINING_MODES.map(x=>x.id)).size,25);assert.equal(validateQuestions().length,0);assert.equal(new Set(QUESTIONS.map(x=>x.id)).size,QUESTIONS.length)});
+test('atomic number is symbol to integer only with ranges',()=>{const qs=QUESTIONS.filter(q=>q.trainingId==='atomic_number');assert.ok(qs.length>=33);for(const q of qs){assert.match(q.prompt,/[A-Z][a-z]?/);assert.equal(q.answerMode,'integer');assert.ok(q.answers.every(a=>/^\d+$/.test(a)))}const e=new QuestionEngine(QUESTIONS,{random:()=>0});for(let i=0;i<30;i++)assert.equal(e.next({trainingId:'atomic_number',difficultyRange:[1,1]}).trainingId,'atomic_number');assert.equal(evaluateAnswer(qs[0],'1.0').reason,'not_integer')});
+test('every mode has questions at each difficulty range',()=>{for(const mode of TRAINING_MODES){assert.ok(getTrainingMode(mode.id));assert.ok(QUESTIONS.some(q=>q.trainingId===mode.id&&q.difficulty===1),mode.id)}});
+test('fever starts after three fast correct answers and resets on wrong',()=>{const qe=new QuestionEngine(QUESTIONS,{random:()=>0});const game=new GameCore({questionEngine:qe,eventTarget:null});let starts=0,speaks=0;game.on('fever:start',()=>starts++);game.on('toad:speak',()=>speaks++);game.start({trainingId:'atomic_number',difficulty:'easy'});for(let i=0;i<3;i++){const answer=game.question.answers[0];game.submit(answer)}assert.equal(starts,1);assert.equal(game.state.feverActive,true);assert.ok(speaks>=4);game.submit('999');assert.equal(game.state.feverActive,false);assert.equal(game.state.feverCharge,0)});
+test('fever multipliers score water and leak',()=>{const qe=new QuestionEngine(QUESTIONS,{random:()=>0}),game=new GameCore({questionEngine:qe,eventTarget:null});game.start({trainingId:'atomic_number'});game.state.water=20;for(let i=0;i<3;i++)game.submit(game.question.answers[0]);assert.equal(game.state.feverActive,true);assert.ok(game.leakPerSecond()<game.training.rules.leakPerSecond);game.state.water=20;const before=game.state.water;game.submit(game.question.answers[0]);assert.ok(game.state.water-before>=game.training.rules.correctWaterGain*1.5-0.01)});
+test('dialogues do not repeat among last three',()=>{const d=new ToadDialogueSelector(undefined,()=>0);const lines=Array.from({length:4},()=>d.pick('normalCorrect').text);assert.equal(new Set(lines).size,4)});
+test('storage migrates v1 and isolates modes',()=>{const memory={value:null,getItem(){return this.value},setItem(k,v){this.value=v}};memory.value=JSON.stringify({version:1,profile:{bestScore:99},statistics:{plays:2}});assert.equal(migrateSave(JSON.parse(memory.value)).statistics.legacy.bestScore,99);const s=new GameStorage(memory);s.startRun('atomic_number','easy');s.recordAnswer({id:'a',trainingId:'atomic_number',difficultyName:'easy'},true,false,1000);s.startRun('ph','hard');assert.equal(s.getTrainingStats('atomic_number').correct,1);assert.equal(s.getTrainingStats('ph').correct,0);const restored=new GameStorage(memory);assert.equal(restored.getTrainingStats('atomic_number').correct,1)});
+

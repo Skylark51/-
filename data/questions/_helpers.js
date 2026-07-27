@@ -1,0 +1,2 @@
+export const q=(id,trainingId,difficulty,prompt,answers,explanation,tags=[],extra={})=>Object.freeze({id,trainingId,type:'short_answer',difficulty,prompt,answers,explanation,tags,sourceLevel:'high_school_chemistry',...extra});
+export const mc=(id,trainingId,difficulty,prompt,choices,correctChoice,explanation,tags=[])=>Object.freeze({id,trainingId,type:'multiple_choice',difficulty,prompt,choices,correctChoice,explanation,tags,sourceLevel:'high_school_chemistry'});
