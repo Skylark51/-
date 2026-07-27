@@ -1,78 +1,91 @@
 # FRONTEND WORK
 
-## 작업 개요
+## 수정 파일
 
-`콩쥐야 줘때써`의 러프 프로토타입을 한국 전래동화·민화 분위기의 반응형 화학 학습 게임 화면으로 개편했다. 루트 `index.html`은 게임 문서로 즉시 이동한다.
+- `index.html`: GitHub Pages 루트 훈련 선택 화면
+- `콩쥐야_줘때써.html`: 선택한 훈련의 집중 게임 화면
+- `assets/css/game.css`: 로비·게임·상태·반응형·접근성 스타일
+- `assets/js/ui-effects.js`: 훈련 선택, 기록 표시, 이벤트 기반 연출
+- `docs/FRONTEND_WORK.md`: 프론트엔드 통합 기록
 
-## 수정한 파일
+게임 로직, 문항, 설정, 저장 모듈은 수정하지 않았다.
 
-- `index.html`: GitHub Pages 루트 진입 시 게임으로 즉시 이동
-- `콩쥐야_줘때써.html`: 기존 DOM id를 보존하면서 게임 장면, HUD, 문제 패널, 오버레이, 접근성 구조 재작성
+## 메인 훈련 선택 화면
 
-## 새로 만든 파일
+루트 주소는 더 이상 게임으로 자동 이동하지 않는다. 제목, 이어하기, 8개 카테고리
+필터, 훈련 카드, 개인 기록, 설정을 한 화면에 제공한다. 모바일 카테고리는 가로
+스크롤 대신 select를 사용한다.
 
-- `assets/css/game.css`: 반응형 레이아웃, 장독대·수위·누수 표현, 상태 애니메이션
-- `assets/js/frontend-effects.js`: 모듈형 백엔드가 발행하는 게임 이벤트를 구독해 장면 상태 class와 프론트 전용 버튼을 연결
-- `assets/images/background/courtyard-night.png`: 초가집 저녁 마당 배경
-- `assets/images/characters/kongjwi-toad.png`: 콩쥐·두꺼비 투명 스프라이트 시트
-- `docs/FRONTEND_WORK.md`: 본 작업 기록
+훈련 카드는 `STAGE_CONFIG`의 이름과 설명을 직접 소비한다. 기록은
+`GameStorage`의 훈련별 통계가 있으면 사용하고, 현재 저장 버전에서는
+`recentRuns`와 `byTag`로 제공 가능한 값만 표시한다. 데이터가 없는 최고 콤보,
+피버, 평균 시간은 임의 계산하지 않고 “—”로 표시한다.
 
-## 주요 UI 변경
+훈련 시작 시 sessionStorage에는 stageId, stageIndex, difficulty만 전달한다. 게임
+화면은 이 선택을 읽어 해당 단계에서 시작한다. 단계 완료 시 다음 유형을 노출하지
+않고 훈련 결과를 표시한 후 메인으로 돌아간다.
 
-- PC에서 좌측 마당 장면과 우측 문제 패널을 분리했다.
-- 장독대 수위, 구멍, 지속 누수, 두꺼비, 콩쥐의 물 붓기를 하나의 장면으로 구성했다.
-- 현재 단계·물·콤보·점수를 상단 HUD로 통합했다.
-- 제한 시간, 단계 진행도, 문제 유형, 피드백을 문제 패널에 명확히 배치했다.
-- 정답/오답은 색상과 함께 `✓`, `×`, 텍스트로 구분한다.
-- Enter 제출, Space 일시정지, 키보드 포커스 스타일, 입력 label을 제공한다.
-- `prefers-reduced-motion`에서 반복·과도 애니메이션을 줄인다.
+## 게임 화면
 
-## 애니메이션 상태 목록
+왼쪽은 콩쥐, 바가지, 장독대, 물, 구멍, 두꺼비, 누수, 말풍선과 피버 분위기를
+담는다. 오른쪽은 현재 훈련·난도, 점수·콤보·물, 피버 게이지, 문제, 제한 시간,
+입력과 훈련 내부 진행도를 표시한다. 기존 1~6단계 경로 UI는 제거했다.
 
-`#visualStage`에 다음 class가 적용된다.
+## 사용 이벤트
 
-- `state-idle`: 기본 누수와 물결
-- `state-answer-correct`: 콩쥐 물 붓기, 물줄기, 점수 효과, 두꺼비 안도
-- `state-answer-wrong`: 장독대 흔들림, 누수 강화, 두꺼비 눌림
-- `state-water-warning`: 수위 50% 이하 경고
-- `state-water-critical`: 수위 10% 이하 위험 테두리와 강한 흔들림
-- `state-stage-clear`: 완료 주제, 다음 단계, 증가한 누수 속도 표시
-- `state-game-over`: 물 0% 게임 오버
-- `state-game-clear`: 6단계 완료
-- `state-paused`: 전체 애니메이션과 진행 정지
+- `answer:correct`, `answer:wrong`, `answer:timeout`
+- `toad:speak`
+- `fever:charge`, `fever:start`, `fever:extend`, `fever:end`
+- `water:warning`, `water:critical`
+- `stage:clear`
+- `game:pause`, `game:resume`, `game:over`, `game:clear`
 
-수위 25% 이하에서는 `is-water-low`가 추가되어 상태 문구와 화면 가장자리 위험 효과가 켜지고, 10% 이하에서 `state-water-critical`이 활성화된다.
+점수, 피버 충전량, 정답 판정은 재계산하지 않는다. 이벤트 detail과 엔진 snapshot만
+표시한다.
 
-## 모바일 테스트 결과
+## 상태별 CSS class
 
-- Chrome Headless 320×812 및 375×812 렌더링 확인
-- 게임 장면과 문제 패널이 세로로 배치됨
-- 본문 가로 넘침 없음(헤드리스 DOM 검사에서 `scrollWidth <= innerWidth`)
-- 입력창과 주요 버튼의 최소 높이 52px
-- 320px 화면에서 HUD는 2열, 단계 목록은 내부 가로 스크롤로 동작
+`.is-idle`, `.is-correct`, `.is-wrong`, `.is-pouring`,
+`.is-water-warning`, `.is-water-critical`, `.is-fever`,
+`.is-fever-ending`, `.is-paused`, `.is-game-over`,
+`.is-game-clear`.
 
-## 동작 검증
+## 두꺼비 말풍선
 
-- 정답 제출: `state-answer-correct`, `feedback-correct`, 브라우저 오류 0건
-- 오답 제출: `state-answer-wrong`, `feedback-wrong`, 브라우저 오류 0건
-- Space 일시정지: `state-paused`, `aria-pressed=true`, 브라우저 오류 0건
-- 루트와 직접 게임 문서의 정적 경로 확인
-- JavaScript 문법 검사와 이미지 알파 채널 검사 완료
+`toad:speak`의 `detail.text`만 표시하며 프론트엔드에 대사를 하드코딩하지
+않는다. 새 이벤트는 기존 텍스트와 타이머를 교체한다. 기본 2.2초, 허용 범위
+1.8~2.5초이며 `detail.style`로 normalCorrect, fastCorrect, combo,
+feverStart, feverCorrect, waterCritical, gameClear 스타일을 선택한다.
+`aria-live="polite"`를 제공하고 모바일에서는 최대 폭과 위치를 다시 제한한다.
 
-## 임시 자산
+## 피버 연출
 
-없음. 모든 신규 이미지가 최종 로컬 자산이며 외부 URL에 의존하지 않는다. 오디오는 이번 범위에서 추가하지 않았다.
+피버 게이지는 `fever:charge`의 charge/value/percent와 max를 허용한다.
+`fever:start`와 `fever:extend`는 FEVER 단계, 배율, 남은 시간을 표시한다.
+화면은 금빛 aura, 밝은 물, 강조 테두리로 전환하며 강한 흰색 점멸은 없다.
+`fever:end`에서 짧은 종료 전환 뒤 기본 상태로 복귀한다.
 
-## 백엔드 담당자용 DOM 연동 정보
+## 모바일·접근성 테스트 항목
 
-기존 주요 id를 유지했다.
+- 1열 카드와 select 카테고리
+- 장면 위, 문제 패널 아래 배치
+- 입력·제출 버튼 최소 높이 54px
+- 말풍선 폭과 오른쪽 위치 제한
+- 가로 overflow 방지
+- Enter 제출은 기존 UIAdapter에 위임
+- Space 일시정지, Escape 복귀 확인
+- 명시적인 정답·오답 기호와 텍스트
+- 말풍선 polite, 피버·게임 오버 assertive 상태
+- `prefers-reduced-motion`과 애니메이션 설정 지원
 
-- 상태/HUD: `stageNumber`, `waterValue`, `comboValue`, `scoreValue`, `statusBadge`, `leakRateText`
-- 장면: `visualStage`, `waterVisual`, `splash`, `dangerOverlay`
-- 문제: `categoryLabel`, `questionText`, `timerBadge`, `timeText`, `timeBar`, `answerInput`, `submitButton`, `feedback`
-- 진행: `correctInStage`, `stageProgress`, `stageDescription`, `stageList`
-- 흐름: `startOverlay`, `startButton`, `resultPanel`
+## 남은 임시 자산
 
-새 UI 전용 id는 `ui-` 접두사를 사용한다. 백엔드가 상태를 직접 제어할 경우 `#visualStage`의 `state-*` class를 한 번에 하나만 유지하면 된다.
+오디오 파일은 추가하지 않았다. 배경과 캐릭터는 기존 로컬 PNG를 재사용한다.
+추가 효과음이 생기면 `assets/audio/`의 상대 경로만 사용한다.
 
-명시된 백엔드 담당 파일(`assets/js/game-core.js`, `question-engine.js`, `storage.js`, `ui-adapter.js`, `main.js`, `data/questions.js`, `data/game-config.js`)은 수정하지 않았다. HTML은 백엔드 진입점 `assets/js/main.js`를 모듈로 로드하며, 프론트 연출은 `CustomEvent` 기반 `answer:*`, `water:*`, `stage:clear`, `game:*` 이벤트만 구독한다.
+## Codex 1 통합 확인
+
+현재 저장 스키마에는 훈련별 bestCombo, bestFeverCount, averageSolveTime이 없으므로
+UI는 미래의 `statistics.byTraining[stageId]`를 우선 읽고 없으면 “—”를 표시한다.
+Codex 1이 해당 필드와 fever/toad 이벤트를 제공하면 프론트 변경 없이 즉시 표시된다.
+이벤트의 charge/max, multiplier, remaining 또는 duration 필드 이름을 유지한다.
