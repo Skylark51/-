@@ -1,98 +1,23 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>콩쥐야 줘때써</title>
-  <meta name="description" content="과학 문제를 풀어 새는 장독대의 물을 채우는 고등학교 화학 학습 게임" />
-  <link rel="stylesheet" href="assets/css/game.css" />
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#142c35">
+<meta name="description" content="화학 문제를 풀어 새는 장독대의 물을 채우는 고등학교 화학 학습 게임"><title>콩쥐야 줘때써</title>
+<link rel="stylesheet" href="assets/css/game.css?v=20260727-01">
 </head>
 <body>
-  <main class="app">
-    <header class="header">
-      <div class="title">
-        <h1>콩쥐야 줘때써</h1>
-        <p>과학 문제를 풀어 새는 장독대의 물을 채워라.</p>
-      </div>
-      <div class="badge">고등학교 화학 러프 프로토타입</div>
-    </header>
-
-    <section class="stats">
-      <div class="stat"><small>단계</small><strong><span id="stageNumber">1</span>/6</strong></div>
-      <div class="stat"><small>장독대 물</small><strong><span id="waterValue">70</span>%</strong></div>
-      <div class="stat"><small>연속 정답</small><strong id="comboValue">0</strong></div>
-      <div class="stat"><small>점수</small><strong id="scoreValue">0</strong></div>
-    </section>
-
-    <section class="stages" id="stageList">
-      <span class="stage-pill active">원자 번호</span>
-      <span class="stage-pill">원자량</span>
-      <span class="stage-pill">분자량</span>
-      <span class="stage-pill">몰·질량</span>
-      <span class="stage-pill">산화수</span>
-      <span class="stage-pill">산화·환원</span>
-    </section>
-
-    <section class="layout">
-      <div class="game-stage" id="visualStage">
-        <div class="moon"></div>
-        <div class="cloud"></div>
-        <div class="scene-label">
-          <b id="statusBadge">물이 새고 있다</b>
-          <small>정답을 맞혀 물을 채우세요.</small>
-        </div>
-        <div class="leak-info">
-          <small>누수 속도</small><br>
-          <b id="leakRateText">초당 1.5%</b>
-        </div>
-        <div class="kongjwi">
-          <div class="hair"></div><div class="face"></div><div class="body"></div><div class="name">콩쥐</div>
-        </div>
-        <div class="bucket"></div>
-        <div class="jar-wrap">
-          <div class="jar-rim"></div>
-          <div class="jar"><div class="water" id="waterVisual"></div><div class="hole"></div></div>
-          <div class="toad"><div class="toad-mouth"></div></div>
-          <div class="leak"></div>
-        </div>
-        <div class="splash" id="splash">💧 +20</div>
-        <div class="danger" id="dangerOverlay"></div>
-        <div class="ground"></div>
-      </div>
-
-      <aside class="side">
-        <div class="card">
-          <div class="question-head">
-            <div><small id="categoryLabel">1단계 · 원자 번호</small><h2 id="questionText">원소 기호 Na의 원자 번호는?</h2></div>
-            <div class="timer" id="timerBadge">15초</div>
-          </div>
-          <div class="timer-label"><span>문제 제한 시간</span><span id="timeText">15.0초</span></div>
-          <div class="track"><div class="fill" id="timeBar"></div></div>
-          <label for="answerInput">정답 입력</label>
-          <input id="answerInput" type="text" autocomplete="off" placeholder="숫자 또는 답을 입력하세요">
-          <button class="submit" id="submitButton" type="button">물 붓기</button>
-          <div class="feedback" id="feedback">정답을 맞히면 물이 20% 채워집니다.</div>
-        </div>
-
-        <div class="card">
-          <div class="progress-meta"><b>단계 진행</b><span><span id="correctInStage">0</span>/3 정답</span></div>
-          <div class="track"><div class="fill" id="stageProgress" style="width:0%"></div></div>
-          <p id="stageDescription" style="color:var(--muted);margin-bottom:0;">원소 기호를 보고 원자 번호를 빠르게 입력합니다.</p>
-        </div>
-
-        <div class="card">
-          <b>게임 규칙</b>
-          <ul class="rules"><li>물은 실시간으로 계속 빠집니다.</li><li>정답은 물 +20%, 오답은 물 -8%입니다.</li><li>각 단계에서 3문제를 맞히면 다음 단계로 이동합니다.</li><li>물이 0%가 되면 게임이 종료됩니다.</li></ul>
-        </div>
-      </aside>
-    </section>
-
-    <section class="start-box" id="startOverlay">
-      <div><h3>장독대가 위험하다</h3><p>두꺼비가 몸으로 구멍을 막고 있지만 물이 계속 새고 있다. 과학 문제를 풀어 장독대를 채워라.</p></div>
-      <button class="start-btn" id="startButton" type="button">게임 시작</button>
-    </section>
-    <section class="result hidden" id="resultPanel"></section>
-  </main>
-  <script type="module" src="assets/js/main.js"></script>
-</body>
-</html>
+<a class="skip-link" href="#answerInput">문제로 바로가기</a>
+<main class="game-app" id="ui-gameApp">
+<header class="game-header"><div class="brand-lockup"><span class="brand-seal" aria-hidden="true">化</span><div><p class="eyebrow">KOREAN FOLKTALE CHEMISTRY QUEST</p><h1>콩쥐야 줘때써</h1><p>새는 장독대를 지키며 여섯 화학 관문을 통과하세요.</p></div></div><div class="header-actions"><button id="ui-pauseButton" class="secondary-button" type="button" aria-pressed="false"><span aria-hidden="true">Ⅱ</span> 일시정지</button><button id="ui-restartButton" class="secondary-button" type="button"><span aria-hidden="true">↻</span> 다시 시작</button></div></header>
+<section class="hud" aria-label="게임 현황"><div class="hud-item"><span>현재 단계</span><strong><span id="stageNumber">1</span><small>/ 6</small></strong></div><div class="hud-item water-hud"><span>장독대 물</span><strong><span id="waterValue">70</span><small>%</small></strong><div class="micro-track" aria-hidden="true"><i id="ui-waterMiniBar"></i></div></div><div class="hud-item"><span>연속 정답</span><strong><span id="comboValue">0</span><small> COMBO</small></strong></div><div class="hud-item"><span>현재 점수</span><strong id="scoreValue">0</strong></div></section>
+<nav class="stage-route" id="stageList" aria-label="학습 단계"><span class="stage-pill active"><i>1</i>원자 번호</span><span class="stage-pill"><i>2</i>원자량</span><span class="stage-pill"><i>3</i>분자량</span><span class="stage-pill"><i>4</i>몰·질량</span><span class="stage-pill"><i>5</i>산화수</span><span class="stage-pill"><i>6</i>산화·환원</span></nav>
+<section class="play-layout">
+<section class="scene-panel" aria-label="장독대 마당"><div class="game-stage state-idle" id="visualStage"><div class="scene-vignette" aria-hidden="true"></div><div class="scene-status" aria-live="polite"><span class="status-dot" aria-hidden="true"></span><div><small>현재 상태</small><strong id="statusBadge">물이 새고 있다</strong></div></div><div class="leak-info"><small>누수 속도</small><strong id="leakRateText">초당 1.5%</strong></div>
+<div class="kongjwi" aria-label="바가지를 든 콩쥐"><div class="kongjwi-sprite" aria-hidden="true"></div><span class="character-name">콩쥐</span></div><div class="pour-stream" aria-hidden="true"></div>
+<div class="jar-wrap"><div class="jar-lid" aria-hidden="true"></div><div class="jar-rim" aria-hidden="true"></div><div class="jar"><div class="jar-shine" aria-hidden="true"></div><div class="water" id="waterVisual"><i></i><i></i><i></i></div><div class="hole" aria-label="장독대 구멍"></div></div><div class="toad" aria-label="구멍을 막는 두꺼비"><div class="toad-sprite" aria-hidden="true"></div><span class="toad-emote" aria-hidden="true">휴…</span></div><div class="leak" aria-hidden="true"><i></i><i></i><i></i></div></div>
+<div class="splash" id="splash" aria-live="polite">💧 +20</div><div class="danger" id="dangerOverlay" aria-hidden="true"></div><div class="scene-message" id="ui-sceneMessage" aria-live="assertive"></div><div class="stage-curtain" id="ui-stageCurtain" aria-live="polite"><small>STAGE CLEAR</small><strong id="ui-curtainTitle">원자량</strong><span id="ui-curtainText">누수 속도가 빨라집니다.</span></div><div class="paused-curtain" id="ui-pausedCurtain"><span aria-hidden="true">Ⅱ</span><strong>잠시 숨 고르기</strong><small>Space 또는 계속하기 버튼으로 재개</small></div></div><div class="scene-caption"><span><i class="legend-water"></i> 두꺼비가 막아도 물은 계속 샙니다.</span><span><kbd>Space</kbd> 일시정지 · 재개</span></div></section>
+<aside class="question-panel" aria-label="화학 문제"><section class="question-card"><div class="question-topline"><div><p id="categoryLabel">1단계 · 원자 번호</p><span class="question-type" id="ui-questionType">원소 기호 해석</span></div><div class="timer" id="timerBadge" aria-label="남은 시간">15초</div></div><h2 id="questionText">원소 기호 Na의 원자 번호는?</h2><div class="timer-meta"><span>제한 시간</span><strong id="timeText">15.0초</strong></div><div class="track timer-track"><div class="fill" id="timeBar"></div></div><form id="ui-answerForm" novalidate><label for="answerInput">정답 입력</label><div class="answer-row"><input id="answerInput" type="text" autocomplete="off" placeholder="숫자 또는 답을 입력하세요" aria-describedby="feedback"><button class="submit-button" id="submitButton" type="submit"><span aria-hidden="true">💧</span> 물 붓기</button></div></form><div class="feedback feedback-neutral" id="feedback" role="status" aria-live="polite"><span class="feedback-icon" aria-hidden="true">✦</span><span>정답을 맞히면 장독대에 물이 채워집니다.</span></div></section>
+<section class="progress-card"><div class="progress-meta"><div><small>단계 진행도</small><strong><span id="correctInStage">0</span> / 3 정답</strong></div><span id="ui-stagePercent">0%</span></div><div class="track"><div class="fill stage-fill" id="stageProgress"></div></div><p id="stageDescription">원소 기호를 보고 원자 번호를 빠르게 입력합니다.</p></section><section class="mission-card"><div class="mission-icon" aria-hidden="true">!</div><div><strong>두꺼비의 부탁</strong><p>오답은 물 −8%, 시간 초과는 −10%. 단계가 오를수록 누수가 빨라집니다.</p></div></section><div class="mobile-actions"><button id="ui-mobilePauseButton" class="secondary-button" type="button">Ⅱ 일시정지</button><button id="ui-mobileRestartButton" class="secondary-button" type="button">↻ 다시 시작</button></div></aside></section>
+<section class="start-overlay" id="startOverlay" role="dialog" aria-modal="true" aria-labelledby="ui-startTitle"><div class="start-story"><span class="story-kicker">오늘 밤, 여섯 개의 화학 관문</span><h2 id="ui-startTitle">장독대의 물을 지켜라</h2><p>구멍을 막은 두꺼비도 오래 버티지는 못합니다. 콩쥐와 함께 문제를 풀어 바가지로 물을 채우세요.</p><ul><li><span>01</span> Enter로 정답 제출</li><li><span>02</span> Space로 일시정지</li><li><span>03</span> 물이 0%가 되기 전에 6단계 돌파</li></ul><button class="start-button" id="startButton" type="button">첫 번째 바가지 뜨기 <span>→</span></button></div></section>
+<section class="result-panel hidden" id="resultPanel" role="dialog" aria-modal="true" aria-live="assertive"></section>
+</main><script src="assets/js/frontend-effects.js?v=20260727-02"></script><script type="module" src="assets/js/main.js?v=20260727-02"></script></body></html>
