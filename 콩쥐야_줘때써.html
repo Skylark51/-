@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>콩쥐야 줘때써</title>
+  <meta name="description" content="과학 문제를 풀어 새는 장독대의 물을 채우는 고등학교 화학 학습 게임" />
+  <link rel="stylesheet" href="assets/css/game.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="title">
+        <h1>콩쥐야 줘때써</h1>
+        <p>과학 문제를 풀어 새는 장독대의 물을 채워라.</p>
+      </div>
+      <div class="badge">고등학교 화학 러프 프로토타입</div>
+    </header>
+
+    <section class="stats">
+      <div class="stat"><small>단계</small><strong><span id="stageNumber">1</span>/6</strong></div>
+      <div class="stat"><small>장독대 물</small><strong><span id="waterValue">70</span>%</strong></div>
+      <div class="stat"><small>연속 정답</small><strong id="comboValue">0</strong></div>
+      <div class="stat"><small>점수</small><strong id="scoreValue">0</strong></div>
+    </section>
+
+    <section class="stages" id="stageList">
+      <span class="stage-pill active">원자 번호</span>
+      <span class="stage-pill">원자량</span>
+      <span class="stage-pill">분자량</span>
+      <span class="stage-pill">몰·질량</span>
+      <span class="stage-pill">산화수</span>
+      <span class="stage-pill">산화·환원</span>
+    </section>
+
+    <section class="layout">
+      <div class="game-stage" id="visualStage">
+        <div class="moon"></div>
+        <div class="cloud"></div>
+        <div class="scene-label">
+          <b id="statusBadge">물이 새고 있다</b>
+          <small>정답을 맞혀 물을 채우세요.</small>
+        </div>
+        <div class="leak-info">
+          <small>누수 속도</small><br>
+          <b id="leakRateText">초당 1.5%</b>
+        </div>
+        <div class="kongjwi">
+          <div class="hair"></div><div class="face"></div><div class="body"></div><div class="name">콩쥐</div>
+        </div>
+        <div class="bucket"></div>
+        <div class="jar-wrap">
+          <div class="jar-rim"></div>
+          <div class="jar"><div class="water" id="waterVisual"></div><div class="hole"></div></div>
+          <div class="toad"><div class="toad-mouth"></div></div>
+          <div class="leak"></div>
+        </div>
+        <div class="splash" id="splash">💧 +20</div>
+        <div class="danger" id="dangerOverlay"></div>
+        <div class="ground"></div>
+      </div>
+
+      <aside class="side">
+        <div class="card">
+          <div class="question-head">
+            <div><small id="categoryLabel">1단계 · 원자 번호</small><h2 id="questionText">원소 기호 Na의 원자 번호는?</h2></div>
+            <div class="timer" id="timerBadge">15초</div>
+          </div>
+          <div class="timer-label"><span>문제 제한 시간</span><span id="timeText">15.0초</span></div>
+          <div class="track"><div class="fill" id="timeBar"></div></div>
+          <label for="answerInput">정답 입력</label>
+          <input id="answerInput" type="text" autocomplete="off" placeholder="숫자 또는 답을 입력하세요">
+          <button class="submit" id="submitButton" type="button">물 붓기</button>
+          <div class="feedback" id="feedback">정답을 맞히면 물이 20% 채워집니다.</div>
+        </div>
+
+        <div class="card">
+          <div class="progress-meta"><b>단계 진행</b><span><span id="correctInStage">0</span>/3 정답</span></div>
+          <div class="track"><div class="fill" id="stageProgress" style="width:0%"></div></div>
+          <p id="stageDescription" style="color:var(--muted);margin-bottom:0;">원소 기호를 보고 원자 번호를 빠르게 입력합니다.</p>
+        </div>
+
+        <div class="card">
+          <b>게임 규칙</b>
+          <ul class="rules"><li>물은 실시간으로 계속 빠집니다.</li><li>정답은 물 +20%, 오답은 물 -8%입니다.</li><li>각 단계에서 3문제를 맞히면 다음 단계로 이동합니다.</li><li>물이 0%가 되면 게임이 종료됩니다.</li></ul>
+        </div>
+      </aside>
+    </section>
+
+    <section class="start-box" id="startOverlay">
+      <div><h3>장독대가 위험하다</h3><p>두꺼비가 몸으로 구멍을 막고 있지만 물이 계속 새고 있다. 과학 문제를 풀어 장독대를 채워라.</p></div>
+      <button class="start-btn" id="startButton" type="button">게임 시작</button>
+    </section>
+    <section class="result hidden" id="resultPanel"></section>
+  </main>
+  <script src="data/questions.js"></script>
+  <script src="assets/js/game.js"></script>
+</body>
+</html>
