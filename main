@@ -1,1 +1,1074 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>콩쥐야 줘때써</title>
+  <style>
+    :root {
+      --bg: #151c27;
+      --panel: #202a39;
+      --panel2: #2a3546;
+      --text: #f4f7fb;
+      --muted: #aab6c8;
+      --border: #435066;
+      --accent: #43a6df;
+      --accent2: #83d8ff;
+      --danger: #e85d65;
+      --success: #6fcf97;
+      --jar: #815d43;
+      --jar-dark: #4f382a;
+      --toad: #688c55;
+      --ground: #4f4539;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 50% 0%, #26354b 0%, transparent 38%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
+    }
+
+    button, input { font: inherit; }
+
+    .app {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 36px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: clamp(30px, 5vw, 56px);
+      letter-spacing: -0.05em;
+    }
+
+    .title p {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: var(--accent2);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 13px 15px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .stat strong {
+      font-size: 24px;
+    }
+
+    .stages {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .stage-pill {
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 14px;
+    }
+
+    .stage-pill.active {
+      color: white;
+      background: #235e7f;
+      border-color: var(--accent);
+    }
+
+    .stage-pill.done {
+      color: #d9ffe8;
+      border-color: var(--success);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(330px, .85fr);
+      gap: 14px;
+    }
+
+    .game-stage {
+      min-height: 560px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 70% 10%, rgba(91, 161, 219, .16), transparent 30%),
+        linear-gradient(#172333 0 53%, #394033 53% 100%);
+    }
+
+    .moon {
+      position: absolute;
+      right: 46px;
+      top: 46px;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: #d8dfbc;
+      box-shadow: 0 0 40px rgba(216, 223, 188, .18);
+      opacity: .8;
+    }
+
+    .cloud {
+      position: absolute;
+      top: 54px;
+      left: 12%;
+      width: 170px;
+      height: 50px;
+      border-radius: 999px;
+      background: rgba(175, 188, 202, .18);
+      box-shadow: 65px 14px 0 rgba(175, 188, 202, .13);
+    }
+
+    .ground {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 150px;
+      background:
+        repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 14px, transparent 14px 28px),
+        var(--ground);
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+
+    .scene-label {
+      position: absolute;
+      z-index: 20;
+      top: 18px;
+      left: 18px;
+      background: rgba(21, 28, 39, .78);
+      border: 1px solid var(--border);
+      padding: 9px 12px;
+      border-radius: 12px;
+      backdrop-filter: blur(6px);
+    }
+
+    .scene-label b { display: block; }
+    .scene-label small { color: var(--muted); }
+
+    .leak-info {
+      position: absolute;
+      z-index: 20;
+      top: 18px;
+      right: 18px;
+      text-align: right;
+      background: rgba(21, 28, 39, .78);
+      border: 1px solid var(--border);
+      padding: 9px 12px;
+      border-radius: 12px;
+    }
+
+    .leak-info small { color: var(--muted); }
+
+    .kongjwi {
+      position: absolute;
+      left: 8%;
+      bottom: 125px;
+      width: 110px;
+      z-index: 8;
+      text-align: center;
+    }
+
+    .kongjwi .hair {
+      width: 61px;
+      height: 36px;
+      margin: auto;
+      background: #191718;
+      border-radius: 60% 60% 30% 30%;
+      transform: translateY(12px);
+    }
+
+    .kongjwi .face {
+      width: 57px;
+      height: 58px;
+      margin: auto;
+      border-radius: 45%;
+      background: #e5b99b;
+      border: 3px solid #2c2525;
+      position: relative;
+    }
+
+    .kongjwi .face::before,
+    .kongjwi .face::after {
+      content: "";
+      position: absolute;
+      top: 24px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #2b2525;
+    }
+    .kongjwi .face::before { left: 15px; }
+    .kongjwi .face::after { right: 15px; }
+
+    .kongjwi .body {
+      width: 90px;
+      height: 115px;
+      margin: -2px auto 0;
+      background: #be657e;
+      border: 4px solid #593846;
+      border-radius: 38% 38% 12% 12%;
+      position: relative;
+    }
+
+    .kongjwi .body::after {
+      content: "";
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      top: 47px;
+      height: 9px;
+      background: #f2c35a;
+    }
+
+    .kongjwi .name {
+      margin-top: 7px;
+      font-weight: 800;
+      text-shadow: 0 2px 3px #000;
+    }
+
+    .bucket {
+      position: absolute;
+      left: 20%;
+      bottom: 102px;
+      width: 80px;
+      height: 64px;
+      background: #6d7d91;
+      border: 5px solid #26303c;
+      border-radius: 8px 8px 19px 19px;
+      z-index: 5;
+    }
+
+    .bucket::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: -44px;
+      width: 52px;
+      height: 48px;
+      border: 5px solid #26303c;
+      border-bottom: none;
+      border-radius: 50% 50% 0 0;
+    }
+
+    .jar-wrap {
+      position: absolute;
+      z-index: 6;
+      left: 57%;
+      bottom: 92px;
+      width: 255px;
+      height: 330px;
+      transform: translateX(-50%);
+    }
+
+    .jar-rim {
+      position: absolute;
+      top: 8px;
+      left: 36px;
+      width: 184px;
+      height: 56px;
+      border-radius: 50%;
+      border: 9px solid var(--jar-dark);
+      background: #1b2430;
+      z-index: 6;
+    }
+
+    .jar {
+      position: absolute;
+      top: 36px;
+      left: 24px;
+      width: 207px;
+      height: 280px;
+      overflow: hidden;
+      border: 9px solid var(--jar-dark);
+      border-radius: 34% 34% 28% 28% / 16% 16% 38% 38%;
+      background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 12px, transparent 12px 24px),
+        var(--jar);
+    }
+
+    .water {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 70%;
+      background:
+        repeating-radial-gradient(ellipse at 30% 0%, rgba(255,255,255,.22) 0 4px, transparent 5px 18px),
+        linear-gradient(#71d4ff, #2489bf);
+      transition: height .15s linear;
+    }
+
+    .water::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: -5%;
+      width: 110%;
+      height: 21px;
+      border-radius: 50%;
+      background: #83ddff;
+      animation: wave 1.1s ease-in-out infinite alternate;
+    }
+
+    .hole {
+      position: absolute;
+      right: -2px;
+      bottom: 42px;
+      width: 37px;
+      height: 48px;
+      border-radius: 50%;
+      background: #101720;
+      transform: rotate(-15deg);
+      z-index: 8;
+    }
+
+    .toad {
+      position: absolute;
+      right: -40px;
+      bottom: 29px;
+      width: 110px;
+      height: 80px;
+      background: var(--toad);
+      border: 4px solid #31432b;
+      border-radius: 52% 52% 44% 44%;
+      z-index: 9;
+      animation: breathe .8s ease-in-out infinite alternate;
+    }
+
+    .toad::before, .toad::after {
+      content: "";
+      position: absolute;
+      top: 9px;
+      width: 24px;
+      height: 24px;
+      background: #eff2d2;
+      border: 3px solid #31432b;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 7px #1b2219;
+    }
+
+    .toad::before { left: 17px; }
+    .toad::after { right: 17px; }
+
+    .toad-mouth {
+      position: absolute;
+      left: 28px;
+      bottom: 15px;
+      width: 50px;
+      height: 12px;
+      border-bottom: 4px solid #273822;
+      border-radius: 50%;
+    }
+
+    .leak {
+      position: absolute;
+      z-index: 7;
+      right: -38px;
+      bottom: 9px;
+      width: 9px;
+      height: 110px;
+      background: linear-gradient(#7cdbff, transparent);
+      border-radius: 999px;
+      animation: leak .55s linear infinite;
+    }
+
+    .splash {
+      display: none;
+      position: absolute;
+      z-index: 30;
+      left: 57%;
+      top: 110px;
+      transform: translateX(-50%);
+      font-size: 36px;
+      font-weight: 900;
+      text-shadow: 0 3px 4px #000;
+    }
+
+    .danger {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border: 0 solid rgba(232, 93, 101, .75);
+      transition: border-width .2s;
+      z-index: 40;
+    }
+
+    .side {
+      display: grid;
+      gap: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .question-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .question-head small {
+      color: var(--muted);
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .question-head h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.4;
+    }
+
+    .timer {
+      padding: 7px 10px;
+      border-radius: 999px;
+      color: var(--accent2);
+      border: 1px solid var(--accent);
+      white-space: nowrap;
+      font-weight: 800;
+    }
+
+    .track {
+      height: 10px;
+      background: #111925;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width .12s linear;
+    }
+
+    .timer-label {
+      display: flex;
+      justify-content: space-between;
+      margin: 18px 0 7px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      font-weight: 800;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      color: var(--text);
+      background: #111925;
+      border: 1px solid var(--border);
+      outline: none;
+    }
+
+    input:focus { border-color: var(--accent); }
+
+    .submit {
+      width: 100%;
+      margin-top: 10px;
+      padding: 14px;
+      color: white;
+      background: linear-gradient(135deg, #288bc0, #176f9f);
+      border: none;
+      border-radius: 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .submit:hover { filter: brightness(1.08); }
+    .submit:disabled { opacity: .45; cursor: not-allowed; }
+
+    .feedback {
+      min-height: 58px;
+      margin-top: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--panel2);
+      padding: 12px;
+      color: var(--muted);
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 9px;
+    }
+
+    .progress-meta span { color: var(--muted); }
+
+    .rules {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .start-box, .result {
+      margin-top: 14px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel);
+    }
+
+    .start-box {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .start-box h3, .result h3 { margin: 0 0 7px; }
+    .start-box p, .result p { margin: 0; color: var(--muted); }
+
+    .start-btn, .restart-btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 13px 20px;
+      color: white;
+      background: linear-gradient(135deg, #288bc0, #176f9f);
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .hidden { display: none !important; }
+
+    .shake { animation: shake .25s linear; }
+
+    @keyframes wave {
+      from { transform: translateX(-7px) scaleY(.85); }
+      to { transform: translateX(7px) scaleY(1.08); }
+    }
+
+    @keyframes breathe {
+      from { transform: scale(.96); }
+      to { transform: scale(1.03); }
+    }
+
+    @keyframes leak {
+      from { transform: translateY(0) scaleY(.55); opacity: .85; }
+      to { transform: translateY(55px) scaleY(1.35); opacity: 0; }
+    }
+
+    @keyframes splash {
+      0% { transform: translate(-50%, 25px) scale(.5); opacity: 0; }
+      35% { opacity: 1; }
+      100% { transform: translate(-50%, -30px) scale(1.35); opacity: 0; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; }
+      .game-stage { min-height: 500px; }
+    }
+
+    @media (max-width: 620px) {
+      .header { align-items: flex-start; flex-direction: column; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .game-stage { min-height: 450px; }
+      .jar-wrap { transform: translateX(-50%) scale(.8); transform-origin: bottom; }
+      .kongjwi { transform: scale(.78); transform-origin: bottom left; left: 2%; }
+      .bucket { transform: scale(.8); left: 18%; }
+      .start-box { flex-direction: column; align-items: stretch; }
+      .start-btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="title">
+        <h1>콩쥐야 줘때써</h1>
+        <p>과학 문제를 풀어 새는 장독대의 물을 채워라.</p>
+      </div>
+      <div class="badge">고등학교 화학 러프 프로토타입</div>
+    </header>
+
+    <section class="stats">
+      <div class="stat"><small>단계</small><strong><span id="stageNumber">1</span>/6</strong></div>
+      <div class="stat"><small>장독대 물</small><strong><span id="waterValue">70</span>%</strong></div>
+      <div class="stat"><small>연속 정답</small><strong id="comboValue">0</strong></div>
+      <div class="stat"><small>점수</small><strong id="scoreValue">0</strong></div>
+    </section>
+
+    <section class="stages" id="stageList">
+      <span class="stage-pill active">원자 번호</span>
+      <span class="stage-pill">원자량</span>
+      <span class="stage-pill">분자량</span>
+      <span class="stage-pill">몰·질량</span>
+      <span class="stage-pill">산화수</span>
+      <span class="stage-pill">산화·환원</span>
+    </section>
+
+    <section class="layout">
+      <div class="game-stage" id="visualStage">
+        <div class="moon"></div>
+        <div class="cloud"></div>
+        <div class="scene-label">
+          <b id="statusBadge">물이 새고 있다</b>
+          <small>정답을 맞혀 물을 채우세요.</small>
+        </div>
+        <div class="leak-info">
+          <small>누수 속도</small><br>
+          <b id="leakRateText">초당 1.5%</b>
+        </div>
+
+        <div class="kongjwi">
+          <div class="hair"></div>
+          <div class="face"></div>
+          <div class="body"></div>
+          <div class="name">콩쥐</div>
+        </div>
+
+        <div class="bucket"></div>
+
+        <div class="jar-wrap">
+          <div class="jar-rim"></div>
+          <div class="jar">
+            <div class="water" id="waterVisual"></div>
+            <div class="hole"></div>
+          </div>
+          <div class="toad"><div class="toad-mouth"></div></div>
+          <div class="leak"></div>
+        </div>
+
+        <div class="splash" id="splash">💧 +20</div>
+        <div class="danger" id="dangerOverlay"></div>
+        <div class="ground"></div>
+      </div>
+
+      <aside class="side">
+        <div class="card">
+          <div class="question-head">
+            <div>
+              <small id="categoryLabel">1단계 · 원자 번호</small>
+              <h2 id="questionText">원소 기호 Na의 원자 번호는?</h2>
+            </div>
+            <div class="timer" id="timerBadge">15초</div>
+          </div>
+
+          <div class="timer-label">
+            <span>문제 제한 시간</span>
+            <span id="timeText">15.0초</span>
+          </div>
+          <div class="track"><div class="fill" id="timeBar"></div></div>
+
+          <label for="answerInput">정답 입력</label>
+          <input id="answerInput" type="text" autocomplete="off" placeholder="숫자 또는 답을 입력하세요">
+
+          <button class="submit" id="submitButton" type="button">물 붓기</button>
+
+          <div class="feedback" id="feedback">정답을 맞히면 물이 20% 채워집니다.</div>
+        </div>
+
+        <div class="card">
+          <div class="progress-meta">
+            <b>단계 진행</b>
+            <span><span id="correctInStage">0</span>/3 정답</span>
+          </div>
+          <div class="track"><div class="fill" id="stageProgress" style="width:0%"></div></div>
+          <p id="stageDescription" style="color:var(--muted); margin-bottom:0;">원소 기호를 보고 원자 번호를 빠르게 입력합니다.</p>
+        </div>
+
+        <div class="card">
+          <b>게임 규칙</b>
+          <ul class="rules">
+            <li>물은 실시간으로 계속 빠집니다.</li>
+            <li>정답은 물 +20%, 오답은 물 -8%입니다.</li>
+            <li>각 단계에서 3문제를 맞히면 다음 단계로 이동합니다.</li>
+            <li>물이 0%가 되면 게임이 종료됩니다.</li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+
+    <section class="start-box" id="startOverlay">
+      <div>
+        <h3>장독대가 위험하다</h3>
+        <p>두꺼비가 몸으로 구멍을 막고 있지만 물이 계속 새고 있다. 과학 문제를 풀어 장독대를 채워라.</p>
+      </div>
+      <button class="start-btn" id="startButton" type="button">게임 시작</button>
+    </section>
+
+    <section class="result hidden" id="resultPanel"></section>
+  </main>
+
+  <script>
+    const stages = [
+      {
+        name: "원자 번호",
+        description: "원소 기호를 보고 원자 번호를 빠르게 입력합니다.",
+        leak: 1.5, time: 15,
+        questions: [
+          { q: "원소 기호 Na의 원자 번호는?", a: ["11"] },
+          { q: "원소 기호 O의 원자 번호는?", a: ["8"] },
+          { q: "원소 기호 Fe의 원자 번호는?", a: ["26"] },
+          { q: "원소 기호 Cl의 원자 번호는?", a: ["17"] },
+          { q: "원소 기호 Ca의 원자 번호는?", a: ["20"] }
+        ]
+      },
+      {
+        name: "원자량",
+        description: "주기율표에서 자주 사용하는 근사 원자량을 입력합니다.",
+        leak: 1.8, time: 15,
+        questions: [
+          { q: "탄소 C의 근사 원자량은?", a: ["12"] },
+          { q: "산소 O의 근사 원자량은?", a: ["16"] },
+          { q: "나트륨 Na의 근사 원자량은?", a: ["23"] },
+          { q: "염소 Cl의 근사 원자량은?", a: ["35.5", "35.45"] },
+          { q: "칼슘 Ca의 근사 원자량은?", a: ["40"] }
+        ]
+      },
+      {
+        name: "분자량",
+        description: "화학식에 포함된 원자의 원자량을 합산합니다.",
+        leak: 2.1, time: 18,
+        questions: [
+          { q: "H₂O의 분자량은? (H=1, O=16)", a: ["18"] },
+          { q: "CO₂의 분자량은? (C=12, O=16)", a: ["44"] },
+          { q: "NH₃의 분자량은? (N=14, H=1)", a: ["17"] },
+          { q: "CH₄의 분자량은? (C=12, H=1)", a: ["16"] },
+          { q: "O₂의 분자량은?", a: ["32"] }
+        ]
+      },
+      {
+        name: "몰·질량",
+        description: "몰수, 몰질량, 질량의 관계를 계산합니다.",
+        leak: 2.4, time: 22,
+        questions: [
+          { q: "물 H₂O 2 mol의 질량은? (몰질량 18 g/mol)", a: ["36", "36g", "36 g"] },
+          { q: "CO₂ 44 g은 몇 mol인가?", a: ["1", "1mol", "1 mol"] },
+          { q: "산소 O₂ 0.5 mol의 질량은?", a: ["16", "16g", "16 g"] },
+          { q: "NaCl 117 g은 몇 mol인가? (몰질량 58.5 g/mol)", a: ["2", "2mol", "2 mol"] },
+          { q: "탄소 C 3 mol의 질량은?", a: ["36", "36g", "36 g"] }
+        ]
+      },
+      {
+        name: "산화수",
+        description: "화합물 속 원소의 산화수를 판단합니다.",
+        leak: 2.7, time: 18,
+        questions: [
+          { q: "H₂O에서 O의 산화수는?", a: ["-2", "−2"] },
+          { q: "NaCl에서 Na의 산화수는?", a: ["+1", "1"] },
+          { q: "CO₂에서 C의 산화수는?", a: ["+4", "4"] },
+          { q: "O₂에서 O의 산화수는?", a: ["0"] },
+          { q: "NH₃에서 N의 산화수는?", a: ["-3", "−3"] }
+        ]
+      },
+      {
+        name: "산화·환원",
+        description: "산화수 변화와 전자 이동으로 산화와 환원을 구분합니다.",
+        leak: 3.0, time: 18,
+        questions: [
+          { q: "Fe → Fe²⁺ + 2e⁻ : Fe는 산화 또는 환원?", a: ["산화"] },
+          { q: "Cu²⁺ + 2e⁻ → Cu : Cu²⁺는 산화 또는 환원?", a: ["환원"] },
+          { q: "산화수가 증가하면 산화 또는 환원?", a: ["산화"] },
+          { q: "전자를 얻는 반응은 산화 또는 환원?", a: ["환원"] },
+          { q: "환원제 자신은 산화 또는 환원되는가?", a: ["산화"] }
+        ]
+      }
+    ];
+
+    const state = {
+      running: false, ended: false, stage: 0, correctInStage: 0,
+      water: 70, score: 0, combo: 0, question: null,
+      timeLeft: 15, lastTick: 0, usedIndexes: []
+    };
+
+    const $ = id => document.getElementById(id);
+    const els = {
+      stageNumber: $("stageNumber"), waterValue: $("waterValue"),
+      comboValue: $("comboValue"), scoreValue: $("scoreValue"),
+      waterVisual: $("waterVisual"), questionText: $("questionText"),
+      categoryLabel: $("categoryLabel"), stageDescription: $("stageDescription"),
+      timeText: $("timeText"), timeBar: $("timeBar"), timerBadge: $("timerBadge"),
+      answerInput: $("answerInput"), feedback: $("feedback"),
+      correctInStage: $("correctInStage"), stageProgress: $("stageProgress"),
+      stageList: $("stageList"), leakRateText: $("leakRateText"),
+      statusBadge: $("statusBadge"), dangerOverlay: $("dangerOverlay"),
+      splash: $("splash"), visualStage: $("visualStage"),
+      resultPanel: $("resultPanel"), submitButton: $("submitButton")
+    };
+
+    function normalize(value) {
+      return value.trim().toLowerCase().replaceAll("−", "-").replaceAll(" ", "");
+    }
+
+    function currentStage() { return stages[state.stage]; }
+
+    function selectQuestion() {
+      const items = currentStage().questions;
+      if (state.usedIndexes.length >= items.length) state.usedIndexes = [];
+
+      let index;
+      do {
+        index = Math.floor(Math.random() * items.length);
+      } while (state.usedIndexes.includes(index));
+
+      state.usedIndexes.push(index);
+      state.question = items[index];
+      state.timeLeft = currentStage().time;
+      els.questionText.textContent = state.question.q;
+      els.answerInput.value = "";
+      els.answerInput.focus();
+    }
+
+    function updateStageUI() {
+      const stage = currentStage();
+      els.stageNumber.textContent = state.stage + 1;
+      els.categoryLabel.textContent = `${state.stage + 1}단계 · ${stage.name}`;
+      els.stageDescription.textContent = stage.description;
+      els.correctInStage.textContent = state.correctInStage;
+      els.stageProgress.style.width = `${state.correctInStage / 3 * 100}%`;
+      els.leakRateText.textContent = `초당 ${stage.leak.toFixed(1)}%`;
+
+      [...els.stageList.children].forEach((pill, index) => {
+        pill.classList.toggle("active", index === state.stage);
+        pill.classList.toggle("done", index < state.stage);
+      });
+    }
+
+    function updateStatus() {
+      const stage = currentStage();
+      state.water = Math.max(0, Math.min(100, state.water));
+
+      els.waterValue.textContent = Math.round(state.water);
+      els.comboValue.textContent = state.combo;
+      els.scoreValue.textContent = state.score;
+      els.waterVisual.style.height = `${state.water}%`;
+      els.timeText.textContent = `${Math.max(0, state.timeLeft).toFixed(1)}초`;
+      els.timerBadge.textContent = `${Math.ceil(Math.max(0, state.timeLeft))}초`;
+      els.timeBar.style.width = `${Math.max(0, state.timeLeft / stage.time) * 100}%`;
+
+      if (state.water < 25) {
+        els.statusBadge.textContent = "장독대 붕괴 직전";
+        els.dangerOverlay.style.borderWidth = "9px";
+      } else if (state.water < 50) {
+        els.statusBadge.textContent = "두꺼비가 힘들어한다";
+        els.dangerOverlay.style.borderWidth = "4px";
+      } else {
+        els.statusBadge.textContent = "물이 새고 있다";
+        els.dangerOverlay.style.borderWidth = "0";
+      }
+    }
+
+    function showSplash(text) {
+      els.splash.textContent = text;
+      els.splash.style.display = "block";
+      els.splash.style.animation = "none";
+      void els.splash.offsetWidth;
+      els.splash.style.animation = "splash .7s ease-out";
+      setTimeout(() => els.splash.style.display = "none", 700);
+    }
+
+    function submitAnswer() {
+      if (!state.running || state.ended) return;
+
+      const value = normalize(els.answerInput.value);
+      if (!value) {
+        els.feedback.textContent = "정답을 입력하십시오.";
+        return;
+      }
+
+      const correct = state.question.a.some(answer => normalize(answer) === value);
+
+      if (correct) {
+        state.combo += 1;
+        state.score += 100 + state.combo * 20 + Math.round(state.timeLeft * 5);
+        state.water = Math.min(100, state.water + 20);
+        state.correctInStage += 1;
+        els.feedback.innerHTML = `<b style="color:var(--success)">정답.</b> 물을 20% 채웠습니다. 연속 정답 ${state.combo}회.`;
+        showSplash("💧 +20");
+
+        if (state.correctInStage >= 3) {
+          advanceStage();
+          return;
+        }
+      } else {
+        state.combo = 0;
+        state.water -= 8;
+        els.feedback.innerHTML = `<b style="color:var(--danger)">오답.</b> 정답은 ${state.question.a[0]}입니다. 물이 8% 더 빠졌습니다.`;
+        els.visualStage.classList.remove("shake");
+        void els.visualStage.offsetWidth;
+        els.visualStage.classList.add("shake");
+      }
+
+      updateStatus();
+      setTimeout(selectQuestion, 500);
+    }
+
+    function advanceStage() {
+      state.score += 500;
+      state.correctInStage = 0;
+      state.usedIndexes = [];
+      state.water = Math.min(100, state.water + 12);
+
+      if (state.stage >= stages.length - 1) {
+        finishGame(true);
+        return;
+      }
+
+      state.stage += 1;
+      els.feedback.innerHTML = `<b>${currentStage().name} 단계 진입.</b> 누수 속도가 더 빨라집니다.`;
+      updateStageUI();
+      updateStatus();
+      setTimeout(selectQuestion, 650);
+    }
+
+    function finishGame(success) {
+      state.running = false;
+      state.ended = true;
+      els.answerInput.disabled = true;
+      els.submitButton.disabled = true;
+      els.resultPanel.classList.remove("hidden");
+
+      if (success) {
+        state.water = 100;
+        els.statusBadge.textContent = "장독대 구조 성공";
+        updateStatus();
+        els.resultPanel.innerHTML = `
+          <h3>임무 성공</h3>
+          <p>원자 번호부터 산화·환원까지 모든 단계를 통과했습니다.</p>
+          <p style="margin-top:8px;color:white;font-weight:800">최종 점수: ${state.score}점</p>
+          <button class="restart-btn" id="restartButton" type="button" style="margin-top:12px">다시 시작</button>
+        `;
+      } else {
+        els.statusBadge.textContent = "두꺼비 탈진";
+        els.resultPanel.innerHTML = `
+          <h3>장독대의 물이 모두 빠졌습니다.</h3>
+          <p>도달 단계: ${state.stage + 1}단계 ${currentStage().name}</p>
+          <p style="margin-top:8px;color:white;font-weight:800">최종 점수: ${state.score}점</p>
+          <button class="restart-btn" id="restartButton" type="button" style="margin-top:12px">다시 도전</button>
+        `;
+      }
+
+      $("restartButton").addEventListener("click", resetGame);
+    }
+
+    function resetGame() {
+      Object.assign(state, {
+        running: true, ended: false, stage: 0, correctInStage: 0,
+        water: 70, score: 0, combo: 0, question: null,
+        timeLeft: 15, lastTick: performance.now(), usedIndexes: []
+      });
+
+      els.answerInput.disabled = false;
+      els.submitButton.disabled = false;
+      els.resultPanel.classList.add("hidden");
+      els.feedback.textContent = "정답을 맞히면 물이 20% 채워집니다.";
+      updateStageUI();
+      selectQuestion();
+      updateStatus();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function gameLoop(timestamp) {
+      if (!state.running || state.ended) return;
+
+      const delta = Math.min(.1, (timestamp - state.lastTick) / 1000);
+      state.lastTick = timestamp;
+      state.water -= currentStage().leak * delta;
+      state.timeLeft -= delta;
+
+      if (state.timeLeft <= 0) {
+        state.combo = 0;
+        state.water -= 10;
+        els.feedback.innerHTML = `<b style="color:var(--danger)">시간 초과.</b> 정답은 ${state.question.a[0]}입니다.`;
+        selectQuestion();
+      }
+
+      if (state.water <= 0) {
+        state.water = 0;
+        updateStatus();
+        finishGame(false);
+        return;
+      }
+
+      updateStatus();
+      requestAnimationFrame(gameLoop);
+    }
+
+    els.submitButton.addEventListener("click", submitAnswer);
+    els.answerInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") submitAnswer();
+    });
+
+    $("startButton").addEventListener("click", () => {
+      $("startOverlay").classList.add("hidden");
+      state.running = true;
+      state.lastTick = performance.now();
+      updateStageUI();
+      selectQuestion();
+      updateStatus();
+      requestAnimationFrame(gameLoop);
+    });
+
+    updateStageUI();
+    updateStatus();
+  </script>
+</body>
+</html>
 
