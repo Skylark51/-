@@ -9,8 +9,8 @@
   <meta property="og:title" content="콩쥐야 줘때써 - 화학편">
   <meta name="twitter:title" content="콩쥐야 줘때써 - 화학편">
   <title>콩쥐야 줘때써 - 화학편</title>
-  <link rel="stylesheet" href="assets/css/game.css?v=20260728-02">
-  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260728-03">
+  <link rel="stylesheet" href="assets/css/game.css?v=20260728-03">
+  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260728-07">
 </head>
 <body>
   <a class="skip-link" href="#answerInput">문제로 바로가기</a>
@@ -22,6 +22,9 @@
     </header>
 
     <section class="play-layout">
+      <section class="mobile-compact-shell" id="ui-mobileCompact" aria-label="모바일 게임 현황">
+        <div class="mobile-compact-bar"><button id="ui-compactHome" type="button" aria-label="장독대 고르기">‹</button><strong id="ui-compactTraining">원자 번호</strong><span id="ui-compactDifficulty">보통</span><button id="ui-compactPause" type="button" aria-label="일시정지">Ⅱ</button></div>
+      </section>
       <section class="scene-panel" aria-label="콩쥐의 장독대">
         <div class="game-stage" id="visualStage">
           <div class="scene-vignette" aria-hidden="true"></div>
@@ -81,6 +84,6 @@
     <form method="dialog"><p class="eyebrow">PAUSED</p><h2 id="exitTitle">장독대 채우기를 멈출까요?</h2><p>진행 상태는 브라우저에 안전하게 저장됩니다.</p><div class="dialog-actions"><button id="continueButton" class="primary-button" value="cancel">계속하기</button><button id="confirmHomeButton" class="danger-button" value="home">메인으로</button></div></form>
   </dialog>
 
-  <script type="module" src="assets/js/ui-effects.js?v=20260728-03"></script>
+  <script type="module" src="assets/js/ui-effects.js?v=20260728-04"></script>
 </body>
 </html>

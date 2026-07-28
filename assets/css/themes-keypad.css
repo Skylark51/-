@@ -92,3 +92,12 @@ html[data-device-layout="mobile"] .splash{left:46%;top:31%}
 .result-panel{gap:10px}.result-panel .result-home-button{margin-left:8px;background:#183f49;color:#fff;border:1px solid var(--line)}
 @media(max-width:360px){html[data-device-layout="mobile"] .game-stage{min-height:270px!important;height:270px}html[data-device-layout="mobile"] .kongjwi{width:45%;height:72%}html[data-device-layout="mobile"] .jar-wrap{left:57%;bottom:-18px;transform:translateX(-50%) scale(.45)!important}.keypad-keys.is-numeric button{min-height:50px}}
 @media(orientation:landscape) and (max-height:600px){html[data-device-layout="mobile"] .play-layout{display:flex!important}html[data-device-layout="mobile"] .game-stage{min-height:260px!important;height:260px}html[data-device-layout="mobile"] .mobile-keypad{max-height:none;overflow:visible}.keypad-keys.is-numeric button{min-height:48px}}
+html[data-device-layout="mobile"] .mobile-one-screen .mobile-keypad{order:initial!important}
+html[data-device-layout="mobile"] .mobile-one-screen .kongjwi{bottom:0}
+@media(orientation:portrait){html[data-device-layout="mobile"] .mobile-one-screen .play-layout{grid-template-rows:auto minmax(0,66fr) minmax(105px,34fr)}html[data-device-layout="mobile"] .mobile-one-screen .question-panel{grid-row:2;order:initial}html[data-device-layout="mobile"] .mobile-one-screen .scene-panel{grid-row:3;order:initial}}
+html[data-device-layout="mobile"] .mobile-one-screen .play-layout{grid-template-rows:auto minmax(0,66fr) minmax(105px,34fr)}
+html[data-device-layout="mobile"] .mobile-one-screen .question-panel{grid-row:2!important;order:initial}
+html[data-device-layout="mobile"] .mobile-one-screen .scene-panel{grid-row:3!important;order:initial}
+@media(orientation:landscape) and (max-height:600px){html[data-device-layout="mobile"] .mobile-one-screen .question-panel,html[data-device-layout="mobile"] .mobile-one-screen .scene-panel{grid-row:2!important}}
+html[data-device-layout="mobile"] .mobile-one-screen .play-layout{display:grid!important}
+html[data-device-layout="mobile"] .mobile-one-screen .question-card{grid-template-rows:auto auto 4px minmax(0,1fr) auto}
