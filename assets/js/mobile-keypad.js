@@ -1,4 +1,4 @@
-﻿const NUMBERS=["1","2","3","4","5","6","7","8","9",".","0"];
+const NUMBERS=["1","2","3","4","5","6","7","8","9",".","0"];
 const SIGNED=["+","-","1","2","3","4","5","6","7","8","0"];
 const mobile=()=>document.documentElement.dataset.deviceLayout==="mobile";
 
@@ -20,5 +20,3 @@ export function mountMobileKeypad({api,form,input,anchor=form}={}){
  addEventListener("question:changed",render);addEventListener("ui:device-mode",render);input.addEventListener("input",showValue);render();
  return{panel,render,destroy(){panel.remove()}};
 }
-
-
