@@ -1,9 +1,9 @@
 import{TRAINING_MODES,getTrainingMode}from"../../data/training-modes.js";
 import{GameStorage}from"./storage.js";
-import{applyDeviceMode,getDeviceMode,mountDeviceControls}from"./device-entry.js";
+import{applyDeviceMode,getDeviceMode,mountDeviceControls}from"./device-entry.js?v=20260728-04";
 import{initActionEffects}from"./action-effects.js";
 import{GAME_TITLE,displayJarName,applyJarTheme,createJarPreview}from"./theme-system.js";
-import{mountMobileKeypad}from"./mobile-keypad.js";
+import{mountMobileKeypad}from"./mobile-keypad.js?v=20260728-04";
 const PAGE=document.documentElement.dataset.page,SELECTION_KEY="kongjuiya-training-selection",storage=new GameStorage(),$=id=>document.getElementById(id),number=value=>Number(value||0).toLocaleString("ko-KR"),difficultyNames={easy:"쉬움",normal:"보통",hard:"어려움"};
 const categories=["전체",...new Set(TRAINING_MODES.map(mode=>mode.category))];
 function statsFor(id){const stats=storage.data.statistics?.[id]||{},attempts=(stats.correct||0)+(stats.wrong||0)+(stats.timeout||0);return{...stats,accuracy:attempts?Math.round((stats.correct||0)/attempts*100):null}}

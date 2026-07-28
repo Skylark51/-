@@ -85,3 +85,24 @@ html[data-device-layout="mobile"] .result-panel,html[data-device-layout="mobile"
 @media(max-width:340px){.mobile-compact-bar{grid-template-columns:34px minmax(0,1fr) auto 36px}.mobile-compact-bar strong{font-size:13px}html[data-device-layout="mobile"] .mobile-one-screen .kongjwi{width:43%}html[data-device-layout="mobile"] .mobile-one-screen .jar-wrap{left:65%}html[data-device-layout="mobile"] .mobile-one-screen .toad-bubble{font-size:13px}}
 @media(orientation:landscape) and (max-height:600px){html[data-device-layout="mobile"] .game-shell.mobile-one-screen{height:var(--game-viewport-height,100dvh)}html[data-device-layout="mobile"] .mobile-one-screen .play-layout{grid-template-columns:minmax(150px,42fr) minmax(0,58fr);grid-template-rows:auto minmax(0,1fr)}html[data-device-layout="mobile"] .mobile-one-screen .mobile-compact-shell{grid-column:1/-1}html[data-device-layout="mobile"] .mobile-one-screen .scene-panel{grid-column:1;grid-row:2}html[data-device-layout="mobile"] .mobile-one-screen .question-panel{grid-column:2;grid-row:2}html[data-device-layout="mobile"] .mobile-one-screen .game-stage{min-height:0}html[data-device-layout="mobile"] .mobile-one-screen .mobile-keypad{max-height:none;overflow:hidden}html[data-device-layout="mobile"] .mobile-one-screen .keypad-keys{grid-auto-rows:minmax(44px,1fr)}html[data-device-layout="mobile"] .mobile-one-screen .mobile-keypad button{min-height:44px}.mobile-one-screen .question-topline p{max-width:38vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 @media(prefers-reduced-motion:reduce){html[data-device-layout="mobile"] .mobile-one-screen .game-stage{box-shadow:none!important}}
+/* Mobile capture follow-up: scene first, compact controls last */
+html[data-device-layout="mobile"] .mobile-one-screen .play-layout{grid-template-areas:"hud" "scene" "question"}
+html[data-device-layout="mobile"] .mobile-one-screen .mobile-compact-shell{grid-area:hud}
+html[data-device-layout="mobile"] .mobile-one-screen .scene-panel{grid-area:scene}
+html[data-device-layout="mobile"] .mobile-one-screen .question-panel{grid-area:question}
+html[data-device-layout="mobile"] .mobile-one-screen .question-card{grid-template-rows:auto auto 4px auto minmax(0,1fr)}
+html[data-device-layout="mobile"] .mobile-one-screen #ui-answerForm{position:absolute;width:1px;height:1px;clip-path:inset(50%)}
+html[data-device-layout="mobile"] .mobile-one-screen .feedback{grid-row:4}
+html[data-device-layout="mobile"] .mobile-one-screen .mobile-keypad{grid-row:5;align-self:stretch}
+html[data-device-layout="mobile"] .mobile-one-screen .keypad-display{min-height:31px;padding:3px 8px;font-size:16px}
+html[data-device-layout="mobile"] .mobile-one-screen .keypad-clear{min-height:31px!important;padding:2px 7px!important;font-size:11px!important}
+html[data-device-layout="mobile"] .mobile-one-screen .keypad-keys{grid-auto-rows:minmax(42px,1fr);gap:3px}
+html[data-device-layout="mobile"] .mobile-one-screen .keypad-keys.is-choice{grid-auto-rows:minmax(48px,1fr)}
+html[data-device-layout="mobile"] .mobile-one-screen .mobile-keypad button{min-height:42px;padding:2px;font-size:16px}
+html[data-device-layout="mobile"] .mobile-one-screen .keypad-submit{min-height:46px;font-size:17px}
+@media(max-height:600px){html[data-device-layout="mobile"] .mobile-one-screen .question-card{grid-template-rows:0 auto 4px auto minmax(0,1fr)}html[data-device-layout="mobile"] .mobile-one-screen .keypad-keys{grid-auto-rows:minmax(39px,1fr)}html[data-device-layout="mobile"] .mobile-one-screen .mobile-keypad button{min-height:39px}}
+@media(orientation:landscape) and (max-height:600px){html[data-device-layout="mobile"] .mobile-one-screen .play-layout{grid-template-areas:"hud hud" "scene question"}}
+html[data-device-layout="mobile"] .mobile-one-screen .play-layout{grid-template-rows:auto minmax(130px,44fr) minmax(0,56fr)}
+@media(max-height:700px){html[data-device-layout="mobile"] .mobile-one-screen .play-layout{grid-template-rows:auto minmax(120px,40fr) minmax(0,60fr)}}
+@media(max-height:600px){html[data-device-layout="mobile"] .mobile-one-screen .play-layout{grid-template-rows:auto minmax(110px,36fr) minmax(0,64fr)}}
+@media(orientation:landscape) and (max-height:600px){html[data-device-layout="mobile"] .mobile-one-screen .play-layout{grid-template-columns:minmax(180px,46fr) minmax(0,54fr);grid-template-rows:auto minmax(0,1fr)}}
