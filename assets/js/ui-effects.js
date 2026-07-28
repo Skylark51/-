@@ -1,182 +1,29 @@
-import { STAGE_CONFIG } from "../../data/game-config.js";
+import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js";
 import { GameStorage } from "./storage.js";
-
-const PAGE = document.documentElement.dataset.page;
-const SELECTION_KEY = "kongjuiya-training-selection";
-const CATEGORIES = ["전체","원자 구조","주기적 성질","화학 결합","화학량론","산염기","산화환원","화학 반응"];
-const PRESENTATION = {
-  atomic_number:{category:"원자 구조",recommended:"쉬움",targetScore:3000},
-  atomic_mass:{category:"주기적 성질",recommended:"보통",targetScore:3000},
-  formula_mass:{category:"화학 결합",recommended:"보통",targetScore:3000},
-  mole_mass:{category:"화학량론",recommended:"보통",targetScore:3000},
-  oxidation_number:{category:"산화환원",recommended:"어려움",targetScore:3000},
-  redox:{category:"화학 반응",recommended:"어려움",targetScore:3000}
-};
-const DIFFICULTY_NAMES={easy:"쉬움",normal:"보통",hard:"어려움"};
-const storage=new GameStorage();
-const $=id=>document.getElementById(id);
-const number=value=>Number(value||0).toLocaleString("ko-KR");
-const date=value=>value?new Date(value).toLocaleDateString("ko-KR"):"—";
-
-function stageAt(index=0){return STAGE_CONFIG[Math.max(0,Math.min(STAGE_CONFIG.length-1,Number(index)||0))]}
-function recordFor(stage){
-  const direct=storage.data.statistics?.byTraining?.[stage.id]||{};
-  const runs=(storage.data.recentRuns||[]).filter(run=>run.stageId===stage.id);
-  const tagStats=Object.entries(storage.data.statistics?.byTag||{})
-    .filter(([tag])=>stage.name.includes(tag)||stage.description.includes(tag))
-    .map(([,value])=>value);
-  const correct=direct.correct??tagStats.reduce((sum,item)=>sum+(item.correct||0),0);
-  const wrong=direct.wrong??tagStats.reduce((sum,item)=>sum+(item.wrong||0),0);
-  const attempts=correct+wrong;
-  return {
-    played:Boolean(runs.length||direct.plays),
-    bestScore:direct.bestScore??Math.max(0,...runs.map(run=>run.score||0)),
-    bestCombo:direct.bestCombo??0,
-    feverCount:direct.bestFeverCount??direct.feverCount??0,
-    accuracy:attempts?Math.round(correct/attempts*100):null,
-    averageTime:direct.averageSolveTime??null,
-    recentAt:direct.recentAt??runs[0]?.endedAt??null
-  };
-}
-
-function saveSelection(stage,difficulty,resume=false){
-  const selection={stageId:stage.id,stageIndex:STAGE_CONFIG.findIndex(item=>item.id===stage.id),difficulty,resume};
-  sessionStorage.setItem(SELECTION_KEY,JSON.stringify(selection));
-  location.href="콩쥐야_줘때써.html";
-}
-
-function initLobby(){
-  let activeCategory="전체";
-  let selectedStage=STAGE_CONFIG[0];
-
-  function renderFilters(){
-    $("categoryFilter").replaceChildren(...CATEGORIES.map(category=>{
-      const button=document.createElement("button");button.type="button";button.textContent=category;
-      button.classList.toggle("is-active",category===activeCategory);
-      button.setAttribute("aria-pressed",String(category===activeCategory));
-      button.addEventListener("click",()=>{activeCategory=category;renderFilters();renderTrainings()});
-      return button;
-    }));
-    $("categorySelect").innerHTML=CATEGORIES.map(category=>`<option>${category}</option>`).join("");
-    $("categorySelect").value=activeCategory;
-  }
-
-  function renderTrainings(){
-    const list=STAGE_CONFIG.filter(stage=>activeCategory==="전체"||PRESENTATION[stage.id]?.category===activeCategory);
-    $("trainingGrid").replaceChildren(...list.map(stage=>{
-      const meta=PRESENTATION[stage.id];const record=recordFor(stage);
-      const article=document.createElement("article");article.className="training-card";
-      article.innerHTML=`<span class="card-category">${meta.category}</span><h3>${stage.name}</h3><p>${stage.description}</p><span class="recommended">권장 난도 · ${meta.recommended}</span><div class="training-metrics"><div><span>최고 점수</span><strong>${record.played?number(record.bestScore):"—"}</strong></div><div><span>최근 정답률</span><strong>${record.accuracy==null?"—":record.accuracy+"%"}</strong></div></div><button class="primary-button" type="button">훈련 시작</button>`;
-      article.querySelector("button").addEventListener("click",()=>{selectedStage=stage;$("difficultyTitle").textContent=stage.name+" 난도 선택";$("difficultyDescription").textContent=stage.description;$("difficultyDialog").showModal()});
-      return article;
-    }));
-    if(!list.length)$("trainingGrid").innerHTML='<p class="record-empty">현재 준비된 훈련이 없습니다.</p>';
-  }
-
-  function renderRecords(){
-    $("recordGrid").replaceChildren(...STAGE_CONFIG.map(stage=>{
-      const record=recordFor(stage);const article=document.createElement("article");article.className="record-card";
-      article.innerHTML=record.played
-        ?`<h3>${stage.name}</h3><dl><dt>최고 점수</dt><dd>${number(record.bestScore)}</dd><dt>최고 콤보</dt><dd>${record.bestCombo||"—"}</dd><dt>최고 피버 횟수</dt><dd>${record.feverCount||"—"}</dd><dt>정답률</dt><dd>${record.accuracy==null?"—":record.accuracy+"%"}</dd><dt>평균 풀이 시간</dt><dd>${record.averageTime==null?"—":record.averageTime.toFixed(1)+"초"}</dd><dt>최근 플레이</dt><dd>${date(record.recentAt)}</dd></dl>`
-        :`<h3>${stage.name}</h3><p class="record-empty">아직 플레이 기록이 없습니다.</p>`;
-      return article;
-    }));
-  }
-
-  const run=storage.data.currentRun;
-  if(run){
-    const stage=stageAt(run.stageIndex);$("resumePanel").hidden=false;
-    $("resumeSummary").textContent=`지난 훈련: ${stage.name} · 난도: ${DIFFICULTY_NAMES[run.difficulty]||"보통"} · 마지막 점수: ${number(run.score)}`;
-    $("resumeButton").addEventListener("click",()=>saveSelection(stage,run.difficulty||"normal",true));
-    $("freshButton").addEventListener("click",()=>{storage.clearCurrentRun();$("resumePanel").hidden=true});
-  }
-
-  $("categorySelect").addEventListener("change",event=>{activeCategory=event.target.value;renderFilters();renderTrainings()});
-  document.querySelectorAll("[data-difficulty]").forEach(button=>button.addEventListener("click",()=>saveSelection(selectedStage,button.dataset.difficulty)));
-  $("settingsButton").addEventListener("click",()=>{$("volumeSetting").value=storage.data.settings.volume;$("motionSetting").checked=storage.data.settings.animations!==false;$("settingsDialog").showModal()});
-  $("settingsDialog").addEventListener("close",()=>{if($("settingsDialog").returnValue==="save"){storage.updateSettings({volume:Number($("volumeSetting").value),animations:$("motionSetting").checked});applyMotionSetting()}});
-  renderFilters();renderTrainings();renderRecords();applyMotionSetting();
-}
-
-function applyMotionSetting(){document.documentElement.classList.toggle("reduce-motion",storage.data.settings.animations===false)}
-
-async function initGame(){
-  await import("./main.js");
-  const api=globalThis.KongJuiYaGame;if(!api)throw new Error("게임 엔진을 불러오지 못했습니다.");
-  let selection;
-  try{selection=JSON.parse(sessionStorage.getItem(SELECTION_KEY)||"null")}catch{selection=null}
-  const selectedStage=STAGE_CONFIG.find(stage=>stage.id===selection?.stageId)||STAGE_CONFIG[0];
-  const selectedIndex=STAGE_CONFIG.findIndex(stage=>stage.id===selectedStage.id);
-  const difficulty=selection?.difficulty||storage.data.settings.difficulty||"normal";
-  const app=$("ui-gameApp");
-  let questionCount=1,correctCount=0,wrongCount=0,bubbleTimer=0,stateTimer=0,feverTimerId=0;
-
-  $("ui-trainingName").textContent=selectedStage.name;
-  $("ui-trainingCategory").textContent=PRESENTATION[selectedStage.id]?.category||"화학 훈련";
-  $("ui-difficultyLabel").textContent=DIFFICULTY_NAMES[difficulty]||"보통";
-  $("ui-progressTraining").textContent=selectedStage.name+" 훈련";
-  $("ui-targetScore").textContent=number(PRESENTATION[selectedStage.id]?.targetScore||3000);
-  $("categoryLabel").textContent=selectedStage.name+" 훈련";
-
-  function setClasses(add=[],remove=[]){app.classList.remove(...remove);app.classList.add(...add)}
-  function transient(...classes){clearTimeout(stateTimer);setClasses(classes,["is-correct","is-wrong","is-pouring"]);stateTimer=setTimeout(()=>setClasses([],classes),900)}
-  function status(text){$("ui-accessibleStatus").textContent=text}
-  function syncCounts(){$("ui-questionCount").textContent=questionCount;$("ui-correctCount").textContent=correctCount;$("ui-wrongCount").textContent=wrongCount}
-  function particles(count=9){
-    const box=$("dropParticles");box.replaceChildren();
-    if(document.documentElement.classList.contains("reduce-motion"))return;
-    for(let i=0;i<count;i+=1){const drop=document.createElement("i");drop.style.left=`${52+Math.random()*22}%`;drop.style.top=`${38+Math.random()*22}%`;drop.style.setProperty("--dx",`${(Math.random()-.5)*150}px`);drop.style.setProperty("--dy",`${-30-Math.random()*130}px`);box.append(drop)}
-    setTimeout(()=>box.replaceChildren(),900);
-  }
-  function showBubble(detail={}){
-    if(!detail.text)return;
-    const bubble=$("toadBubble");clearTimeout(bubbleTimer);bubble.hidden=false;bubble.dataset.style=detail.style||"normalCorrect";$("toadBubbleText").textContent=detail.text;
-    bubbleTimer=setTimeout(()=>{bubble.hidden=true},Math.max(1800,Math.min(2500,detail.duration||2200)));
-  }
-  function setFeverCharge(detail={}){
-    const value=Math.max(0,Math.min(100,detail.percent??(detail.max?detail.charge/detail.max*100:detail.charge??detail.value??0)));
-    $("feverFill").style.width=value+"%";$("feverGauge").setAttribute("aria-valuenow",String(Math.round(value)));
-  }
-  function enterFever(detail={}){
-    setClasses(["is-fever"],["is-fever-ending"]);$("feverLabel").textContent=`FEVER ${detail.level||detail.tier||""}`.trim();$("feverMultiplier").textContent=`×${detail.multiplier||2}`;status("피버가 시작되었습니다.");
-    if(detail.remaining||detail.duration)startFeverTimer(detail.remaining||detail.duration);
-  }
-  function startFeverTimer(seconds){
-    clearInterval(feverTimerId);let remaining=Number(seconds)||0;$("feverTimer").textContent=`피버 ${remaining.toFixed(1)}초 남음`;
-    feverTimerId=setInterval(()=>{remaining=Math.max(0,remaining-.1);$("feverTimer").textContent=`피버 ${remaining.toFixed(1)}초 남음`;if(!remaining)clearInterval(feverTimerId)},100);
-  }
-  function endFever(){clearInterval(feverTimerId);setClasses(["is-fever-ending"],["is-fever"]);$("feverLabel").textContent="FEVER 준비";$("feverMultiplier").textContent="×1";$("feverTimer").textContent="빠르게 정답을 맞히면 피버가 충전됩니다.";setTimeout(()=>app.classList.remove("is-fever-ending"),700)}
-  function pause(){api.game.togglePause()}
-  function requestHome(){if(api.game.state.status==="running")api.game.pause();$("exitDialog").showModal()}
-  function home(){location.href="index.html"}
-
-  $("ui-answerForm").addEventListener("submit",event=>event.preventDefault());
-  for(const id of ["ui-pauseButton","ui-mobilePauseButton"])$(id).addEventListener("click",pause);
-  for(const id of ["ui-homeButton","ui-mobileHomeButton"])$(id).addEventListener("click",requestHome);
-  $("continueButton").addEventListener("click",()=>{if(api.game.state.status==="paused")api.game.resume()});
-  $("confirmHomeButton").addEventListener("click",home);
-  document.addEventListener("keydown",event=>{if(event.key==="Escape"){event.preventDefault();requestHome()}});
-
-  addEventListener("toad:speak",event=>showBubble(event.detail));
-  addEventListener("answer:correct",event=>{correctCount+=1;questionCount+=1;syncCounts();transient("is-correct","is-pouring");$("splash").textContent=`물 +${Math.round(event.detail.waterGain)} · +${event.detail.scoreGain}점`;particles(app.classList.contains("is-fever")?20:10)});
-  addEventListener("answer:wrong",()=>{wrongCount+=1;questionCount+=1;syncCounts();transient("is-wrong")});
-  addEventListener("answer:timeout",()=>{wrongCount+=1;questionCount+=1;syncCounts();transient("is-wrong")});
-  addEventListener("water:warning",()=>{setClasses(["is-water-warning"],[]);status("물의 양이 부족합니다.")});
-  addEventListener("water:critical",()=>{setClasses(["is-water-critical"],["is-water-warning"]);status("물의 양이 매우 부족합니다.")});
-  addEventListener("game:pause",()=>{setClasses(["is-paused"],[]);for(const id of ["ui-pauseButton","ui-mobilePauseButton"])$(id).textContent="계속하기"});
-  addEventListener("game:resume",()=>{setClasses([],["is-paused"]);for(const id of ["ui-pauseButton","ui-mobilePauseButton"])$(id).textContent="일시정지"});
-  addEventListener("game:over",()=>{setClasses(["is-game-over"],["is-paused"]);status("게임 오버")});
-  addEventListener("game:clear",()=>{setClasses(["is-game-clear"],["is-paused"]);status("게임 클리어")});
-  addEventListener("stage:clear",event=>{if(event.detail.stage?.id!==selectedStage.id)return;setTimeout(()=>{api.game.pause();const panel=$("resultPanel");panel.classList.remove("hidden");panel.innerHTML=`<h2>${selectedStage.name} 훈련 완료</h2><p>점수 ${number(api.game.state.score)} · 정답 ${correctCount} · 오답 ${wrongCount}</p><button id="ui-resultHome" type="button">훈련 선택으로</button>`;$("ui-resultHome").addEventListener("click",home)},0)});
-  addEventListener("fever:charge",event=>setFeverCharge(event.detail));
-  addEventListener("fever:start",event=>enterFever(event.detail));
-  addEventListener("fever:extend",event=>{enterFever(event.detail);status("피버 시간이 연장되었습니다.")});
-  addEventListener("fever:end",endFever);
-
-  applyMotionSetting();syncCounts();
-  const resumeState=selection?.resume?storage.data.currentRun:{stageIndex:selectedIndex};
-  api.start({difficulty,resumeState:resumeState||{stageIndex:selectedIndex}});
-}
-
-if(PAGE==="lobby")initLobby();
-if(PAGE==="game")initGame().catch(error=>{console.error(error);document.body.innerHTML=`<main class="fatal-error"><h1>게임을 시작하지 못했습니다.</h1><p>${error.message}</p><a href="index.html">메인으로</a></main>`});
+import { applyDeviceMode, getDeviceMode, mountDeviceControls } from "./device-entry.js";
+import { initActionEffects } from "./action-effects.js";
+const PAGE=document.documentElement.dataset.page,SELECTION_KEY="kongjuiya-training-selection";
+const storage=new GameStorage(),$=id=>document.getElementById(id),number=v=>Number(v||0).toLocaleString("ko-KR"),difficultyNames={easy:"쉬움",normal:"보통",hard:"어려움"};
+const categories=["전체",...new Set(TRAINING_MODES.map(x=>x.category))];
+function statsFor(id){const s=storage.data.statistics?.[id]||{};const attempts=(s.correct||0)+(s.wrong||0)+(s.timeout||0);return {...s,accuracy:attempts?Math.round((s.correct||0)/attempts*100):null}}
+function saveSelection(mode,difficulty,resume=false){sessionStorage.setItem(SELECTION_KEY,JSON.stringify({trainingId:mode.id,difficulty,resume}));location.href=`콩쥐야_줘때써.html?training=${encodeURIComponent(mode.id)}`}
+function applyMotion(){document.documentElement.classList.toggle("reduce-motion",storage.data.settings.animations===false)}
+function initLobby(){let active="전체",selected=TRAINING_MODES[0];
+ function filters(){$("categoryFilter").replaceChildren(...categories.map(category=>{const b=document.createElement("button");b.type="button";b.textContent=category;b.classList.toggle("is-active",category===active);b.setAttribute("aria-pressed",String(category===active));b.onclick=()=>{active=category;filters();cards()};return b}));$("categorySelect").replaceChildren(...categories.map(x=>new Option(x,x)));$("categorySelect").value=active}
+ function cards(){const list=TRAINING_MODES.filter(x=>active==="전체"||x.category===active);$("trainingGrid").replaceChildren(...list.map(mode=>{const s=statsFor(mode.id),a=document.createElement("article");a.className="training-card";a.innerHTML=`<span class="card-category">${mode.category}</span><h3>${mode.title}</h3><p>${mode.shortDescription}</p><span class="recommended">권장 난도 · ${difficultyNames[mode.recommendedDifficulty]}</span><div class="training-metrics"><div><span>최고 점수</span><strong>${s.plays?number(s.bestScore):"—"}</strong></div><div><span>누적 정답률</span><strong>${s.accuracy==null?"—":s.accuracy+"%"}</strong></div></div><button class="primary-button" type="button">훈련 시작</button>`;a.querySelector("button").onclick=()=>{selected=mode;$("difficultyTitle").textContent=mode.title+" 난도 선택";$("difficultyDescription").textContent=mode.description;$("difficultyDialog").showModal()};return a}))}
+ function records(){$("recordGrid").replaceChildren(...TRAINING_MODES.map(mode=>{const s=statsFor(mode.id),a=document.createElement("article");a.className="record-card";a.innerHTML=s.plays?`<h3>${mode.title}</h3><dl><dt>최고 점수</dt><dd>${number(s.bestScore)}</dd><dt>최고 콤보</dt><dd>${s.bestCombo||0}</dd><dt>최고 피버 횟수</dt><dd>${s.bestFeverCount||0}</dd><dt>정답률</dt><dd>${s.accuracy??0}%</dd><dt>평균 반응</dt><dd>${s.averageResponseMs?Math.round(s.averageResponseMs)+"ms":"—"}</dd><dt>최근 플레이</dt><dd>${s.lastPlayedAt?new Date(s.lastPlayedAt).toLocaleDateString("ko-KR"):"—"}</dd></dl>`:`<h3>${mode.title}</h3><p class="record-empty">아직 플레이 기록이 없습니다.</p>`;return a}))}
+ const run=storage.data.currentRun,runMode=getTrainingMode(run?.trainingId);if(run&&runMode){$("resumePanel").hidden=false;$("resumeSummary").textContent=`지난 훈련: ${runMode.title} · 난도: ${difficultyNames[run.difficulty]||"보통"} · 점수: ${number(run.score)}`;$("resumeButton").onclick=()=>saveSelection(runMode,run.difficulty||"normal",true);$("freshButton").onclick=()=>{storage.clearCurrentRun();$("resumePanel").hidden=true}}
+ $("categorySelect").onchange=e=>{active=e.target.value;filters();cards()};document.querySelectorAll("[data-difficulty]").forEach(b=>b.onclick=()=>saveSelection(selected,b.dataset.difficulty));
+ const form=$("settingsDialog").querySelector("form");mountDeviceControls({settingsForm:form,before:form.lastElementChild,requireChoice:true});$("settingsButton").onclick=()=>{$("volumeSetting").value=storage.data.settings.volume;$("motionSetting").checked=storage.data.settings.animations!==false;form.querySelector(`[name=deviceMode][value="${getDeviceMode()||"auto"}"]`).checked=true;$("settingsDialog").showModal()};$("settingsDialog").addEventListener("close",()=>{if($("settingsDialog").returnValue==="save"){storage.updateSettings({volume:Number($("volumeSetting").value),animations:$("motionSetting").checked});applyMotion();applyDeviceMode(getDeviceMode()||"auto")}});filters();cards();records();applyMotion()}
+async function initGame(){await import("./main.js");const api=globalThis.KongJuiYaGame;if(!api)throw new Error("게임 엔진을 불러오지 못했습니다.");let selection;try{selection=JSON.parse(sessionStorage.getItem(SELECTION_KEY)||"null")}catch{selection=null}const query=new URLSearchParams(location.search).get("training"),mode=getTrainingMode(query)||getTrainingMode(selection?.trainingId)||TRAINING_MODES[0],difficulty=selection?.difficulty||storage.data.settings.difficulty||"normal",app=$("ui-gameApp");let questionCount=1,correct=0,wrong=0,bubbleTimer=0,stateTimer=0,feverTimer=0;
+ api.selectTraining(mode.id);const engineDifficulty=$("ui-difficultySelect");if(engineDifficulty){engineDifficulty.value=difficulty;engineDifficulty.dispatchEvent(new Event("change",{bubbles:true}))}$("ui-trainingName").textContent=mode.title;$("ui-trainingCategory").textContent=mode.category;$("ui-difficultyLabel").textContent=difficultyNames[difficulty];$("ui-progressTraining").textContent=mode.title;$("categoryLabel").textContent=mode.title;$("ui-targetScore").textContent=number(3000);
+ const actionEffects=initActionEffects(app,{vibrate:false});void actionEffects;
+ function classes(add=[],remove=[]){app.classList.remove(...remove);app.classList.add(...add)}function transient(...list){clearTimeout(stateTimer);classes(list,["is-correct","is-wrong","is-timeout","is-pouring"]);stateTimer=setTimeout(()=>classes([],list),850)}function announce(t){$("ui-accessibleStatus").textContent=t}function counts(){$("ui-questionCount").textContent=questionCount;$("ui-correctCount").textContent=correct;$("ui-wrongCount").textContent=wrong}
+ function bubble(detail={}){if(!detail.text)return;clearTimeout(bubbleTimer);$("toadBubble").hidden=false;$("toadBubble").dataset.style=detail.category||detail.style||"normalCorrect";$("toadBubbleText").textContent=detail.text;bubbleTimer=setTimeout(()=>$("toadBubble").hidden=true,Math.max(1800,Math.min(2600,detail.duration||2200)))}
+ function feverStart(detail={}){const tier=detail.tier||detail.level||1;classes(["is-fever"],["is-fever-ending"]);$("feverLabel").textContent=`FEVER ${tier}`;$("feverMultiplier").textContent=`×${detail.scoreMultiplier||detail.multiplier||2}`;clearInterval(feverTimer);let remain=Number(detail.remaining||detail.duration||8);$("feverTimer").textContent=`피버 ${remain.toFixed(1)}초 남음`;feverTimer=setInterval(()=>{remain=Math.max(0,remain-.1);$("feverTimer").textContent=`피버 ${remain.toFixed(1)}초 남음`;if(!remain)clearInterval(feverTimer)},100);announce("황금 두꺼비 피버가 시작되었습니다.")}
+ function feverEnd(){clearInterval(feverTimer);classes(["is-fever-ending"],["is-fever"]);$("feverLabel").textContent="FEVER 준비";$("feverMultiplier").textContent="×1";$("feverTimer").textContent="빠른 연속 정답으로 피버를 충전하세요.";setTimeout(()=>app.classList.remove("is-fever-ending"),700)}
+ function requestHome(){if(api.game.state.status==="running")api.game.pause();$("exitDialog").showModal()}for(const id of ["ui-pauseButton","ui-mobilePauseButton"])$(id).onclick=()=>api.game.togglePause();for(const id of ["ui-homeButton","ui-mobileHomeButton"])$(id).onclick=requestHome;$("continueButton").onclick=()=>{if(api.game.state.status==="paused")api.game.resume()};$("confirmHomeButton").onclick=()=>location.href="index.html";
+ document.addEventListener("keydown",event=>{if(event.key==="Escape"){event.preventDefault();requestHome();return}if(!/^[1-9]$/.test(event.key)||["INPUT","TEXTAREA","SELECT"].includes(event.target?.tagName))return;const buttons=[...document.querySelectorAll("#ui-choiceOptions button")];const button=buttons[Number(event.key)-1];if(button&&!button.disabled){event.preventDefault();button.click()}});
+ addEventListener("toad:speak",e=>bubble(e.detail));addEventListener("answer:correct",e=>{correct++;questionCount++;counts();transient("is-correct","is-pouring");$("splash").textContent=`물 +${Math.round(e.detail.waterGain)} · +${e.detail.scoreGain}점`});addEventListener("answer:wrong",()=>{wrong++;questionCount++;counts();transient("is-wrong")});addEventListener("answer:timeout",()=>{wrong++;questionCount++;counts();transient("is-wrong","is-timeout");bubble({text:"시간 다 됐다!",category:"waterCritical",duration:2200})});addEventListener("water:warning",()=>{classes(["is-water-warning"],[]);announce("물이 절반 이하로 줄었습니다.")});addEventListener("water:critical",()=>{classes(["is-water-critical"],["is-water-warning"]);announce("물이 매우 부족합니다.")});addEventListener("game:pause",()=>{classes(["is-paused"],[]);for(const id of ["ui-pauseButton","ui-mobilePauseButton"])$(id).textContent="계속하기"});addEventListener("game:resume",()=>{classes([], ["is-paused"]);for(const id of ["ui-pauseButton","ui-mobilePauseButton"])$(id).textContent="일시정지"});addEventListener("game:over",()=>{classes(["is-game-over"],["is-paused"]);announce("게임 오버")});addEventListener("game:clear",()=>{classes(["is-game-clear"],["is-paused"]);announce("훈련 완료")});addEventListener("fever:charge",e=>{const d=e.detail||{},value=Math.min(100,(d.charge||0)/(d.required||3)*100);$("feverFill").style.width=value+"%";$("feverGauge").setAttribute("aria-valuenow",String(Math.round(value)))});addEventListener("fever:start",e=>feverStart(e.detail));addEventListener("fever:extend",e=>feverStart(e.detail));addEventListener("fever:end",feverEnd);
+ applyMotion();applyDeviceMode(getDeviceMode()||"auto");counts();const resumeState=selection?.resume&&storage.data.currentRun?.trainingId===mode.id?storage.data.currentRun:null;api.start({difficulty,resumeState});}
+if(PAGE==="lobby")initLobby();if(PAGE==="game")initGame().catch(error=>{console.error(error);document.body.innerHTML=`<main class="fatal-error"><h1>게임을 시작하지 못했습니다.</h1><p>${error.message}</p><a href="index.html">메인으로</a></main>`});
