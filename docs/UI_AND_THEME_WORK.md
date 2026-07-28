@@ -1,66 +1,57 @@
-# UI 및 장독대 테마 작업
+# UI 및 테마 작업 기록
 
 ## 수정 파일
 
 - `index.html`, `콩쥐야_줘때써.html`
 - `assets/css/themes-keypad.css`
-- `assets/js/ui-effects.js`, `assets/js/ui-adapter.js`
-- `assets/js/theme-system.js`, `assets/js/mobile-keypad.js`
+- `assets/js/ui-effects.js`, `assets/js/mobile-keypad.js`, `assets/js/theme-system.js`
 - `tests/ui-theme-keypad.test.mjs`
 
-문항 데이터, 채점 규칙, 게임 코어, 저장 시스템은 수정하지 않았다.
+게임 규칙, 채점, 문항 데이터는 수정하지 않았다.
 
-## 고정 제목
+## 제목과 사용자 노출 명칭
 
-브라우저 title, description, Open Graph·Twitter title, 로비, 게임 헤더, 설정,
-결과 화면에 `콩쥐야 줘때써 - 화학편`을 사용한다. `theme-system.js`의
-`GAME_TITLE`을 동적 표시의 단일 원천으로 삼는다.
+브라우저 제목, 메타 정보, 로비, 게임 화면, 설정 및 결과 화면의 제목을 `콩쥐야 줘때써 - 화학편`으로 통일했다. 화면의 `훈련` 명칭은 `장독대 채우기`, `물 채우러 가기`, `장독대 고르기로`처럼 게임 세계관에 맞게 표시한다.
 
-## 사용자 노출 명칭
+## 장독대·두꺼비 테마
 
-내부 `trainingId`와 저장 키는 유지한다. `displayJarName()`이 내부 제목 끝의
-`훈련`을 제거하고 `장독대 채우기`를 붙인다. 로비는 “오늘 채울 장독대”,
-“장독대별 기록”, “물 채우러 가기”를 사용한다.
+`trainingId`를 기준으로 25개 모드에 서로 다른 장독대 색, 문양, 물 색, 강조색과 두꺼비 외형 키를 제공한다. DOM에는 `data-jar-theme`, `data-jar-pattern`, `data-toad-theme`만 교체하므로 테마 전환 때 요소가 누적되지 않는다. 장독대 하단의 구멍, 그 구멍에 밀착된 두꺼비, 주변 누수 구조는 모든 테마에서 유지한다. 현재는 CSS 기반 자산이며 추후 `assets/images/jars/`, `assets/images/toads/`, `assets/images/patterns/`에 같은 테마 키의 이미지로 교체할 수 있다.
 
-## 장독대와 두꺼비 테마
+## 문항 메타데이터와 모바일 키패드
 
-25개 모드 각각에 고유한 장독대 색, 물 강조색, 문양, 두꺼비 키를 지정했다.
-대표 테마는 원자 번호의 청동·점 문양·초록 두꺼비, 원자량의 갈색 왕두꺼비,
-주기와 족의 줄무늬, 원자가 전자의 궤도 눈, 전기 음성도의 번개, 몰수와 질량의
-무거운 두꺼비, 기체 몰 부피의 풍선 두꺼비, 산화환원의 좌우 대비, 산염기의
-적청 대비다.
+발문 문자열을 분석하지 않고 `game.snapshot().questionInput`, `question.inputMode`, `allowedKeys`, `autoSubmit`, `choices`, `tolerance`만 사용한다. 선택형은 번호와 실제 문구를 함께 표시하고 자동 제출을 지원한다. 숫자형은 다음의 고정 4행 3열 순서다.
 
-게임 DOM에는 `data-jar-theme`, `data-jar-pattern`, `data-toad-theme`만 교체한다.
-장독대 하단 구멍·두꺼비·누수 DOM은 유지해 두꺼비가 실제 구멍을 막는 구도를
-보존한다. 피버 황금 변신, 수압 찌그러짐, 게임 오버 이탈 효과가 테마보다
-우선하도록 CSS 우선순위를 구성했다.
+```text
+1 2 3
+4 5 6
+7 8 9
+C 0 제출
+```
 
-## 모바일 키패드
+`C`는 전체 지우기이며 소수점과 부호는 문항 메타데이터가 허용할 때만 입력 표시 옆의 보조 키로 나타난다. 버튼 높이는 최소 52px이고, 중복 탭 제출 잠금과 하단 안전 영역을 적용했다.
 
-- `numeric`·`decimal`: 숫자 키패드
-- `oxidation_number`, `allowedKeys`의 부호: 부호 숫자 키패드
-- `questionInput.inputMode === "choice"`: 실제 번호·선택지 문구 버튼
+## 모바일 실제 화면 개선
 
-소수점은 `tolerance` 또는 `allowedKeys`가 허용할 때만 나타난다. 선택형은 즉시
-제출한다. 숫자 입력은 큰 output에 표시하고 한 글자·전체 지우기, 고정 제출,
-52px 이상의 터치 영역과 safe-area 하단 여백을 제공한다. 320px 화면에서는
-간격과 카드 미리보기를 축소해 가로 스크롤을 방지한다.
+실기기 캡처에서 문제보다 키패드가 먼저 보이고 원형 타이머가 발문을 덮으며, 장독대와 캐릭터가 화면 밖으로 잘리는 문제를 확인했다. 모바일 레이아웃을 `문제·시간 게이지 → 키패드 → 장면` 순서로 고정하고 타이머를 발문과 겹치지 않는 직사각형 영역에 배치했다. 장면 높이와 캐릭터·장독대 위치/축척을 좁은 화면에 맞춰 조정했고, 말풍선은 장면 내부에서만 표시되도록 제한했다. 320px 및 낮은 가로 화면용 보정도 포함한다.
 
-## 메타데이터 연결
+## 진입과 결과 흐름
 
-발문 문자열은 분석하지 않는다. `game.snapshot().questionInput`,
-`question.inputMode`, `question.allowedKeys`, `question.autoSubmit`,
-`question.choices`, `question.answerMode`, `question.tolerance`만 읽는다.
+선택 정보나 `training` 쿼리 없이 게임 HTML에 직접 들어오면 즉시 `index.html` 로비로 이동한다. 게임 오버와 장독대 완료 결과에는 `같은 장독대 다시 채우기`와 `장독대 고르기로` 버튼을 함께 제공한다.
 
 ## 접근성·성능
 
-키패드 버튼은 번호와 문구, `aria-label`, 포커스 외곽선을 제공한다. 입력 output과
-기존 피드백·말풍선은 live region을 사용한다. 테마는 CSS fallback이며 외부
-이미지가 필요 없다. 저사양·모바일 파티클 제한과 `prefers-reduced-motion`을
-기존 액션 시스템과 함께 유지한다.
+키패드는 명확한 `aria-label`, 번호와 문구, 포커스 표시를 제공한다. 입력 및 피드백은 live region을 사용하고 `prefers-reduced-motion`을 존중한다. 모바일 파티클과 장면 크기를 줄이며, 테마 이미지가 없어도 CSS 표시가 유지된다.
 
-## placeholder 자산
+## 테스트 항목
 
-현재 장독대·두꺼비 차이는 전부 CSS 기반이다. 향후 내부 이미지가 준비되면
-`assets/images/jars/`, `assets/images/toads/`, `assets/images/patterns/`에
-추가하고 동일한 theme key에 연결할 수 있다.
+- 고정 제목과 금지 문구 검사
+- 25개 테마 키 및 장독대 명칭 검사
+- 메타데이터 기반 키패드 검사
+- 숫자 키패드 4행 3열 순서 검사
+- 직접 게임 진입 시 로비 이동 검사
+- 결과 화면의 로비 버튼 검사
+- 320px 세로 및 낮은 가로 화면에서 순서, 겹침, 가로 오버플로 검사
+
+## 남은 placeholder 자산
+
+장독대와 두꺼비 변형은 현재 CSS 그림이다. 전용 이미지가 준비되면 내부 자산 폴더에 추가해 기존 테마 키에 연결하면 된다.
