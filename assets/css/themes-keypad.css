@@ -101,3 +101,56 @@ html[data-device-layout="mobile"] .mobile-one-screen .scene-panel{grid-row:3!imp
 @media(orientation:landscape) and (max-height:600px){html[data-device-layout="mobile"] .mobile-one-screen .question-panel,html[data-device-layout="mobile"] .mobile-one-screen .scene-panel{grid-row:2!important}}
 html[data-device-layout="mobile"] .mobile-one-screen .play-layout{display:grid!important}
 html[data-device-layout="mobile"] .mobile-one-screen .question-card{grid-template-rows:auto auto 4px minmax(0,1fr) auto}
+/* Definitive mobile viewport contract: HUD, scene, question, bottom keypad */
+html[data-device-layout="mobile"] .mobile-one-screen .play-layout{
+  display:grid!important;
+  grid-template-areas:"hud" "scene" "question"!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto minmax(132px,38fr) minmax(0,62fr)!important;
+  gap:4px!important;
+  height:100%!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
+html[data-device-layout="mobile"] .mobile-one-screen .mobile-compact-shell{grid-area:hud!important;min-height:0!important}
+html[data-device-layout="mobile"] .mobile-one-screen .scene-panel{grid-area:scene!important;grid-row:auto!important;order:initial!important;min-height:0!important;overflow:hidden!important}
+html[data-device-layout="mobile"] .mobile-one-screen .question-panel{grid-area:question!important;grid-row:auto!important;order:initial!important;display:block!important;min-height:0!important;padding:0!important;overflow:hidden!important}
+html[data-device-layout="mobile"] .mobile-one-screen .game-stage{width:100%!important;height:100%!important;min-height:0!important;overflow:hidden!important}
+html[data-device-layout="mobile"] .mobile-one-screen .jar-wrap{left:66%!important;bottom:-8px!important;transform:translateX(-50%) scale(.78)!important}
+html[data-device-layout="mobile"] .mobile-one-screen .toad-bubble{max-width:min(52vw,210px)!important;max-height:none!important;overflow:visible!important}
+html[data-device-layout="mobile"] .mobile-one-screen .fever-banner{top:6%!important;max-width:calc(100% - 18px);padding:6px 10px;white-space:normal;text-align:center;font-size:clamp(15px,4.4vw,20px)}
+html[data-device-layout="mobile"] .mobile-one-screen .question-card{
+  display:grid!important;
+  grid-template-rows:auto auto 4px auto minmax(0,1fr)!important;
+  gap:3px!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  padding:4px 6px!important;
+  overflow:hidden!important;
+}
+html[data-device-layout="mobile"] .mobile-one-screen .question-topline{position:static!important;grid-row:1;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;min-height:24px}
+html[data-device-layout="mobile"] .mobile-one-screen .question-topline>div:first-child{display:block!important;min-width:0}
+html[data-device-layout="mobile"] .mobile-one-screen .question-topline p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html[data-device-layout="mobile"] .mobile-one-screen .timer{min-width:44px!important;width:auto!important;height:24px!important;padding:0 7px!important;font-size:11px!important}
+html[data-device-layout="mobile"] .mobile-one-screen .question-card h2{grid-row:2;min-height:0!important;margin:0!important;padding:0 46px 0 0!important;font-size:clamp(16px,4.5vw,19px)!important;line-height:1.18!important;overflow:visible!important}
+html[data-device-layout="mobile"] .mobile-one-screen .timer-track{grid-row:3;height:4px!important;margin:0!important}
+html[data-device-layout="mobile"] .mobile-one-screen .feedback{grid-row:4;min-height:25px!important;max-height:none!important;margin:0!important;padding:4px 6px!important;overflow:visible!important;font-size:10px!important;line-height:1.15!important}
+html[data-device-layout="mobile"] .mobile-one-screen .mobile-keypad{grid-row:5!important;display:grid!important;grid-template-rows:auto minmax(0,1fr)!important;gap:3px!important;align-self:stretch!important;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;overflow:hidden!important;box-shadow:none!important}
+html[data-device-layout="mobile"] .mobile-one-screen .keypad-display-row{min-height:28px;gap:3px!important}
+html[data-device-layout="mobile"] .mobile-one-screen .keypad-display{min-height:28px!important;padding:2px 7px!important;font-size:15px!important}
+html[data-device-layout="mobile"] .mobile-one-screen .keypad-modifiers{gap:3px!important}
+html[data-device-layout="mobile"] .mobile-one-screen .keypad-modifiers button{min-width:38px!important;width:38px;height:28px!important;min-height:28px!important;padding:0!important;font-size:14px!important}
+html[data-device-layout="mobile"] .mobile-one-screen .keypad-keys.is-numeric{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:repeat(4,minmax(34px,1fr))!important;gap:3px!important;min-height:0!important;overflow:hidden!important}
+html[data-device-layout="mobile"] .mobile-one-screen .keypad-keys.is-numeric button{width:100%!important;height:100%!important;min-height:0!important;padding:1px!important;border-radius:7px!important;font-size:16px!important}
+html[data-device-layout="mobile"] .mobile-one-screen .keypad-keys.is-choice{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:minmax(42px,1fr)!important;gap:4px!important;min-height:0!important}
+html[data-device-layout="mobile"] #exitDialog{width:min(360px,calc(100vw - 16px));max-width:calc(100vw - 16px);max-height:calc(var(--game-viewport-height,100dvh) - max(16px,env(safe-area-inset-top)) - max(16px,env(safe-area-inset-bottom)));margin:auto;overflow:hidden}
+html[data-device-layout="mobile"] #exitDialog form{display:grid;gap:7px;max-height:100%;padding:clamp(12px,4vw,18px)!important;overflow:hidden}
+html[data-device-layout="mobile"] #exitDialog .eyebrow,html[data-device-layout="mobile"] #exitDialog h2,html[data-device-layout="mobile"] #exitDialog p{margin:0}
+html[data-device-layout="mobile"] #exitDialog h2{font-size:clamp(20px,6vw,26px);line-height:1.2}
+html[data-device-layout="mobile"] #exitDialog p{font-size:13px;line-height:1.35}
+html[data-device-layout="mobile"] #exitDialog .dialog-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:3px 0 0}
+html[data-device-layout="mobile"] #exitDialog .dialog-actions button{min-width:0;min-height:42px;padding:7px 5px;font-size:14px;white-space:nowrap}
+@media(max-height:700px){html[data-device-layout="mobile"] .mobile-one-screen .play-layout{grid-template-rows:auto minmax(120px,34fr) minmax(0,66fr)!important}}
+@media(max-height:600px){html[data-device-layout="mobile"] .mobile-one-screen .play-layout{grid-template-rows:auto minmax(108px,30fr) minmax(0,70fr)!important}html[data-device-layout="mobile"] .mobile-one-screen .jar-wrap{transform:translateX(-50%) scale(.62)!important}html[data-device-layout="mobile"] .mobile-one-screen .question-card h2{font-size:15px!important;line-height:1.12!important}html[data-device-layout="mobile"] .mobile-one-screen .keypad-keys.is-numeric{grid-template-rows:repeat(4,minmax(31px,1fr))!important}}
+@media(orientation:landscape) and (max-height:600px){html[data-device-layout="mobile"] .mobile-one-screen .play-layout{grid-template-areas:"hud hud" "scene question"!important;grid-template-columns:minmax(160px,43fr) minmax(0,57fr)!important;grid-template-rows:auto minmax(0,1fr)!important}}
