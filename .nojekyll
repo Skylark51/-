@@ -1,0 +1,1 @@
+Static ES modules in underscore-prefixed paths must be published unchanged.
