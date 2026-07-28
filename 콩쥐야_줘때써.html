@@ -5,16 +5,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#102a31">
   <link rel="icon" href="data:,">
-  <meta name="description" content="콩쥐와 두꺼비가 함께하는 화학 집중 훈련">
-  <title>콩쥐야, 좋됐어 · 집중 훈련</title>
-  <link rel="stylesheet" href="assets/css/game.css?v=20260728-01">
+  <meta name="description" content="콩쥐야 줘때써 - 화학편 · 새는 장독대를 막는 두꺼비와 함께 화학 문제를 풀어 물을 채우세요.">
+  <meta property="og:title" content="콩쥐야 줘때써 - 화학편">
+  <meta name="twitter:title" content="콩쥐야 줘때써 - 화학편">
+  <title>콩쥐야 줘때써 - 화학편</title>
+  <link rel="stylesheet" href="assets/css/game.css?v=20260728-02">
+  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260728-02">
 </head>
 <body>
   <a class="skip-link" href="#answerInput">문제로 바로가기</a>
   <main class="game-shell is-idle" id="ui-gameApp">
     <header class="game-header">
-      <a class="brand-link" href="index.html"><span aria-hidden="true">豆</span><strong>콩쥐야, 좋됐어</strong></a>
-      <div class="training-heading"><p id="ui-trainingCategory">화학 훈련</p><h1 id="ui-trainingName">원자 번호</h1><span id="ui-difficultyLabel">보통</span></div>
+      <a class="brand-link" href="index.html"><span aria-hidden="true">豆</span><strong data-game-title>콩쥐야 줘때써 - 화학편</strong></a>
+      <div class="training-heading"><p id="ui-trainingCategory">화학 장독대</p><h1 id="ui-trainingName">원자 번호</h1><span id="ui-difficultyLabel">보통</span></div>
       <div class="header-actions"><button id="ui-pauseButton" class="ghost-button" type="button" aria-pressed="false">일시정지</button><button id="ui-homeButton" class="ghost-button" type="button">메인으로</button></div>
     </header>
 
@@ -22,7 +25,7 @@
       <section class="scene-panel" aria-label="콩쥐의 장독대">
         <div class="game-stage" id="visualStage">
           <div class="scene-vignette" aria-hidden="true"></div>
-          <div class="scene-status"><span class="status-dot" aria-hidden="true"></span><div><small>현재 상태</small><strong id="statusBadge">훈련 준비</strong></div></div>
+          <div class="scene-status"><span class="status-dot" aria-hidden="true"></span><div><small>현재 상태</small><strong id="statusBadge">물 채우기 준비</strong></div></div>
           <div class="leak-info"><small>누수 속도</small><strong id="leakRateText">초당 1.5%</strong></div>
           <div class="fever-aura" aria-hidden="true"></div>
           <div class="kongjwi" aria-label="바가지로 물을 붓는 콩쥐"><div class="kongjwi-sprite" aria-hidden="true"></div><div class="bucket" aria-hidden="true"></div><span class="character-name">콩쥐</span></div>
@@ -37,7 +40,7 @@
       </section>
 
       <aside class="question-panel" aria-label="화학 문제">
-        <section class="game-hud" aria-label="훈련 현황">
+        <section class="game-hud" aria-label="장독대 채우기 현황">
           <div><span>점수</span><strong id="scoreValue">0</strong></div>
           <div><span>콤보</span><strong><span id="comboValue">0</span> COMBO</strong></div>
           <div><span>물의 양</span><strong><span id="waterValue">70</span>%</strong></div>
@@ -50,7 +53,7 @@
         </section>
 
         <section class="question-card">
-          <div class="question-topline"><div><p id="categoryLabel">원자 번호 훈련</p><span class="question-type" id="ui-questionType">집중 훈련</span></div><div class="timer" id="timerBadge" aria-label="남은 시간">15초</div></div>
+          <div class="question-topline"><div><p id="categoryLabel">원자 번호 장독대 채우기</p><span class="question-type" id="ui-questionType">장독대 문제</span></div><div class="timer" id="timerBadge" aria-label="남은 시간">15초</div></div>
           <h2 id="questionText">문제를 준비하고 있습니다.</h2>
           <div class="timer-meta"><span>제한 시간</span><strong id="timeText">15.0초</strong></div>
           <div class="track timer-track"><div class="fill" id="timeBar"></div></div>
@@ -59,9 +62,9 @@
         </section>
 
         <section class="training-progress">
-          <div class="progress-copy"><div><span id="ui-progressTraining">원자 번호 훈련</span><strong>현재 <span id="ui-questionCount">1</span>문제째</strong></div><div><span>정답 <b id="ui-correctCount">0</b></span><span>오답 <b id="ui-wrongCount">0</b></span></div></div>
+          <div class="progress-copy"><div><span id="ui-progressTraining">원자 번호 장독대 채우기</span><strong>현재 <span id="ui-questionCount">1</span>문제째</strong></div><div><span>정답 <b id="ui-correctCount">0</b></span><span>오답 <b id="ui-wrongCount">0</b></span></div></div>
           <div class="track"><div class="fill" id="stageProgress"></div></div>
-          <p>목표 점수 <strong id="ui-targetScore">3,000</strong> · 훈련 완료 <span id="correctInStage">0</span>/10</p>
+          <p>목표 점수 <strong id="ui-targetScore">3,000</strong> · 장독대 채우기 완료 <span id="correctInStage">0</span>/10</p>
           <p id="stageDescription"></p>
         </section>
 
@@ -75,9 +78,9 @@
   </main>
 
   <dialog id="exitDialog" class="modal-card" aria-labelledby="exitTitle">
-    <form method="dialog"><p class="eyebrow">PAUSED</p><h2 id="exitTitle">훈련을 멈출까요?</h2><p>진행 상태는 브라우저에 안전하게 저장됩니다.</p><div class="dialog-actions"><button id="continueButton" class="primary-button" value="cancel">계속하기</button><button id="confirmHomeButton" class="danger-button" value="home">메인으로</button></div></form>
+    <form method="dialog"><p class="eyebrow">PAUSED</p><h2 id="exitTitle">장독대 채우기를 멈출까요?</h2><p>진행 상태는 브라우저에 안전하게 저장됩니다.</p><div class="dialog-actions"><button id="continueButton" class="primary-button" value="cancel">계속하기</button><button id="confirmHomeButton" class="danger-button" value="home">메인으로</button></div></form>
   </dialog>
 
-  <script type="module" src="assets/js/ui-effects.js?v=20260728-01"></script>
+  <script type="module" src="assets/js/ui-effects.js?v=20260728-02"></script>
 </body>
 </html>

@@ -1,0 +1,60 @@
+﻿/* Jar identity */
+.jar-theme-card,.record-card,.game-shell{--jar-main:#9b6136;--jar-dark:#4b281d;--theme-water:#39d8ed;--mode-accent:#39d8ed;--toad-hue:0deg}
+.jar-theme-card{border-color:color-mix(in srgb,var(--mode-accent) 38%,#173b43);background:linear-gradient(155deg,color-mix(in srgb,var(--jar-dark) 32%,#102e35),#0b232a)}
+.jar-theme-card::after,.record-card::after{content:"";position:absolute;pointer-events:none;inset:auto 14px 14px auto;width:38px;height:38px;border:2px solid color-mix(in srgb,var(--mode-accent) 45%,transparent);border-radius:50%;opacity:.35}
+.training-card.jar-theme-card{display:grid;grid-template-columns:104px 1fr;gap:16px;align-items:center;overflow:hidden}
+.jar-card-copy{min-width:0}.jar-card-copy h3{color:#fff}.jar-card-copy .primary-button{width:100%}
+.jar-preview{position:relative;width:104px;height:132px;filter:drop-shadow(0 12px 10px #0006)}
+.preview-jar{position:absolute;left:15px;bottom:8px;width:78px;height:92px;overflow:hidden;border:5px solid var(--jar-dark);border-radius:22% 22% 36% 36%;background:linear-gradient(90deg,var(--jar-dark),var(--jar-main) 36% 72%,var(--jar-dark))}
+.preview-jar::after{content:"";position:absolute;inset:22px 10px;border:3px double color-mix(in srgb,var(--mode-accent) 42%,transparent);border-radius:45%}
+.preview-water{position:absolute;inset:auto 0 0;height:48%;background:linear-gradient(#b9ffff,var(--theme-water));opacity:.82}
+.preview-hole{position:absolute;z-index:2;left:47px;bottom:21px;width:29px;height:18px;border-radius:50%;background:#160e0c}
+.preview-toad{position:absolute;z-index:3;left:40px;bottom:13px;width:42px;height:29px;border:3px solid #26351d;border-radius:55% 55% 45% 45%;background:#678a43;filter:hue-rotate(var(--toad-hue)) saturate(1.2)}
+.preview-toad::before,.preview-toad::after{content:"";position:absolute;top:-7px;width:10px;height:10px;border:2px solid #26351d;border-radius:50%;background:#dfe780}.preview-toad::before{left:5px}.preview-toad::after{right:5px}
+
+.game-shell .jar{border-color:var(--jar-dark);background:linear-gradient(90deg,var(--jar-dark),var(--jar-main) 36% 72%,var(--jar-dark));box-shadow:inset -20px 0 35px #0008,0 18px 35px color-mix(in srgb,var(--jar-main) 34%,transparent)}
+.game-shell .water{background:linear-gradient(180deg,color-mix(in srgb,var(--theme-water) 70%,white),var(--theme-water))}
+.game-shell .question-panel,.game-shell .question-card{border-color:color-mix(in srgb,var(--mode-accent) 36%,var(--line))}
+.game-shell .timer,.game-shell .fever-panel{border-color:color-mix(in srgb,var(--mode-accent) 60%,var(--line))}
+.game-shell .fill{background:linear-gradient(90deg,color-mix(in srgb,var(--mode-accent) 52%,#08738c),var(--mode-accent))}
+.game-shell .toad-sprite{filter:hue-rotate(var(--toad-hue)) saturate(1.22);transform-origin:45% 75%}
+.game-shell[data-toad-theme="brown"] .toad-sprite{filter:sepia(.75) saturate(1.5) brightness(.78);transform:scale(1.12,.98)}
+.game-shell[data-toad-theme="striped"] .toad-sprite{filter:hue-rotate(65deg) contrast(1.35)}
+.game-shell[data-toad-theme="orbit"] .toad::before,.game-shell[data-toad-theme="orbit"] .toad::after{box-shadow:0 0 0 7px #bf83ff55}
+.game-shell[data-toad-theme="electric"] .toad-sprite{filter:hue-rotate(30deg) saturate(2) drop-shadow(0 0 7px #ffe65a)}
+.game-shell[data-toad-theme="heavy"] .toad-sprite{transform:scale(1.18,1.08)}
+.game-shell[data-toad-theme="balloon"] .toad-sprite{transform:scale(1.16,1.2);filter:hue-rotate(175deg) saturate(.8) brightness(1.2)}
+.game-shell[data-toad-theme="split"] .toad-sprite{filter:sepia(.6) hue-rotate(320deg) saturate(2)}
+.game-shell[data-toad-theme="acid-base"] .toad-sprite{filter:hue-rotate(225deg) saturate(1.8)}
+.game-shell[data-jar-pattern="dots"] .jar::after{background:radial-gradient(circle,#ffd88b55 0 3px,transparent 4px) 0 0/20px 20px}
+.game-shell[data-jar-pattern="waves"] .jar::after{background:repeating-radial-gradient(ellipse at 50% 110%,transparent 0 11px,#8fefff44 12px 15px)}
+.game-shell[data-jar-pattern="grid"] .jar::after{background:linear-gradient(#c7ffd533 1px,transparent 1px),linear-gradient(90deg,#c7ffd533 1px,transparent 1px);background-size:18px 18px}
+.game-shell[data-jar-pattern="orbit"] .jar::after{border-radius:50%;transform:rotate(-18deg);box-shadow:0 0 0 8px #c99cff20}
+.game-shell[data-jar-pattern="lightning"] .jar::after{clip-path:polygon(46% 0,75% 0,58% 37%,83% 37%,31% 100%,43% 56%,20% 56%);background:#ffe56b55}
+.game-shell[data-jar-pattern="split"] .jar::after{background:linear-gradient(90deg,#ff674844 0 49%,#66a7ff44 51%)}
+.game-shell[data-jar-pattern="yin-yang"] .jar::after{border-radius:50%;background:radial-gradient(circle at 50% 25%,#ff6c6c 0 10%,transparent 11%),radial-gradient(circle at 50% 75%,#67a8ff 0 10%,transparent 11%),linear-gradient(90deg,#ff6c6c55 50%,#67a8ff55 50%)}
+.game-shell[data-jar-pattern="bubbles"] .game-stage{background-image:radial-gradient(circle at 12% 22%,#a9f7ff20 0 7px,transparent 8px),radial-gradient(circle at 88% 35%,#a9f7ff20 0 11px,transparent 12px)}
+.game-shell.is-water-warning .jar,.game-shell.is-water-critical .jar{border-color:var(--warning)}
+.game-shell.is-water-critical .question-card{border-color:var(--danger)}
+.game-shell.is-fever .toad-sprite{filter:sepia(1) saturate(5) hue-rotate(355deg) brightness(1.45) drop-shadow(0 0 14px #ffd43f)}
+.result-game-title{margin:0 0 8px;color:var(--mode-accent);font-weight:1000}.is-game-clear .result-panel h2::after{content:" · 장독대 채우기 완료";display:block;color:var(--mode-accent);font-size:.35em}
+
+/* Mobile metadata-driven keypad */
+.mobile-keypad{display:none}.keypad-display{display:block;min-height:58px;margin-bottom:9px;padding:12px 15px;border:2px solid color-mix(in srgb,var(--mode-accent) 58%,var(--line));border-radius:13px;background:#071f27;color:#fff;font-size:24px;font-weight:1000;text-align:right;word-break:break-all}
+.keypad-keys{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.keypad-keys.is-signed{grid-template-columns:repeat(4,minmax(0,1fr))}.keypad-keys.is-choice{grid-template-columns:1fr}
+.mobile-keypad button{min-height:54px;padding:8px;border:1px solid color-mix(in srgb,var(--mode-accent) 42%,var(--line));border-radius:12px;background:#12343d;color:#fff;font-size:18px;font-weight:900;touch-action:manipulation}
+.mobile-keypad button:focus-visible{outline:3px solid #fff;outline-offset:2px}.mobile-keypad button:active{transform:translateY(1px);background:color-mix(in srgb,var(--mode-accent) 28%,#12343d)}
+.mobile-keypad button:disabled{opacity:.3}.keypad-choice{text-align:left}.keypad-actions{position:sticky;bottom:max(0px,env(safe-area-inset-bottom));z-index:55;margin-top:9px;padding-bottom:env(safe-area-inset-bottom);background:#09232a}.keypad-submit{width:100%;background:linear-gradient(135deg,color-mix(in srgb,var(--mode-accent) 60%,#218ea4),var(--mode-accent))!important}
+html[data-device-layout="mobile"] .mobile-keypad{display:block;position:relative;z-index:46;padding:10px;border:1px solid var(--line);border-radius:16px;background:#09232af2;box-shadow:0 -10px 30px #0007}
+html[data-device-layout="mobile"] .game-hud{position:sticky;z-index:57;top:0;backdrop-filter:blur(10px)}
+html[data-device-layout="mobile"] #ui-choiceOptions{display:none!important}
+html[data-device-layout="mobile"] .question-card{order:-2}html[data-device-layout="mobile"] .mobile-keypad{order:-1}
+html[data-device-layout="mobile"] .toad-bubble{max-height:110px;overflow:auto}
+@media(max-width:700px){.training-card.jar-theme-card{grid-template-columns:92px 1fr}.jar-preview{transform:scale(.88);transform-origin:center}.game-stage{min-height:390px}.question-panel{padding-bottom:max(12px,env(safe-area-inset-bottom))}}
+@media(max-width:360px){.training-card.jar-theme-card{grid-template-columns:74px 1fr;gap:8px}.jar-preview{margin-left:-14px;transform:scale(.72)}.mobile-keypad{margin-inline:-4px}.mobile-keypad button{min-height:52px;font-size:16px}.keypad-keys{gap:6px}}
+@media(orientation:landscape) and (max-height:600px){html[data-device-layout="mobile"] .mobile-keypad{max-height:55vh;overflow:auto}.keypad-display{min-height:45px;font-size:19px}.mobile-keypad button{min-height:52px}}
+@media(prefers-reduced-motion:reduce){.mobile-keypad button:active{transform:none}.jar-preview{filter:none}}
+
+
+html[data-device-layout="mobile"] .brand-link strong{display:inline;max-width:130px;font-size:10px;line-height:1.2;white-space:normal}
+
