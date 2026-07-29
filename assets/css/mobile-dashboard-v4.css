@@ -1,0 +1,48 @@
+:root{--v4-toolbar-height:64px}
+
+/* Dashboard */
+.learning-dashboard{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);gap:14px;margin-top:16px}
+.dashboard-main,.dashboard-side{border:1px solid #e3e5f2;border-radius:22px;background:#fff;box-shadow:0 10px 30px rgba(62,64,112,.09)}
+.dashboard-main{padding:20px}.dashboard-side{padding:18px}
+.dashboard-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.dashboard-heading h2{margin:0;font-size:20px;letter-spacing:-.04em}.dashboard-heading p{margin:4px 0 0;color:#7b7f9f;font-size:11px}
+.dashboard-period{padding:6px 9px;border-radius:999px;background:#eceaff;color:#665cf5;font-size:9px;font-weight:900;white-space:nowrap}
+.dashboard-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.dashboard-stat{padding:12px;border:1px solid #ececf5;border-radius:14px;background:#fafaff}
+.dashboard-stat span,.dashboard-stat strong,.dashboard-stat small{display:block}.dashboard-stat span{color:#7b7f9f;font-size:9px}.dashboard-stat strong{margin-top:5px;font-size:21px}.dashboard-stat small{margin-top:4px;color:#43ad72;font-size:8px}
+.dashboard-chart-wrap{height:190px;padding:4px 0 0}.dashboard-chart{width:100%;height:100%;overflow:visible}.dashboard-grid-lines line{stroke:#ebeaf5;stroke-width:1}
+.dashboard-side h3{margin:0;font-size:16px}.dashboard-side>p{margin:5px 0 14px;color:#7b7f9f;font-size:10px}
+.dashboard-mode-list{display:grid;gap:12px}.dashboard-mode-row{display:grid;grid-template-columns:minmax(90px,1fr) minmax(80px,1.5fr) 38px;align-items:center;gap:8px}
+.dashboard-mode-row strong,.dashboard-mode-row span{display:block}.dashboard-mode-row strong{font-size:11px}.dashboard-mode-row span{margin-top:2px;color:#8a8eaa;font-size:8px}.dashboard-mode-row>b{text-align:right;font-size:10px}
+.dashboard-mode-track{height:7px;overflow:hidden;border-radius:999px;background:#eeeef6}.dashboard-mode-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#665cf5,#9b74ff)}
+
+/* Fixed toolbars */
+.mobile-bottom-nav,.game-bottom-toolbar{border:1px solid #dfe1ef;background:rgba(255,255,255,.96);box-shadow:0 12px 36px rgba(52,55,100,.18);backdrop-filter:blur(16px)}
+.game-bottom-toolbar{display:none}
+
+/* Mobile game usability */
+html[data-device-layout="mobile"] body.game-page{padding:0 0 calc(var(--v4-toolbar-height) + env(safe-area-inset-bottom));background:#f4f5ff}
+html[data-device-layout="mobile"] .game-app-frame{height:calc(var(--game-viewport-height,100dvh) - var(--v4-toolbar-height) - env(safe-area-inset-bottom));padding:6px 8px 5px;grid-template-rows:44px minmax(0,1fr)}
+html[data-device-layout="mobile"] .play-layout{grid-template-rows:auto minmax(235px,44%) minmax(0,1fr)!important;gap:7px!important}
+html[data-device-layout="mobile"] .scene-panel{min-height:0!important}
+html[data-device-layout="mobile"] .game-stage{height:100%!important;min-height:235px!important;border-radius:18px!important}
+html[data-device-layout="mobile"] .kongjwi{left:0!important;bottom:-2%!important;width:47%!important;height:88%!important}
+html[data-device-layout="mobile"] .jar-wrap{left:65%!important;bottom:-43px!important;transform:translateX(-50%) scale(.66)!important}
+html[data-device-layout="mobile"] .toad-bubble{right:4px!important;bottom:23%!important;max-width:58%!important;font-size:10px!important;line-height:1.35!important}
+html[data-device-layout="mobile"] .scene-status,html[data-device-layout="mobile"] .leak-info{font-size:8px!important}
+html[data-device-layout="mobile"] .question-panel{padding:7px!important;overflow:hidden!important}
+html[data-device-layout="mobile"] .question-card{padding:8px!important;overflow:hidden!important}
+html[data-device-layout="mobile"] .question-card h2{max-height:none!important;margin:7px 0 6px!important;font-size:clamp(16px,4.6vw,20px)!important;line-height:1.28!important}
+html[data-device-layout="mobile"] .feedback{font-size:9px!important;min-height:30px!important}
+html[data-device-layout="mobile"] .mobile-keypad{padding:6px!important;margin-top:5px!important}
+html[data-device-layout="mobile"] .mobile-keypad button{min-height:40px!important;font-size:14px!important;border-radius:10px!important}
+html[data-device-layout="mobile"] .keypad-display{min-height:40px!important;font-size:17px!important}
+html[data-device-layout="mobile"] .game-bottom-toolbar{position:fixed;z-index:120;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);height:calc(var(--v4-toolbar-height) + env(safe-area-inset-bottom));padding:6px 9px max(6px,env(safe-area-inset-bottom));border-width:1px 0 0;border-radius:20px 20px 0 0}
+html[data-device-layout="mobile"] .game-bottom-toolbar button,html[data-device-layout="mobile"] .game-bottom-toolbar a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:0;background:transparent;color:#7b7f9f;font-size:8px;font-weight:800;text-decoration:none}
+html[data-device-layout="mobile"] .game-bottom-toolbar span{font-size:18px;line-height:1}
+html[data-device-layout="mobile"] .game-bottom-toolbar .is-active{border-radius:12px;background:#eceaff;color:#665cf5}
+html[data-device-layout="mobile"] .quiz-app-header{height:40px!important}.quiz-header-title strong{font-size:13px!important}
+
+@media(max-width:700px){.learning-dashboard{grid-template-columns:1fr}.dashboard-main,.dashboard-side{border-radius:18px}.dashboard-summary-grid{grid-template-columns:repeat(2,1fr)}.dashboard-chart-wrap{height:165px}.dashboard-mode-row{grid-template-columns:minmax(78px,1fr) minmax(90px,1.3fr) 35px}}
+@media(max-width:380px){html[data-device-layout="mobile"] .play-layout{grid-template-rows:auto minmax(205px,42%) minmax(0,1fr)!important}html[data-device-layout="mobile"] .game-stage{min-height:205px!important}html[data-device-layout="mobile"] .jar-wrap{bottom:-56px!important;transform:translateX(-50%) scale(.58)!important}html[data-device-layout="mobile"] .kongjwi{width:45%!important;height:82%!important}html[data-device-layout="mobile"] .mobile-keypad button{min-height:36px!important;font-size:13px!important}}
+@media(max-height:650px){html[data-device-layout="mobile"] .play-layout{grid-template-rows:auto minmax(190px,40%) minmax(0,1fr)!important}html[data-device-layout="mobile"] .game-stage{min-height:190px!important}html[data-device-layout="mobile"] .jar-wrap{bottom:-62px!important;transform:translateX(-50%) scale(.55)!important}html[data-device-layout="mobile"] .mobile-keypad button{min-height:34px!important}}
