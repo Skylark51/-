@@ -1,1 +1,3 @@
-Static ES modules in underscore-prefixed paths must be published unchanged.
+GitHub Pages static publish marker.
+UI build: 2026-07-29-02
+Publish assets and ES modules unchanged.
