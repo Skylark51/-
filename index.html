@@ -1,84 +1,81 @@
 <!doctype html>
-<html lang="ko" data-page="lobby">
+<html lang="ko" data-page="lobby" data-ui-version="20260729-02">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f4f5ff">
+  <meta name="theme-color" content="#f5f5ff">
   <link rel="icon" href="data:,">
   <meta name="description" content="콩쥐야 줘때써 - 화학편 · 새는 장독대를 막는 두꺼비와 함께 화학 문제를 풀어 물을 채우세요.">
   <meta property="og:title" content="콩쥐야 줘때써 - 화학편">
   <meta name="twitter:title" content="콩쥐야 줘때써 - 화학편">
   <title>콩쥐야 줘때써 - 화학편</title>
-  <link rel="stylesheet" href="assets/css/game.css?v=20260729-01">
-  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260729-01">
+  <style>html,body{margin:0;background:#f5f5ff;color:#20213e;font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif}</style>
+  <link rel="stylesheet" href="assets/css/game.css?v=20260729-02">
+  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260729-02">
+  <link rel="stylesheet" href="assets/css/ui-v3.css?v=20260729-02">
 </head>
 <body class="lobby-page">
   <a class="skip-link" href="#trainingGrid">장독대 목록으로 바로가기</a>
 
-  <main class="lobby-shell">
-    <header class="app-topbar">
-      <a class="app-logo" href="index.html" aria-label="홈">
-        <span class="app-logo-mark" aria-hidden="true">⚗</span>
-        <span><strong data-game-title>콩쥐야 줘때써 - 화학편</strong><small>CHEMISTRY JAR LAB</small></span>
+  <main class="app-frame lobby-shell">
+    <header class="mobile-app-header">
+      <a class="app-brand" href="index.html" aria-label="홈">
+        <span class="brand-flask" aria-hidden="true">⚗</span>
+        <span><strong data-game-title>콩쥐야 줘때써 - 화학편</strong><small>CHEMISTRY JAR ADVENTURE</small></span>
       </a>
-      <button id="settingsButton" class="icon-button" type="button" aria-label="설정 열기">⚙</button>
+      <button id="settingsButton" class="round-icon-button" type="button" aria-label="설정 열기">⚙</button>
     </header>
 
-    <section class="dashboard-hero" aria-labelledby="heroTitle">
-      <div class="hero-copy">
-        <p class="eyebrow">TODAY'S CHEMISTRY MISSION</p>
-        <h1 id="heroTitle">오늘도 장독대가<br><em>심상치 않습니다.</em></h1>
-        <p>문제를 빠르게 풀고, 물을 채우고, 두꺼비를 살려 내세요.</p>
-        <div class="hero-actions">
-          <a class="primary-button" href="#trainingGrid">장독대 고르기</a>
-          <a class="ghost-button" href="#recordsTitle">기록 보기</a>
-        </div>
+    <section class="home-welcome" aria-labelledby="welcomeTitle">
+      <div class="welcome-copy">
+        <p class="welcome-kicker">안녕하세요, 화학 탐험가!</p>
+        <h1 id="welcomeTitle">오늘도 장독대가<br><em>줘때기 직전입니다.</em></h1>
+        <p>문제를 풀고 물을 채워 두꺼비의 퇴근을 도와주세요.</p>
       </div>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="hero-bubble">오늘은<br>진짜 잘하자.</div>
-        <div class="hero-jar"><span></span></div>
-        <div class="hero-toad">●‿●</div>
-        <div class="hero-spark spark-a">✦</div>
-        <div class="hero-spark spark-b">✧</div>
+      <div class="welcome-avatar" aria-hidden="true">
+        <span class="avatar-bubble">오늘은<br>틀리지 마.</span>
+        <span class="avatar-toad">●‿●</span>
       </div>
     </section>
 
-    <section class="quick-status" aria-label="게임 특징">
-      <article><span class="status-icon">💧</span><div><small>장독대 방어</small><strong>물을 채워 생존</strong></div></article>
-      <article><span class="status-icon">🔥</span><div><small>피버 시스템</small><strong>빠른 정답으로 폭주</strong></div></article>
-      <article><span class="status-icon">🐸</span><div><small>두꺼비 반응</small><strong>상황별 랜덤 대사</strong></div></article>
+    <section class="level-card" aria-label="오늘의 미션">
+      <div class="level-icon" aria-hidden="true">🧪</div>
+      <div class="level-copy"><small>오늘의 미션</small><strong>화학 장독대 구조대</strong><span>빠른 정답으로 피버를 터뜨리세요.</span></div>
+      <div class="level-progress" aria-hidden="true"><i></i></div>
+      <span class="level-arrow" aria-hidden="true">›</span>
+    </section>
+
+    <section class="home-menu-grid" aria-label="빠른 메뉴">
+      <a href="#trainingGrid"><span class="menu-icon menu-purple">⚛</span><strong>장독대 선택</strong><small>개념별 문제 시작</small></a>
+      <a href="#trainingGrid"><span class="menu-icon menu-blue">⚗</span><strong>빠른 퀴즈</strong><small>점수와 피버 도전</small></a>
+      <a href="#recordsTitle"><span class="menu-icon menu-green">▦</span><strong>학습 기록</strong><small>정답률과 콤보 확인</small></a>
+      <button type="button" class="menu-settings-proxy"><span class="menu-icon menu-orange">🐸</span><strong>두꺼비 연구소</strong><small>설정과 화면 모드</small></button>
     </section>
 
     <section id="resumePanel" class="resume-panel" hidden aria-labelledby="resumeTitle">
       <div class="resume-icon" aria-hidden="true">▶</div>
       <div><p class="eyebrow">CONTINUE</p><h2 id="resumeTitle">지난 장독대 이어 채우기</h2><p id="resumeSummary"></p></div>
-      <div class="resume-actions"><button id="resumeButton" class="primary-button" type="button">이어하기</button><button id="freshButton" class="ghost-button" type="button">처음부터</button></div>
+      <div class="resume-actions"><button id="resumeButton" class="primary-button" type="button">이어하기</button><button id="freshButton" class="secondary-button" type="button">처음부터</button></div>
     </section>
 
     <section class="lobby-section" aria-labelledby="jarSectionTitle">
-      <div class="section-heading">
-        <div><p class="eyebrow">CHOOSE A JAR</p><h2 id="jarSectionTitle">오늘 채울 장독대</h2></div>
-        <p>한 번에 한 가지 개념에 집중합니다.</p>
-      </div>
+      <div class="section-heading"><div><p class="eyebrow">CONCEPT JARS</p><h2 id="jarSectionTitle">오늘 채울 장독대</h2></div><p>각 장독대에서 한 가지 화학 개념만 집중해서 풉니다.</p></div>
       <div class="category-filter" id="categoryFilter" role="group" aria-label="장독대 카테고리"></div>
       <label class="mobile-category" for="categorySelect">카테고리<select id="categorySelect"></select></label>
       <div class="training-grid" id="trainingGrid" aria-live="polite"></div>
     </section>
 
     <section class="records-section" aria-labelledby="recordsTitle">
-      <div class="section-heading">
-        <div><p class="eyebrow">MY RECORDS</p><h2 id="recordsTitle">장독대별 기록</h2></div>
-        <p>장독대마다 최고 점수와 정답률을 따로 저장합니다.</p>
-      </div>
+      <div class="section-heading"><div><p class="eyebrow">LEARNING RECORDS</p><h2 id="recordsTitle">장독대별 기록</h2></div><p>최고 점수, 콤보, 정답률을 장독대별로 확인합니다.</p></div>
       <div class="record-grid" id="recordGrid"></div>
     </section>
   </main>
 
   <nav class="mobile-bottom-nav" aria-label="주요 메뉴">
     <a class="is-active" href="index.html"><span>⌂</span>홈</a>
-    <a href="#trainingGrid"><span>⚗</span>장독대</a>
+    <a href="#trainingGrid"><span>⚛</span>장독대</a>
     <a href="#recordsTitle"><span>▦</span>기록</a>
-    <a href="#settingsButton"><span>⚙</span>설정</a>
+    <button class="bottom-settings-proxy" type="button"><span>⚙</span>설정</button>
   </nav>
 
   <dialog id="difficultyDialog" class="modal-card" aria-labelledby="difficultyTitle">
@@ -105,6 +102,11 @@
     </form>
   </dialog>
 
-  <script type="module" src="assets/js/ui-effects.js?v=20260729-01"></script>
+  <script type="module" src="assets/js/ui-effects.js?v=20260729-02"></script>
+  <script>
+    document.addEventListener("click",event=>{
+      if(event.target.closest(".menu-settings-proxy,.bottom-settings-proxy"))document.getElementById("settingsButton")?.click();
+    });
+  </script>
 </body>
 </html>
