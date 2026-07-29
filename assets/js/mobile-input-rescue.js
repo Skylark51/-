@@ -32,7 +32,7 @@ function restoreFallback(form, input, questionPanel) {
     input.hidden = false;
     input.readOnly = false;
     input.removeAttribute("aria-readonly");
-    input.setAttribute("inputmode", "decimal");
+    input.setAttribute("inputmode", "text");
   }
 }
 
@@ -40,8 +40,7 @@ function activatePanel(panel, dock, form, input, questionPanel) {
   if (!panel || !dock) return false;
   if (panel.parentElement !== dock) dock.append(panel);
 
-  const buttons = panel.querySelectorAll("button");
-  const ready = buttons.length > 0;
+  const ready = panel.querySelectorAll("button").length > 0;
   const mobile = isMobile();
 
   panel.hidden = !mobile;
@@ -99,15 +98,23 @@ function scheduleSync(delay = 0) {
   window.setTimeout(() => {
     syncKeypad().catch(error => {
       console.error("모바일 키패드 복구 실패", error);
-      const form = $("ui-answerForm");
-      const input = $("answerInput");
-      restoreFallback(form, input, document.querySelector(".question-panel"));
+      restoreFallback(
+        $("ui-answerForm"),
+        $("answerInput"),
+        document.querySelector(".question-panel")
+      );
     });
   }, delay);
 }
 
-const observer = new MutationObserver(() => {
-  if ($("ui-mobileKeypad") || $("ui-mobileInputDock")) scheduleSync();
+const observer = new MutationObserver(records => {
+  const keypadWasAdded = records.some(record =>
+    [...record.addedNodes].some(node =>
+      node instanceof Element &&
+      (node.id === "ui-mobileKeypad" || node.querySelector?.("#ui-mobileKeypad"))
+    )
+  );
+  if (keypadWasAdded) scheduleSync();
 });
 
 if (document.body) observer.observe(document.body, { childList: true, subtree: true });
