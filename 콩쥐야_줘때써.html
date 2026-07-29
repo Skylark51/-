@@ -1,31 +1,31 @@
 <!doctype html>
-<html lang="ko" data-page="game">
+<html lang="ko" data-page="game" data-ui-version="20260729-02">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f4f5ff">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#f5f5ff">
   <link rel="icon" href="data:,">
   <meta name="description" content="콩쥐야 줘때써 - 화학편 · 새는 장독대를 막는 두꺼비와 함께 화학 문제를 풀어 물을 채우세요.">
   <meta property="og:title" content="콩쥐야 줘때써 - 화학편">
   <meta name="twitter:title" content="콩쥐야 줘때써 - 화학편">
   <title>콩쥐야 줘때써 - 화학편</title>
-  <link rel="stylesheet" href="assets/css/game.css?v=20260729-01">
-  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260729-01">
+  <style>html,body{margin:0;background:#f5f5ff;color:#20213e;font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif}</style>
+  <link rel="stylesheet" href="assets/css/game.css?v=20260729-02">
+  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260729-02">
+  <link rel="stylesheet" href="assets/css/ui-v3.css?v=20260729-02">
 </head>
 <body class="game-page">
   <a class="skip-link" href="#answerInput">문제로 바로가기</a>
-
-  <main class="game-shell is-idle" id="ui-gameApp">
-    <header class="game-header">
-      <a class="brand-link" href="index.html" aria-label="장독대 고르기로">
-        <span aria-hidden="true">‹</span><strong data-game-title>콩쥐야 줘때써 - 화학편</strong>
-      </a>
-      <div class="training-heading"><p id="ui-trainingCategory">화학 장독대</p><h1 id="ui-trainingName">원자 번호</h1><span id="ui-difficultyLabel">보통</span></div>
-      <div class="header-actions"><button id="ui-pauseButton" class="icon-button" type="button" aria-pressed="false">Ⅱ</button><button id="ui-homeButton" class="icon-button" type="button">⌂</button></div>
+  <main class="game-app-frame game-shell is-idle" id="ui-gameApp">
+    <header class="quiz-app-header">
+      <button id="ui-homeButton" class="quiz-back" type="button" aria-label="장독대 고르기로">‹</button>
+      <div class="quiz-header-title"><small id="ui-trainingCategory">화학 장독대</small><strong id="ui-trainingName">원자 번호 장독대 채우기</strong></div>
+      <div class="quiz-header-tools"><span id="ui-difficultyLabel">보통</span><button id="ui-pauseButton" type="button" aria-pressed="false" aria-label="일시정지">Ⅱ</button></div>
+      <a class="sr-only" href="index.html" data-game-title>콩쥐야 줘때써 - 화학편</a>
     </header>
 
     <section class="play-layout">
-      <section class="mobile-compact-shell" id="ui-mobileCompact" aria-label="모바일 게임 현황">
+      <section class="mobile-compact-shell" id="ui-mobileCompact" aria-label="모바일 게임 현황" hidden>
         <div class="mobile-compact-bar"><button id="ui-compactHome" type="button" aria-label="장독대 고르기">‹</button><strong id="ui-compactTraining">원자 번호</strong><span id="ui-compactDifficulty">보통</span><button id="ui-compactPause" type="button" aria-label="일시정지">Ⅱ</button></div>
       </section>
 
@@ -42,7 +42,7 @@
           <div id="dropParticles" class="drop-particles" aria-hidden="true"></div>
           <div class="splash" id="splash" aria-live="polite">물 +20</div>
           <div class="danger" id="dangerOverlay" aria-hidden="true"></div>
-          <div class="paused-curtain" id="ui-pausedCurtain" aria-live="assertive"><strong>잠시 멈췄습니다</strong><span>Space 또는 계속하기 버튼으로 재개</span></div>
+          <div class="paused-curtain" id="ui-pausedCurtain" aria-live="assertive"><strong>잠시 멈춤</strong><span>계속하기를 누르면 다시 시작합니다.</span></div>
         </div>
       </section>
 
@@ -60,7 +60,8 @@
         </section>
 
         <section class="question-card">
-          <div class="question-topline"><div><p id="categoryLabel">원자 번호 장독대 채우기</p><span class="question-type" id="ui-questionType">장독대 문제</span></div><div class="timer" id="timerBadge" aria-label="남은 시간">15초</div></div>
+          <div class="question-progress-line"><span>문제 <b id="ui-questionCount">1</b> / 10</span><div class="track"><div class="fill" id="stageProgress"></div></div><strong id="timerBadge" aria-label="남은 시간">15초</strong></div>
+          <div class="question-topline"><div><p id="categoryLabel">원자 번호 장독대 채우기</p><span class="question-type" id="ui-questionType">직접 입력</span></div></div>
           <h2 id="questionText">문제를 준비하고 있습니다.</h2>
           <div class="timer-meta"><span>남은 시간</span><strong id="timeText">15.0초</strong></div>
           <div class="track timer-track"><div class="fill" id="timeBar"></div></div>
@@ -69,13 +70,12 @@
         </section>
 
         <section class="training-progress">
-          <div class="progress-copy"><div><span id="ui-progressTraining">원자 번호 장독대 채우기</span><strong><span id="ui-questionCount">1</span>번째 문제</strong></div><div><span>정답 <b id="ui-correctCount">0</b></span><span>오답 <b id="ui-wrongCount">0</b></span></div></div>
-          <div class="track"><div class="fill" id="stageProgress"></div></div>
-          <p>목표 <strong id="ui-targetScore">3,000</strong>점 · 완료 <span id="correctInStage">0</span>/10</p>
+          <div class="progress-copy"><div><span id="ui-progressTraining">원자 번호 장독대 채우기</span><strong>현재 진행</strong></div><div><span>정답 <b id="ui-correctCount">0</b></span><span>오답 <b id="ui-wrongCount">0</b></span></div></div>
+          <p>목표 점수 <strong id="ui-targetScore">3,000</strong> · 완료 <span id="correctInStage">0</span>/10</p>
           <p id="stageDescription"></p>
         </section>
 
-        <div class="mobile-actions"><button id="ui-mobilePauseButton" class="ghost-button" type="button">일시정지</button><button id="ui-mobileHomeButton" class="ghost-button" type="button">메인으로</button></div>
+        <div class="mobile-actions"><button id="ui-mobilePauseButton" class="secondary-button" type="button">일시정지</button><button id="ui-mobileHomeButton" class="secondary-button" type="button">메인으로</button></div>
       </aside>
     </section>
 
@@ -85,9 +85,9 @@
   </main>
 
   <dialog id="exitDialog" class="modal-card" aria-labelledby="exitTitle">
-    <form method="dialog"><p class="eyebrow">PAUSED</p><h2 id="exitTitle">장독대 채우기를 멈출까요?</h2><p>진행 상태는 브라우저에 안전하게 저장됩니다.</p><div class="dialog-actions"><button id="continueButton" class="primary-button" value="cancel">계속하기</button><button id="confirmHomeButton" class="danger-button" value="home">메인으로</button></div></form>
+    <form method="dialog"><p class="eyebrow">PAUSED</p><h2 id="exitTitle">장독대 채우기를 멈출까요?</h2><p>진행 상태는 브라우저에 저장됩니다.</p><div class="dialog-actions"><button id="continueButton" class="primary-button" value="cancel">계속하기</button><button id="confirmHomeButton" class="danger-button" value="home">메인으로</button></div></form>
   </dialog>
 
-  <script type="module" src="assets/js/ui-effects.js?v=20260729-01"></script>
+  <script type="module" src="assets/js/ui-effects.js?v=20260729-02"></script>
 </body>
 </html>
