@@ -3,45 +3,83 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#102a31">
+  <meta name="theme-color" content="#f4f5ff">
   <link rel="icon" href="data:,">
   <meta name="description" content="콩쥐야 줘때써 - 화학편 · 새는 장독대를 막는 두꺼비와 함께 화학 문제를 풀어 물을 채우세요.">
   <meta property="og:title" content="콩쥐야 줘때써 - 화학편">
   <meta name="twitter:title" content="콩쥐야 줘때써 - 화학편">
   <title>콩쥐야 줘때써 - 화학편</title>
-  <link rel="stylesheet" href="assets/css/game.css?v=20260728-02">
-  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260728-07">
+  <link rel="stylesheet" href="assets/css/game.css?v=20260729-01">
+  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260729-01">
 </head>
 <body class="lobby-page">
   <a class="skip-link" href="#trainingGrid">장독대 목록으로 바로가기</a>
+
   <main class="lobby-shell">
-    <header class="lobby-hero">
-      <div class="brand-mark" aria-hidden="true">豆</div>
-      <div>
-        <p class="eyebrow">KOREAN FOLKTALE CHEMISTRY TRAINING</p>
-        <h1 data-game-title>콩쥐야 줘때써 - 화학편</h1>
-        <p>새는 장독대를 지키며 원하는 화학 문제를 골라 물을 채워 보세요.</p>
-      </div>
-      <button id="settingsButton" class="ghost-button" type="button">설정</button>
+    <header class="app-topbar">
+      <a class="app-logo" href="index.html" aria-label="홈">
+        <span class="app-logo-mark" aria-hidden="true">⚗</span>
+        <span><strong data-game-title>콩쥐야 줘때써 - 화학편</strong><small>CHEMISTRY JAR LAB</small></span>
+      </a>
+      <button id="settingsButton" class="icon-button" type="button" aria-label="설정 열기">⚙</button>
     </header>
 
+    <section class="dashboard-hero" aria-labelledby="heroTitle">
+      <div class="hero-copy">
+        <p class="eyebrow">TODAY'S CHEMISTRY MISSION</p>
+        <h1 id="heroTitle">오늘도 장독대가<br><em>심상치 않습니다.</em></h1>
+        <p>문제를 빠르게 풀고, 물을 채우고, 두꺼비를 살려 내세요.</p>
+        <div class="hero-actions">
+          <a class="primary-button" href="#trainingGrid">장독대 고르기</a>
+          <a class="ghost-button" href="#recordsTitle">기록 보기</a>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="hero-bubble">오늘은<br>진짜 잘하자.</div>
+        <div class="hero-jar"><span></span></div>
+        <div class="hero-toad">●‿●</div>
+        <div class="hero-spark spark-a">✦</div>
+        <div class="hero-spark spark-b">✧</div>
+      </div>
+    </section>
+
+    <section class="quick-status" aria-label="게임 특징">
+      <article><span class="status-icon">💧</span><div><small>장독대 방어</small><strong>물을 채워 생존</strong></div></article>
+      <article><span class="status-icon">🔥</span><div><small>피버 시스템</small><strong>빠른 정답으로 폭주</strong></div></article>
+      <article><span class="status-icon">🐸</span><div><small>두꺼비 반응</small><strong>상황별 랜덤 대사</strong></div></article>
+    </section>
+
     <section id="resumePanel" class="resume-panel" hidden aria-labelledby="resumeTitle">
-      <div><p class="eyebrow">CONTINUE TRAINING</p><h2 id="resumeTitle">지난 장독대 이어 채우기</h2><p id="resumeSummary"></p></div>
+      <div class="resume-icon" aria-hidden="true">▶</div>
+      <div><p class="eyebrow">CONTINUE</p><h2 id="resumeTitle">지난 장독대 이어 채우기</h2><p id="resumeSummary"></p></div>
       <div class="resume-actions"><button id="resumeButton" class="primary-button" type="button">이어하기</button><button id="freshButton" class="ghost-button" type="button">처음부터</button></div>
     </section>
 
-    <section class="lobby-section">
-      <div class="section-heading"><div><p class="eyebrow">CHOOSE YOUR LESSON</p><h2>오늘 채울 장독대</h2></div><p>카테고리를 고르고 오늘 채울 장독대를 선택하세요.</p></div>
+    <section class="lobby-section" aria-labelledby="jarSectionTitle">
+      <div class="section-heading">
+        <div><p class="eyebrow">CHOOSE A JAR</p><h2 id="jarSectionTitle">오늘 채울 장독대</h2></div>
+        <p>한 번에 한 가지 개념에 집중합니다.</p>
+      </div>
       <div class="category-filter" id="categoryFilter" role="group" aria-label="장독대 카테고리"></div>
       <label class="mobile-category" for="categorySelect">카테고리<select id="categorySelect"></select></label>
       <div class="training-grid" id="trainingGrid" aria-live="polite"></div>
     </section>
 
     <section class="records-section" aria-labelledby="recordsTitle">
-      <div class="section-heading"><div><p class="eyebrow">MY RECORDS</p><h2 id="recordsTitle">장독대별 기록</h2></div><p>장독대별 기록은 따로 보관됩니다.</p></div>
+      <div class="section-heading">
+        <div><p class="eyebrow">MY RECORDS</p><h2 id="recordsTitle">장독대별 기록</h2></div>
+        <p>장독대마다 최고 점수와 정답률을 따로 저장합니다.</p>
+      </div>
       <div class="record-grid" id="recordGrid"></div>
     </section>
   </main>
+
+  <nav class="mobile-bottom-nav" aria-label="주요 메뉴">
+    <a class="is-active" href="index.html"><span>⌂</span>홈</a>
+    <a href="#trainingGrid"><span>⚗</span>장독대</a>
+    <a href="#recordsTitle"><span>▦</span>기록</a>
+    <a href="#settingsButton"><span>⚙</span>설정</a>
+  </nav>
 
   <dialog id="difficultyDialog" class="modal-card" aria-labelledby="difficultyTitle">
     <form method="dialog">
@@ -50,9 +88,9 @@
       <h2 id="difficultyTitle">난도 선택</h2>
       <p id="difficultyDescription"></p>
       <div class="difficulty-grid">
-        <button type="button" data-difficulty="easy"><strong>쉬움</strong><span>넉넉한 시간 · 느린 누수</span></button>
-        <button type="button" data-difficulty="normal"><strong>보통</strong><span>균형 잡힌 기본 난도</span></button>
-        <button type="button" data-difficulty="hard"><strong>어려움</strong><span>짧은 시간 · 높은 난도</span></button>
+        <button type="button" data-difficulty="easy"><span class="difficulty-icon">🌱</span><strong>쉬움</strong><span>넉넉한 시간 · 느린 누수</span></button>
+        <button type="button" data-difficulty="normal"><span class="difficulty-icon">⚗</span><strong>보통</strong><span>균형 잡힌 기본 난도</span></button>
+        <button type="button" data-difficulty="hard"><span class="difficulty-icon">🔥</span><strong>어려움</strong><span>짧은 시간 · 높은 난도</span></button>
       </div>
     </form>
   </dialog>
@@ -67,6 +105,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="assets/js/ui-effects.js?v=20260728-04"></script>
+  <script type="module" src="assets/js/ui-effects.js?v=20260729-01"></script>
 </body>
 </html>
