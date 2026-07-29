@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" data-page="lobby" data-ui-version="20260729-02">
+<html lang="ko" data-page="lobby" data-ui-version="20260729-03">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -10,9 +10,10 @@
   <meta name="twitter:title" content="콩쥐야 줘때써 - 화학편">
   <title>콩쥐야 줘때써 - 화학편</title>
   <style>html,body{margin:0;background:#f5f5ff;color:#20213e;font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif}</style>
-  <link rel="stylesheet" href="assets/css/game.css?v=20260729-02">
-  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260729-02">
-  <link rel="stylesheet" href="assets/css/ui-v3.css?v=20260729-02">
+  <link rel="stylesheet" href="assets/css/game.css?v=20260729-03">
+  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260729-03">
+  <link rel="stylesheet" href="assets/css/ui-v3.css?v=20260729-03">
+  <link rel="stylesheet" href="assets/css/mobile-dashboard-v4.css?v=20260729-03">
 </head>
 <body class="lobby-page">
   <a class="skip-link" href="#trainingGrid">장독대 목록으로 바로가기</a>
@@ -52,6 +53,27 @@
       <button type="button" class="menu-settings-proxy"><span class="menu-icon menu-orange">🐸</span><strong>두꺼비 연구소</strong><small>설정과 화면 모드</small></button>
     </section>
 
+    <section class="learning-dashboard" aria-labelledby="dashboardTitle">
+      <article class="dashboard-main">
+        <div class="dashboard-heading">
+          <div><h2 id="dashboardTitle">학습 대시보드</h2><p>최근 플레이 점수와 전체 누적 기록을 한눈에 확인합니다.</p></div>
+          <span class="dashboard-period">최근 8회</span>
+        </div>
+        <div class="dashboard-summary-grid">
+          <div class="dashboard-stat"><span>총 플레이</span><strong id="dashboardTotalPlays">0</strong><small>누적 도전 횟수</small></div>
+          <div class="dashboard-stat"><span>전체 정답률</span><strong id="dashboardAccuracy">0%</strong><small>정답·오답 합산</small></div>
+          <div class="dashboard-stat"><span>최고 콤보</span><strong id="dashboardBestCombo">0</strong><small>연속 정답 기록</small></div>
+          <div class="dashboard-stat"><span>보유 콩</span><strong id="dashboardBeans">0</strong><small>업그레이드 재화</small></div>
+        </div>
+        <div class="dashboard-chart-wrap"><svg id="dashboardTrendChart" class="dashboard-chart" role="img" aria-label="최근 플레이 점수 추이"></svg></div>
+      </article>
+      <aside class="dashboard-side">
+        <h3>장독대별 정답률</h3>
+        <p>플레이 빈도와 정답률을 기준으로 상위 장독대를 표시합니다.</p>
+        <div id="dashboardModeBars" class="dashboard-mode-list"></div>
+      </aside>
+    </section>
+
     <section id="resumePanel" class="resume-panel" hidden aria-labelledby="resumeTitle">
       <div class="resume-icon" aria-hidden="true">▶</div>
       <div><p class="eyebrow">CONTINUE</p><h2 id="resumeTitle">지난 장독대 이어 채우기</h2><p id="resumeSummary"></p></div>
@@ -74,7 +96,7 @@
   <nav class="mobile-bottom-nav" aria-label="주요 메뉴">
     <a class="is-active" href="index.html"><span>⌂</span>홈</a>
     <a href="#trainingGrid"><span>⚛</span>장독대</a>
-    <a href="#recordsTitle"><span>▦</span>기록</a>
+    <a href="#dashboardTitle"><span>⌁</span>대시보드</a>
     <button class="bottom-settings-proxy" type="button"><span>⚙</span>설정</button>
   </nav>
 
@@ -102,7 +124,8 @@
     </form>
   </dialog>
 
-  <script type="module" src="assets/js/ui-effects.js?v=20260729-02"></script>
+  <script type="module" src="assets/js/ui-effects.js?v=20260729-03"></script>
+  <script type="module" src="assets/js/dashboard-v4.js?v=20260729-03"></script>
   <script>
     document.addEventListener("click",event=>{
       if(event.target.closest(".menu-settings-proxy,.bottom-settings-proxy"))document.getElementById("settingsButton")?.click();
