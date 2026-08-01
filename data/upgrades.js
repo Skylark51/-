@@ -32,13 +32,13 @@ export const UPGRADES=Object.freeze([
 export const UPGRADE_MAP=Object.freeze(Object.fromEntries(UPGRADES.map(item=>[item.id,item])));
 export const BEAN_REWARDS=Object.freeze({
   correct:2,comboStep:1,feverStart:8,trainingClear:25,newHighScore:20,rareEvent:5,
-  comboFinisher:Object.freeze({10:10,20:20,30:35})
+  comboFinisher:Object.freeze({5:8,10:15})
 });
 export const ACTION_RULES=Object.freeze({
   bucketSmash:Object.freeze({minCombo:5,chance:.08,scoreBonus:120}),
   lidDrop:Object.freeze({chance:.12}),
   criticalHit:Object.freeze({chance:.06,waterMultiplier:1.5}),
-  comboFinishers:Object.freeze([10,20,30])
+  comboFinishers:Object.freeze([5,10])
 });
 
 export const defaultUpgradeLevels=()=>Object.fromEntries(UPGRADES.map(item=>[item.id,0]));

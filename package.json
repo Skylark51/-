@@ -1,0 +1,9 @@
+{
+  "name": "kongjuiya-chem",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"tests/*.test.mjs\"",
+    "test:smoke": "node tests/browser-smoke.mjs"
+  }
+}

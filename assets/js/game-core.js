@@ -46,10 +46,6 @@ export class GameCore {
     this.upgrades = upgradeSystem;
     this.actions = actionSystem;
 
-    if (this.actions) {
-      this.actions.speak = (category) => this.speak(category);
-    }
-
     this.feverSystem = new FeverSystem(
       feverConfig,
       upgradeSystem
@@ -237,6 +233,38 @@ export class GameCore {
       );
     }
 
+    const previousState = this.snapshot();
+    const previousStatus =
+      this.state.status;
+    const resumeStatus =
+      resumeState?.status;
+    const resumed = Boolean(
+      resumeState?.trainingId === mode.id &&
+      Number(resumeState.water) > 0 &&
+      (
+        resumeStatus == null ||
+        ["running", "paused"].includes(
+          resumeStatus
+        )
+      )
+    );
+
+    if (this.state.feverActive) {
+      this.endFever("restart");
+    }
+
+    if (previousStatus !== "idle") {
+      this.emit("game:reset", {
+        reason: resumed
+          ? "resume"
+          : "restart",
+        previousStatus,
+        previousState
+      });
+    }
+
+    this.submissionLocked = false;
+    this.warningLevel = null;
     this.state = this.initialState();
     this.state.trainingId = mode.id;
 
@@ -258,17 +286,21 @@ export class GameCore {
         )
     );
 
-    if (
-      resumeState?.trainingId === mode.id
-    ) {
+    if (resumed) {
       for (const key of [
         "water",
         "score",
         "combo",
         "bestCombo",
         "correctInStage",
+        "elapsedSeconds",
+        "lastResponseMs",
+        "feverCharge",
+        "feverRemaining",
         "feverCount",
-        "beansEarned"
+        "feverTier",
+        "beansEarned",
+        "stageIndex"
       ]) {
         if (
           Number.isFinite(
@@ -286,32 +318,168 @@ export class GameCore {
         1,
         this.maxWater()
       );
+
+      this.state.score = Math.max(
+        0,
+        Math.round(this.state.score)
+      );
+
+      this.state.combo = Math.max(
+        0,
+        Math.floor(this.state.combo)
+      );
+
+      this.state.bestCombo = Math.max(
+        this.state.combo,
+        Math.floor(this.state.bestCombo)
+      );
+
+      this.state.correctInStage = clamp(
+        Math.floor(
+          this.state.correctInStage
+        ),
+        0,
+        this.config
+          .correctAnswersToClear - 1
+      );
+
+      this.state.elapsedSeconds =
+        Math.max(
+          0,
+          this.state.elapsedSeconds
+        );
+
+      this.state.lastCorrectAt =
+        Number.isFinite(
+          Number(resumeState.lastCorrectAt)
+        )
+          ? clamp(
+              Number(
+                resumeState.lastCorrectAt
+              ),
+              0,
+              this.state.elapsedSeconds
+            )
+          : null;
+
+      const maxFeverSeconds =
+        this.config.feverMaxSeconds *
+        (
+          this.upgrades?.effect(
+            "fever_level",
+            "durationMultiplier"
+          ) || 1
+        );
+
+      this.state.feverRemaining = clamp(
+        this.state.feverRemaining,
+        0,
+        maxFeverSeconds
+      );
+
+      this.state.feverActive = Boolean(
+        resumeState.feverActive &&
+        this.state.feverRemaining > 0
+      );
+
+      this.state.feverTier =
+        this.state.feverActive
+          ? clamp(
+              Math.floor(
+                this.state.feverTier ||
+                  this.presentationFeverTier()
+              ),
+              1,
+              3
+            )
+          : 0;
+
+      if (!this.state.feverActive) {
+        this.state.feverRemaining = 0;
+      }
     }
 
     this.state.status = "running";
     this.state.startedAt =
-      new Date().toISOString();
+      resumed &&
+      typeof resumeState.startedAt ===
+        "string"
+        ? resumeState.startedAt
+        : new Date().toISOString();
 
-    this.nextQuestion(questionId);
+    const resumeQuestionTime =
+      Number(
+        resumeState
+          ?.questionTimeRemaining
+      );
+
+    const resumeQuestionId =
+      resumed &&
+      resumeQuestionTime > 0
+        ? resumeState.currentQuestionId
+        : null;
+
+    this.nextQuestion(
+      questionId || resumeQuestionId,
+      questionId
+        ? null
+        : resumeQuestionTime
+    );
 
     this.emit("training:start", {
       training: mode,
-      resumed: Boolean(resumeState)
+      resumed
     });
 
     this.emit("game:start", {
       difficulty: this.state.difficulty,
-      resumed: Boolean(resumeState),
+      resumed,
+      restarted:
+        previousStatus !== "idle",
+      previousStatus,
       stage: this.stage,
       training: mode,
       upgrades:
         this.upgrades?.levels?.() || {}
     });
 
+    if (
+      resumed &&
+      this.state.feverActive
+    ) {
+      const values =
+        this.feverSystem.values(
+          this.state.combo
+        );
+
+      this.emit("fever:start", {
+        resumed: true,
+        duration:
+          this.state.feverRemaining,
+        remaining:
+          this.state.feverRemaining,
+        scoreMultiplier:
+          values.scoreMultiplier,
+        waterGainMultiplier:
+          values.waterGainMultiplier,
+        leakMultiplier:
+          values.leakMultiplier,
+        feverTier:
+          this.state.feverTier,
+        tier: this.state.feverTier,
+        toadForm: this.feverForm(
+          this.state.feverTier
+        )
+      });
+    }
+
     return this.snapshot();
   }
 
-  nextQuestion(preferredId = null) {
+  nextQuestion(
+    preferredId = null,
+    remainingSeconds = null
+  ) {
     let question = preferredId
       ? this.questionEngine.getQuestion(
           preferredId
@@ -335,8 +503,19 @@ export class GameCore {
     this.state.currentQuestionId =
       question.id;
 
+    const remaining = Number(
+      remainingSeconds
+    );
+
     this.state.questionTimeRemaining =
-      this.timeLimit();
+      Number.isFinite(remaining) &&
+      remaining > 0
+        ? clamp(
+            remaining,
+            0.05,
+            this.timeLimit()
+          )
+        : this.timeLimit();
 
     this.emit("question:changed", {
       question,
@@ -465,6 +644,36 @@ export class GameCore {
     }
   }
 
+  presentationFeverTier(
+    combo = this.state.combo
+  ) {
+    const level =
+      this.upgrades?.level?.(
+        "fever_level"
+      ) || 0;
+
+    if (combo >= 8) {
+      return 3;
+    }
+
+    if (combo >= 5 || level >= 4) {
+      return 2;
+    }
+
+    return 1;
+  }
+
+  feverForm(tier) {
+    return (
+      [
+        "normal",
+        "gold",
+        "giant",
+        "overdrive"
+      ][tier] || "gold"
+    );
+  }
+
   startFever() {
     if (this.state.feverActive) {
       return;
@@ -482,13 +691,22 @@ export class GameCore {
     this.state.feverCount += 1;
     this.state.feverCharge = 0;
     this.state.feverTier =
-      values.tier;
+      this.presentationFeverTier();
 
-    const form =
-      this.feverSystem.form(
-        values.level,
-        this.state.combo
-      );
+    const form = this.feverForm(
+      this.state.feverTier
+    );
+
+    const beans =
+      this.actions?.feverStart({
+        form,
+        duration: values.duration,
+        tier: this.state.feverTier,
+        trainingId:
+          this.state.trainingId
+      }) || 0;
+
+    this.state.beansEarned += beans;
 
     this.emit("fever:start", {
       duration: values.duration,
@@ -498,17 +716,11 @@ export class GameCore {
         values.waterGainMultiplier,
       leakMultiplier:
         values.leakMultiplier,
-      feverTier: values.tier,
-      tier: values.tier,
-      toadForm: form
-    });
-
-    this.actions?.feverStart({
-      form,
-      duration: values.duration,
-      tier: values.tier,
-      trainingId:
-        this.state.trainingId
+      feverTier:
+        this.state.feverTier,
+      tier: this.state.feverTier,
+      toadForm: form,
+      beansEarned: beans
     });
 
     this.speak(
@@ -537,11 +749,54 @@ export class GameCore {
           this.config.feverExtendSeconds
       );
 
+    const values =
+      this.feverSystem.values(
+        this.state.combo
+      );
+
+    const nextTier =
+      this.presentationFeverTier();
+
+    if (nextTier > this.state.feverTier) {
+      this.state.feverTier = nextTier;
+
+      const form = this.feverForm(
+        nextTier
+      );
+
+      this.actions?.feverTier?.({
+        form,
+        tier: nextTier,
+        remaining:
+          this.state.feverRemaining,
+        trainingId:
+          this.state.trainingId
+      });
+
+      this.emit("fever:tier", {
+        remaining:
+          this.state.feverRemaining,
+        scoreMultiplier:
+          values.scoreMultiplier,
+        feverTier: nextTier,
+        tier: nextTier,
+        toadForm: form
+      });
+    }
+
     this.emit("fever:extend", {
       remaining:
         this.state.feverRemaining,
       added:
-        this.config.feverExtendSeconds
+        this.config.feverExtendSeconds,
+      scoreMultiplier:
+        values.scoreMultiplier,
+      feverTier:
+        this.state.feverTier,
+      tier: this.state.feverTier,
+      toadForm: this.feverForm(
+        this.state.feverTier
+      )
     });
   }
 
@@ -801,7 +1056,8 @@ export class GameCore {
     });
 
     const category =
-      action.critical
+      action.dialogueCategory ||
+      (action.critical
         ? "criticalWater"
         : this.state.feverActive
           ? "feverCorrect"
@@ -812,7 +1068,7 @@ export class GameCore {
             ? "fastCorrect"
             : this.state.combo >= 3
               ? "combo"
-              : "normalCorrect";
+              : "normalCorrect");
 
     this.speak(category);
 
@@ -945,19 +1201,26 @@ export class GameCore {
 
     this.endFever("clear");
 
-    const bonus =
-      this.actions?.earn(
-        25,
-        "training_clear",
-        this.state.trainingId
-      ) || 0;
+    const rewards =
+      this.actions?.trainingClear?.({
+        trainingId:
+          this.state.trainingId,
+        score: this.state.score
+      }) || {
+        total: 0,
+        clearBonus: 0,
+        highScoreBonus: 0,
+        newHighScore: false
+      };
 
-    this.state.beansEarned += bonus;
+    this.state.beansEarned +=
+      rewards.total;
 
     this.emit("training:clear", {
       training: this.training,
       score: this.state.score,
-      beansEarned: bonus
+      beansEarned: rewards.total,
+      rewards
     });
 
     this.speak("gameClear");
@@ -966,7 +1229,8 @@ export class GameCore {
       score: this.state.score,
       training: this.training,
       beansEarned:
-        this.state.beansEarned
+        this.state.beansEarned,
+      rewards
     });
   }
 
