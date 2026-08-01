@@ -110,8 +110,9 @@ export function switchLobbyScreen(requested, options = {}) {
   const screen = normalizeScreen(requested);
   const historyMode = options.historyMode || "push";
   const shouldAnnounce = options.announce !== false;
+  const changed = activeScreen !== screen;
 
-  if (activeScreen !== screen) scrollPositions.set(activeScreen, window.scrollY || 0);
+  if (changed) scrollPositions.set(activeScreen, window.scrollY || 0);
   activeScreen = screen;
   document.body.dataset.lobbyScreen = screen;
   updateScreenVisibility(screen);
@@ -123,12 +124,12 @@ export function switchLobbyScreen(requested, options = {}) {
   }
 
   const nextUrl = screenUrl(screen);
-  if (historyMode === "push") history.pushState({ lobbyScreen: screen }, "", nextUrl);
+  if (historyMode === "push" && changed) history.pushState({ lobbyScreen: screen }, "", nextUrl);
   else if (historyMode === "replace") history.replaceState({ lobbyScreen: screen }, "", nextUrl);
 
   restoreScreenScroll(screen);
-  if (shouldAnnounce) announceScreen(screen);
-  dispatchEvent(new CustomEvent("lobby:screenchange", { detail: { screen } }));
+  if (shouldAnnounce && changed) announceScreen(screen);
+  if (changed) dispatchEvent(new CustomEvent("lobby:screenchange", { detail: { screen } }));
 }
 
 function bindScreenLinks() {
@@ -145,7 +146,7 @@ function bindScreenLinks() {
 }
 
 function mount() {
-  if (mounted || document.body?.dataset.page === "game" || !document.body?.classList.contains("lobby-page")) return;
+  if (mounted || !document.body?.classList.contains("lobby-page")) return;
   mounted = true;
   injectNavigationStyles();
   history.scrollRestoration = "manual";
