@@ -43,10 +43,150 @@ html[data-device-layout="mobile"] .keypad-submit{font-weight:1000!important}
 
 html[data-device-layout="mobile"] .game-bottom-toolbar{height:calc(var(--v5-toolbar-height) + env(safe-area-inset-bottom))!important;padding:6px 8px max(6px,env(safe-area-inset-bottom))!important}
 
+/* Critical mobile layout correction: reset the inherited desktop grid. */
+html[data-device-layout="mobile"] .game-app-frame{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:48px minmax(0,1fr)!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+}
+html[data-device-layout="mobile"] .quiz-app-header{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:40px minmax(0,1fr) auto!important;
+  grid-column:1!important;
+  grid-row:1!important;
+  width:100%!important;
+  min-width:0!important;
+  height:44px!important;
+  margin:0!important;
+  overflow:hidden!important;
+}
+html[data-device-layout="mobile"] .quiz-header-title,
+html[data-device-layout="mobile"] .quiz-header-tools{
+  min-width:0!important;
+}
+html[data-device-layout="mobile"] .quiz-header-title small,
+html[data-device-layout="mobile"] .quiz-header-title strong{
+  display:block!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+html[data-device-layout="mobile"] .quiz-header-title strong{font-size:13px!important;line-height:1.25!important}
+html[data-device-layout="mobile"] .quiz-header-title small{font-size:8px!important;line-height:1.2!important}
+html[data-device-layout="mobile"] .quiz-header-tools{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:4px!important}
+html[data-device-layout="mobile"] .quiz-header-tools>span{display:none!important}
+html[data-device-layout="mobile"] .quiz-header-tools button{width:36px!important;height:36px!important;min-width:36px!important}
+
+html[data-device-layout="mobile"] .play-layout{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-column:1!important;
+  grid-row:2!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto minmax(185px,38%) minmax(0,1fr)!important;
+  width:100%!important;
+  min-width:0!important;
+  height:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+html[data-device-layout="mobile"] .mobile-compact-shell,
+html[data-device-layout="mobile"] .scene-panel,
+html[data-device-layout="mobile"] .question-panel{
+  box-sizing:border-box!important;
+  grid-column:1/-1!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  margin:0!important;
+  transform:none!important;
+}
+html[data-device-layout="mobile"] .mobile-compact-shell{grid-row:1!important;min-height:0!important;overflow:visible!important}
+html[data-device-layout="mobile"] .scene-panel{grid-row:2!important;position:relative!important}
+html[data-device-layout="mobile"] .question-panel{
+  grid-row:3!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr) auto!important;
+  align-content:stretch!important;
+  border-radius:15px!important;
+}
+html[data-device-layout="mobile"] .mobile-compact-shell .game-hud{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:0 0 4px!important;
+}
+html[data-device-layout="mobile"] .mobile-compact-shell .fever-panel{
+  width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+}
+html[data-device-layout="mobile"] .game-stage{
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  overflow:hidden!important;
+}
+html[data-device-layout="mobile"] .question-card,
+html[data-device-layout="mobile"] .mobile-input-dock{
+  box-sizing:border-box!important;
+  grid-column:1!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  writing-mode:horizontal-tb!important;
+}
+html[data-device-layout="mobile"] .question-card{grid-row:1!important}
+html[data-device-layout="mobile"] .mobile-input-dock{grid-row:2!important}
+html[data-device-layout="mobile"] .question-card *,
+html[data-device-layout="mobile"] .mobile-input-dock *{
+  writing-mode:horizontal-tb!important;
+  text-orientation:mixed!important;
+}
+html[data-device-layout="mobile"] .question-progress-line{
+  display:grid!important;
+  grid-template-columns:auto minmax(40px,1fr) auto!important;
+  width:100%!important;
+  min-width:0!important;
+}
+html[data-device-layout="mobile"] .question-card h2{
+  width:100%!important;
+  min-width:0!important;
+  white-space:normal!important;
+  word-break:keep-all!important;
+  overflow-wrap:break-word!important;
+}
+html[data-device-layout="mobile"] .feedback{
+  width:100%!important;
+  min-width:0!important;
+  white-space:normal!important;
+  word-break:keep-all!important;
+}
+html[data-device-layout="mobile"] .mobile-input-dock>.mobile-keypad{
+  box-sizing:border-box!important;
+  max-width:100%!important;
+}
+html[data-device-layout="mobile"] .game-bottom-toolbar{
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+}
+
 @media(max-width:380px){
- html[data-device-layout="mobile"] .play-layout{grid-template-rows:auto minmax(190px,38%) minmax(0,1fr)!important}
- html[data-device-layout="mobile"] .game-stage{min-height:190px!important}
- html[data-device-layout="mobile"] .jar-wrap{bottom:-57px!important;transform:translateX(-50%) scale(.57)!important}
+ html[data-device-layout="mobile"] .play-layout{grid-template-rows:auto minmax(165px,34%) minmax(0,1fr)!important}
+ html[data-device-layout="mobile"] .game-stage{min-height:165px!important}
+ html[data-device-layout="mobile"] .jar-wrap{bottom:-65px!important;transform:translateX(-50%) scale(.53)!important}
  html[data-device-layout="mobile"] .kongjwi{width:44%!important;height:82%!important}
  html[data-device-layout="mobile"] .mobile-keypad button{min-height:36px!important;font-size:13px!important}
  html[data-device-layout="mobile"] .keypad-display{min-height:35px!important;font-size:15px!important}
@@ -54,10 +194,10 @@ html[data-device-layout="mobile"] .game-bottom-toolbar{height:calc(var(--v5-tool
 }
 
 @media(max-height:650px){
- html[data-device-layout="mobile"] .play-layout{grid-template-rows:auto minmax(175px,36%) minmax(0,1fr)!important}
- html[data-device-layout="mobile"] .game-stage{min-height:175px!important}
- html[data-device-layout="mobile"] .jar-wrap{bottom:-65px!important;transform:translateX(-50%) scale(.53)!important}
- html[data-device-layout="mobile"] .question-panel{grid-template-rows:minmax(58px,1fr) auto!important}
+ html[data-device-layout="mobile"] .play-layout{grid-template-rows:auto minmax(150px,32%) minmax(0,1fr)!important}
+ html[data-device-layout="mobile"] .game-stage{min-height:150px!important}
+ html[data-device-layout="mobile"] .jar-wrap{bottom:-72px!important;transform:translateX(-50%) scale(.50)!important}
+ html[data-device-layout="mobile"] .question-panel{grid-template-rows:minmax(52px,1fr) auto!important}
  html[data-device-layout="mobile"] .question-card h2{max-height:38px!important;font-size:12px!important}
  html[data-device-layout="mobile"] .feedback{display:none!important}
  html[data-device-layout="mobile"] .mobile-keypad button{min-height:31px!important;font-size:12px!important}
@@ -66,9 +206,9 @@ html[data-device-layout="mobile"] .game-bottom-toolbar{height:calc(var(--v5-tool
 }
 
 @media(max-height:560px){
- html[data-device-layout="mobile"] .play-layout{grid-template-rows:auto 155px minmax(0,1fr)!important}
- html[data-device-layout="mobile"] .game-stage{min-height:155px!important}
- html[data-device-layout="mobile"] .jar-wrap{bottom:-76px!important;transform:translateX(-50%) scale(.48)!important}
+ html[data-device-layout="mobile"] .play-layout{grid-template-rows:auto 135px minmax(0,1fr)!important}
+ html[data-device-layout="mobile"] .game-stage{min-height:135px!important}
+ html[data-device-layout="mobile"] .jar-wrap{bottom:-80px!important;transform:translateX(-50%) scale(.46)!important}
  html[data-device-layout="mobile"] .fever-panel{display:none!important}
  html[data-device-layout="mobile"] .question-topline{display:none!important}
  html[data-device-layout="mobile"] .question-card h2{max-height:34px!important;margin:3px 0!important}
