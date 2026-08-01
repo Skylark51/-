@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ko" data-device-layout="mobile">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>모바일 키패드 브라우저 테스트</title>
+  <style>
+    body{max-width:680px;margin:0 auto;padding:18px;font-family:system-ui,sans-serif;background:#f5f5ff;color:#222}
+    #ui-mobileInputDock{margin-top:12px}
+    .pass{color:#197442}.fail{color:#b3263e}button{min-height:38px}
+  </style>
+</head>
+<body>
+  <h1>모바일 키패드 브라우저 테스트</h1>
+  <ol id="results"></ol>
+  <section class="question-panel">
+    <form id="ui-answerForm"><label for="answerInput">정답 입력</label><input id="answerInput" inputmode="text"><button id="submitButton" type="submit">제출</button></form>
+    <section id="ui-mobileInputDock" hidden></section>
+  </section>
+
+  <script type="module">
+    import { mountMobileKeypad } from "../assets/js/mobile-keypad.js?v=20260801-terra-mobile";
+
+    const results = document.querySelector("#results");
+    const form = document.querySelector("#ui-answerForm");
+    const input = document.querySelector("#answerInput");
+    const dock = document.querySelector("#ui-mobileInputDock");
+    const submissions = [];
+    let descriptor = { inputMode: "integer_keypad", allowedKeys: ["0", "1"] };
+    let question = { prompt: "H의 원자 번호는?" };
+    const api = {
+      game: {
+        state: { status: "running" },
+        get question() { return question; },
+        snapshot() { return { questionInput: descriptor }; }
+      },
+      submit(value) { submissions.push(String(value)); }
+    };
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      api.submit(input.value);
+    });
+
+    const controller = mountMobileKeypad({ api, form, input, dock });
+    const panel = document.querySelector("#ui-mobileKeypad");
+    const assert = (condition, message) => {
+      if (!condition) throw new Error(message);
+    };
+    const click = label => {
+      const button = panel.querySelector(`[aria-label="${label}"]`);
+      assert(button, `버튼 없음: ${label}`);
+      button.click();
+    };
+    const run = (name, callback) => {
+      const item = document.createElement("li");
+      try {
+        callback();
+        item.className = "pass";
+        item.textContent = `PASS — ${name}`;
+      } catch (error) {
+        item.className = "fail";
+        item.textContent = `FAIL — ${name}: ${error.message}`;
+      }
+      results.append(item);
+    };
+
+    run("숫자 0~9·한 글자 삭제·전체 삭제·제출", () => {
+      descriptor = { inputMode: "integer_keypad", allowedKeys: ["0", "1", "2"] };
+      question = { prompt: "H의 원자 번호는?" };
+      controller.update(descriptor, question);
+      assert(panel.hidden === false && dock.hidden === false, "숫자 키패드가 보이지 않습니다.");
+      assert(panel.querySelectorAll(".keypad-key").length === 10, "0~9 키가 모두 렌더되지 않았습니다.");
+      click("숫자 1");
+      click("숫자 0");
+      assert(input.value === "10", "숫자 입력이 연결되지 않았습니다.");
+      click("한 글자 지우기");
+      assert(input.value === "1", "한 글자 삭제가 동작하지 않습니다.");
+      click("입력 전체 지우기");
+      assert(input.value === "", "전체 삭제가 동작하지 않습니다.");
+      click("숫자 2");
+      click("정답 제출");
+      assert(submissions.at(-1) === "2", "숫자 제출 값이 전달되지 않았습니다.");
+      const submitCount = submissions.length;
+      click("정답 제출");
+      assert(submissions.length === submitCount, "연속 제출이 차단되지 않았습니다.");
+      controller.setLocked(false);
+    });
+
+    run("소수점·부호·계수 확장 키", () => {
+      descriptor = { inputMode: "numeric_keypad", allowedKeys: ["0", "."] };
+      controller.update(descriptor, question);
+      assert(panel.querySelector('[aria-label="소수점"]'), "소수점 키가 없습니다.");
+      descriptor = { inputMode: "signed_numeric_keypad", allowedKeys: ["0", "+", "-"] };
+      controller.update(descriptor, question);
+      assert(panel.querySelector('[aria-label="양수 기호"]') && panel.querySelector('[aria-label="음수 기호"]'), "부호 키가 없습니다.");
+      descriptor = { inputMode: "coefficient_keypad", allowedKeys: ["0", ","] };
+      controller.update(descriptor, question);
+      assert(panel.querySelector('[aria-label="계수 구분 쉼표"]'), "계수 쉼표 키가 없습니다.");
+    });
+
+    run("2지선다와 객관식은 즉시 제출", () => {
+      descriptor = { inputMode: "binary_choice", choices: [{ key: "1", label: "산화" }, { key: "2", label: "환원" }] };
+      controller.update(descriptor, question);
+      click("1. 산화 선택하고 제출");
+      assert(submissions.at(-1) === "1", "2지선다 값이 전달되지 않았습니다.");
+      controller.setLocked(false);
+      descriptor = { inputMode: "multiple_choice", choices: ["아주 긴 첫 번째 선택지", "두 번째 선택지", "세 번째 선택지", "네 번째 선택지"].map((label, index) => ({ key: String(index + 1), label })) };
+      controller.update(descriptor, question);
+      assert(panel.querySelectorAll(".keypad-choice").length === 4, "객관식 선택지가 모두 렌더되지 않았습니다.");
+      click("4. 네 번째 선택지 선택하고 제출");
+      assert(submissions.at(-1) === "4", "객관식 값이 전달되지 않았습니다.");
+      controller.setLocked(false);
+    });
+
+    run("화학식 키는 원소·숫자·괄호·기호를 제공", () => {
+      descriptor = { inputMode: "formula_keyboard" };
+      question = { prompt: "MgCl₂의 화학식을 입력하세요." };
+      controller.update(descriptor, question);
+      click("Mg 원소 기호");
+      click("Cl 원소 기호");
+      click("2 입력");
+      assert(input.value === "MgCl2", "화학식 키 입력이 연결되지 않았습니다.");
+      assert(panel.querySelector('[aria-label="( 입력"]') && panel.querySelector('[aria-label="+ 입력"]') && panel.querySelector('[aria-label=", 입력"]'), "화학식 보조 키가 없습니다.");
+    });
+
+    run("미지원 descriptor는 기본 입력 fallback으로 복구", () => {
+      descriptor = { inputMode: "text_keyboard" };
+      controller.update(descriptor, question);
+      assert(form.hidden === false && input.hidden === false && input.readOnly === false, "text fallback이 복구되지 않았습니다.");
+      descriptor = { inputMode: "unsupported_keyboard" };
+      controller.update(descriptor, question);
+      assert(form.hidden === false && input.hidden === false && input.readOnly === false, "기본 입력 fallback이 복구되지 않았습니다.");
+      input.value = "직접 입력";
+      form.requestSubmit();
+      assert(submissions.at(-1) === "직접 입력", "fallback 제출이 동작하지 않습니다.");
+    });
+
+    run("mobile → desktop → mobile 전환과 단일 mount", () => {
+      descriptor = { inputMode: "integer_keypad", allowedKeys: ["0", "1"] };
+      document.documentElement.dataset.deviceLayout = "desktop";
+      controller.update(descriptor, question);
+      assert(panel.hidden === true && input.hidden === false, "desktop 입력 복구가 실패했습니다.");
+      document.documentElement.dataset.deviceLayout = "mobile";
+      controller.update(descriptor, question);
+      assert(panel.hidden === false, "mobile 키패드 재표시가 실패했습니다.");
+      assert(mountMobileKeypad({ api, form, input, dock }) === controller, "동일 입력에 새 키패드가 mount되었습니다.");
+      assert(document.querySelectorAll("#ui-mobileKeypad").length === 1, "중복 keypad DOM이 생성되었습니다.");
+    });
+
+    const failed = results.querySelectorAll(".fail").length;
+    window.__terraMobileKeypadResults = { passed: results.querySelectorAll(".pass").length, failed };
+  </script>
+</body>
+</html>

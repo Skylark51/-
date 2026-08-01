@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>기기 모드·viewport 브라우저 테스트</title>
+  <style>
+    body{margin:0;padding:16px;font-family:system-ui,sans-serif;background:#f5f5ff;color:#20213e}
+    iframe{display:block;border:0;box-shadow:0 0 0 1px #c8c9e8;margin-top:12px}.pass{color:#197442}.fail{color:#b3263e}
+  </style>
+</head>
+<body>
+  <h1>기기 모드·viewport 브라우저 테스트</h1>
+  <ol id="results"></ol>
+  <pre id="metrics" aria-live="polite"></pre>
+  <div id="frames"></div>
+
+  <script>
+    const results = document.querySelector("#results");
+    const metrics = document.querySelector("#metrics");
+    const frames = document.querySelector("#frames");
+    const wait = milliseconds => new Promise(resolve => window.setTimeout(resolve, milliseconds));
+    const assert = (condition, message) => { if (!condition) throw new Error(message); };
+    const run = async (name, callback) => {
+      const item = document.createElement("li");
+      try {
+        const value = await callback();
+        item.className = "pass";
+        item.textContent = `PASS — ${name}`;
+        return value;
+      } catch (error) {
+        item.className = "fail";
+        item.textContent = `FAIL — ${name}: ${error.message}`;
+        return null;
+      } finally {
+        results.append(item);
+      }
+    };
+    const mountGame = async (width, height) => {
+      const frame = document.createElement("iframe");
+      frame.width = String(width);
+      frame.height = String(height);
+      frame.style.width = `${width}px`;
+      frame.style.height = `${height}px`;
+      frame.title = `${width}×${height} 게임 프레임`;
+      frames.append(frame);
+      frame.contentWindow.localStorage.setItem("kongjuiya-device-mode", "mobile");
+      const loaded = new Promise(resolve => frame.addEventListener("load", () => window.setTimeout(resolve, 1500), { once: true }));
+      frame.src = `../%EC%BD%A9%EC%A5%90%EC%95%BC_%EC%A4%98%EB%95%8C%EC%8D%A8.html?training=atomic_number&deviceModeTest=${width}x${height}`;
+      await loaded;
+      return frame;
+    };
+    const stateFor = frame => {
+      const doc = frame.contentDocument;
+      const win = frame.contentWindow;
+      const root = doc.documentElement;
+      const keypad = doc.querySelector("#ui-mobileKeypad");
+      const dock = doc.querySelector("#ui-mobileInputDock");
+      const toolbar = doc.querySelector(".game-bottom-toolbar");
+      const keypadRect = keypad?.getBoundingClientRect();
+      const dockRect = dock?.getBoundingClientRect();
+      const toolbarRect = toolbar?.getBoundingClientRect();
+      const keypadStyle = keypad && win.getComputedStyle(keypad);
+      const dockStyle = dock && win.getComputedStyle(dock);
+      const toolbarStyle = toolbar && win.getComputedStyle(toolbar);
+      return {
+        width: win.innerWidth,
+        height: win.innerHeight,
+        layout: root.dataset.deviceLayout,
+        orientation: root.dataset.orientation,
+        cssHeight: root.style.getPropertyValue("--game-viewport-height"),
+        keypadCount: doc.querySelectorAll("#ui-mobileKeypad").length,
+        keypadHidden: keypad?.hidden,
+        keypadDisplay: keypadStyle?.display,
+        dockHidden: dock?.hidden,
+        dockDisplay: dockStyle?.display,
+        toolbarDisplay: toolbarStyle?.display,
+        keypadVisible: Boolean(keypadRect && keypadRect.width > 0 && keypadRect.height > 0),
+        dockBottom: Math.round(dockRect?.bottom || 0),
+        toolbarTop: Math.round(toolbarRect?.top || 0),
+        scrollWidth: Math.max(root.scrollWidth, doc.body.scrollWidth),
+        scrollHeight: Math.max(root.scrollHeight, doc.body.scrollHeight)
+      };
+    };
+    const assertMobileViewport = (state, width, height, orientation) => {
+      assert(state.layout === "mobile", `layout=${state.layout}`);
+      assert(state.orientation === orientation, `orientation=${state.orientation}`);
+      assert(Math.abs(parseFloat(state.cssHeight) - height) <= 1, `viewport 높이=${state.cssHeight}`);
+      assert(state.keypadCount === 1 && state.keypadVisible, `키패드가 하나로 표시되지 않습니다: ${JSON.stringify(state)}`);
+      assert(state.dockBottom <= state.toolbarTop + 1, "입력 도크와 툴바가 겹칩니다.");
+      assert(state.scrollWidth <= width + 1 && state.scrollHeight <= height + 1, "스크롤이 생겼습니다.");
+    };
+    (async () => {
+      const portrait = await run("세로 초기 화면에서 CSS viewport 높이를 동기화", async () => {
+        const frame = await mountGame(390, 844);
+        const state = stateFor(frame);
+        assertMobileViewport(state, 390, 844, "portrait");
+        return state;
+      });
+      const landscape = await run("가로 초기 화면에서도 강제 모바일 키패드를 유지", async () => {
+        const frame = await mountGame(844, 390);
+        const state = stateFor(frame);
+        assertMobileViewport(state, 844, 390, "landscape");
+        return state;
+      });
+      const failed = results.querySelectorAll(".fail").length;
+      metrics.textContent = JSON.stringify({ failed, portrait, landscape }, null, 2);
+      window.__terraDeviceModeResults = { passed: results.querySelectorAll(".pass").length, failed };
+    })();
+  </script>
+</body>
+</html>
