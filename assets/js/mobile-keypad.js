@@ -1,90 +1,24 @@
-const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-const CHOICE_MODES = new Set(["choice", "binary_choice", "multiple_choice"]);
-const mobile = () => document.documentElement.dataset.deviceLayout === "mobile";
-
-export function mountMobileKeypad({ api, form, input, anchor = form } = {}) {
-  if (!api || !form || !input) return null;
-  const original = { hidden: input.hidden, inputMode: input.getAttribute("inputmode"), readOnly: input.readOnly, ariaReadOnly: input.getAttribute("aria-readonly") };
-  const panel = document.createElement("section");
-  panel.id = "ui-mobileKeypad";
-  panel.className = "mobile-keypad";
-  panel.setAttribute("aria-label", "화면 정답 키패드");
-  panel.hidden = true;
-  panel.innerHTML = '<div class="keypad-display-row"><output class="keypad-display" aria-live="polite" aria-label="입력한 정답">정답을 입력하세요</output><div class="keypad-modifiers" aria-label="추가 입력 키"></div></div><div class="keypad-keys"></div>';
-  anchor.insertAdjacentElement("afterend", panel);
-  const output = panel.querySelector(".keypad-display");
-  const keys = panel.querySelector(".keypad-keys");
-  const modifiers = panel.querySelector(".keypad-modifiers");
-  let locked = false;
-  let descriptor = {};
-  let currentQuestion = null;
-
-  const showValue = () => { output.value = input.value; output.textContent = input.value || "정답을 입력하세요"; };
-  const edit = value => {
-    if (locked) return;
-    if (value === "clear") input.value = "";
-    else if (value === "." && input.value.includes(".")) return;
-    else if ((value === "+" || value === "-") && input.value.length) input.value = value + input.value.replace(/^[+-]/, "");
-    else input.value += value;
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    showValue();
-  };
-  const submit = value => {
-    if (locked) return;
-    locked = true;
-    try { if (value != null) api.submit(value); else form.requestSubmit(); }
-    finally { setTimeout(() => { locked = false; input.value = ""; showValue(); }, 360); }
-  };
-  const make = (label, handler, className = "keypad-key") => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = className;
-    button.textContent = label;
-    button.setAttribute("aria-label", label === "C" ? "입력 전체 지우기" : label === "제출" ? "정답 제출" : `정답 ${label}`);
-    button.addEventListener("click", handler);
-    return button;
-  };
-  const renderChoices = () => {
-    keys.className = "keypad-keys is-choice";
-    for (const choice of descriptor.choices || []) {
-      const value = choice.key ?? choice.value;
-      const label = choice.key ? `${choice.key}. ${choice.label}` : choice.label;
-      keys.append(make(label, () => descriptor.autoSubmit !== false ? submit(value) : edit(value), "keypad-choice"));
-    }
-  };
-  const renderNumbers = () => {
-    keys.className = "keypad-keys is-numeric";
-    for (const digit of DIGITS) keys.append(make(digit, () => edit(digit)));
-    keys.append(make("C", () => edit("clear"), "keypad-clear"), make("0", () => edit("0")), make("제출", () => submit(), "keypad-submit"));
-    const allowed = new Set(descriptor.allowedKeys || currentQuestion?.allowedKeys || []);
-    const signed = descriptor.inputMode === "signed_numeric_keypad" || allowed.has("-") || currentQuestion?.trainingId === "oxidation_number";
-    const decimal = allowed.has(".") || currentQuestion?.tolerance != null;
-    if (decimal) modifiers.append(make(".", () => edit("."), "keypad-modifier"));
-    if (signed) modifiers.append(make("+", () => edit("+"), "keypad-modifier"), make("−", () => edit("-"), "keypad-modifier"));
-  };
-  const restoreDesktopInput = () => {
-    input.hidden = original.hidden;
-    input.readOnly = original.readOnly;
-    if (original.inputMode == null) input.removeAttribute("inputmode"); else input.setAttribute("inputmode", original.inputMode);
-    if (original.ariaReadOnly == null) input.removeAttribute("aria-readonly"); else input.setAttribute("aria-readonly", original.ariaReadOnly);
-  };
-  const render = () => {
-    currentQuestion = api.game.question;
-    descriptor = api.game.snapshot().questionInput || {};
-    panel.hidden = !mobile();
-    keys.replaceChildren();
-    modifiers.replaceChildren();
-    if (!mobile()) { restoreDesktopInput(); showValue(); return; }
-    input.hidden = true;
-    input.readOnly = true;
-    input.setAttribute("inputmode", "none");
-    input.setAttribute("aria-readonly", "true");
-    if (CHOICE_MODES.has(descriptor.inputMode)) renderChoices(); else renderNumbers();
-    showValue();
-  };
-  addEventListener("question:changed", render);
-  addEventListener("ui:device-mode", render);
-  input.addEventListener("input", showValue);
-  render();
-  return { panel, render, destroy() { restoreDesktopInput(); panel.remove(); } };
+const DIGITS=["1","2","3","4","5","6","7","8","9"];
+const CHOICE_MODES=new Set(["choice","binary_choice","multiple_choice"]);
+const NUMERIC_MODES=new Set(["numeric_keypad","signed_numeric_keypad","numeric","decimal"]);
+const isMobile=()=>document.documentElement.dataset.deviceLayout==="mobile";
+function keypadKind(descriptor={}){if((descriptor.choices||[]).length||CHOICE_MODES.has(descriptor.inputMode))return"choice";if(NUMERIC_MODES.has(descriptor.inputMode))return"numeric";const keys=descriptor.allowedKeys||[];return keys.length&&keys.every(key=>/^[0-9.+-]$/.test(key))?"numeric":null}
+function makeButton(label,onClick,className="keypad-key",ariaLabel=label){const button=document.createElement("button");button.type="button";button.className=className;button.textContent=label;button.setAttribute("aria-label",ariaLabel);button.addEventListener("click",onClick);return button}
+export function mountMobileKeypad({api,form,input,anchor=form}={}){if(!api||!form||!input||!anchor)return null;
+ const original={hidden:input.hidden,inputMode:input.getAttribute("inputmode"),readOnly:input.readOnly,ariaReadOnly:input.getAttribute("aria-readonly")};
+ const panel=document.createElement("section");panel.id="ui-mobileKeypad";panel.className="mobile-keypad";panel.hidden=true;panel.setAttribute("aria-label","화면 정답 키패드");panel.innerHTML='<div class="keypad-display-row"><output class="keypad-display" aria-live="polite" aria-label="입력한 정답">정답을 입력하세요</output><div class="keypad-modifiers" aria-label="추가 입력 키"></div></div><div class="keypad-keys"></div>';anchor.insertAdjacentElement("afterend",panel);
+ const output=panel.querySelector(".keypad-display"),modifiers=panel.querySelector(".keypad-modifiers"),keys=panel.querySelector(".keypad-keys");let descriptor={},question=null,locked=false,warned="";
+ const showValue=()=>{output.value=input.value;output.textContent=input.value||"정답을 입력하세요"};
+ const restoreInput=()=>{input.hidden=original.hidden;input.readOnly=original.readOnly;if(original.inputMode==null)input.removeAttribute("inputmode");else input.setAttribute("inputmode",original.inputMode);if(original.ariaReadOnly==null)input.removeAttribute("aria-readonly");else input.setAttribute("aria-readonly",original.ariaReadOnly)};
+ const setNativeFallback=()=>{restoreInput();panel.hidden=true;const submitButton=form.querySelector('[type="submit"]');if(submitButton)submitButton.hidden=false};
+ const setValue=value=>{input.value=String(value??"");input.dispatchEvent(new Event("input",{bubbles:true}));showValue()};
+ const clear=()=>setValue("");
+ const setLocked=value=>{locked=Boolean(value);panel.querySelectorAll("button").forEach(button=>{button.disabled=locked;button.setAttribute("aria-disabled",String(locked))})};
+ const edit=value=>{if(locked)return;if(value==="clear")return clear();if(value==="backspace")return setValue(input.value.slice(0,-1));if(value==="."&&input.value.includes("."))return;if((value==="+"||value==="-")&&input.value.length)return setValue(value+input.value.replace(/^[+-]/,""));setValue(input.value+value)};
+ const submit=value=>{if(locked)return;setLocked(true);const result=api.submit(value??input.value);if(!result?.accepted)setLocked(false)};
+ const renderChoices=()=>{keys.className="keypad-keys is-choice";for(const choice of descriptor.choices||[]){const value=choice.key??choice.value,label=choice.key?`${choice.key}. ${choice.label}`:choice.label;keys.append(makeButton(label,()=>submit(value),"keypad-choice",`${label} 선택`))}};
+ const renderNumbers=()=>{keys.className="keypad-keys is-numeric";for(const digit of DIGITS)keys.append(makeButton(digit,()=>edit(digit),"keypad-key",`정답 ${digit}`));keys.append(makeButton("⌫",()=>edit("backspace"),"keypad-delete","한 글자 삭제"),makeButton("0",()=>edit("0"),"keypad-key","정답 0"),makeButton("전체",()=>edit("clear"),"keypad-clear","입력 전체 지우기"),makeButton("제출",()=>submit(),"keypad-submit","정답 제출"));const allowed=new Set(descriptor.allowedKeys||question?.allowedKeys||[]);if(allowed.has(".")||question?.tolerance!=null)modifiers.append(makeButton(".",()=>edit("."),"keypad-modifier","소수점"));if(descriptor.inputMode==="signed_numeric_keypad"||allowed.has("+")||allowed.has("-")){modifiers.append(makeButton("+",()=>edit("+"),"keypad-modifier","양수 부호"),makeButton("−",()=>edit("-"),"keypad-modifier","음수 부호"))}};
+ const update=(nextDescriptor=api.game?.snapshot?.().questionInput||{},nextQuestion=api.game?.question||null)=>{descriptor=nextDescriptor||{};question=nextQuestion;const kind=keypadKind(descriptor);panel.classList.toggle("is-choice",kind==="choice");keys.replaceChildren();modifiers.replaceChildren();clear();setLocked(false);if(!isMobile()){restoreInput();panel.hidden=true;return}if(!kind){setNativeFallback();const signature=descriptor.inputMode||"unknown";if(warned!==signature){warned=signature;console.warn(`[KongJuiYa keypad] 지원하지 않는 입력 형식(${signature})입니다. 기본 입력과 브라우저 키보드를 사용합니다.`)}return}input.hidden=true;input.readOnly=true;input.setAttribute("inputmode","none");input.setAttribute("aria-readonly","true");const submitButton=form.querySelector('[type="submit"]');if(submitButton)submitButton.hidden=true;panel.hidden=false;if(kind==="choice")renderChoices();else renderNumbers();showValue()};
+ const onInput=()=>showValue();input.addEventListener("input",onInput);showValue();
+ return{panel,mount:()=>panel,update,setValue,clear,setLocked,destroy(){input.removeEventListener("input",onInput);restoreInput();panel.remove()}}
 }

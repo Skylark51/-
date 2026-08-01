@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" data-page="game" data-ui-version="20260729-04">
+<html lang="ko" data-page="game" data-ui-version="20260801-terra-quiz">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
@@ -10,11 +10,9 @@
   <meta name="twitter:title" content="콩쥐야 줘때써 - 화학편">
   <title>콩쥐야 줘때써 - 화학편</title>
   <style>html,body{margin:0;background:#f5f5ff;color:#20213e;font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif}</style>
-  <link rel="stylesheet" href="assets/css/game.css?v=20260729-04">
-  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260729-04">
-  <link rel="stylesheet" href="assets/css/ui-v3.css?v=20260729-04">
-  <link rel="stylesheet" href="assets/css/mobile-dashboard-v4.css?v=20260729-04">
-  <link rel="stylesheet" href="assets/css/mobile-input-v5.css?v=20260729-04">
+  <link rel="stylesheet" href="assets/css/game.css?v=20260801-terra-quiz">
+  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260801-terra-quiz">
+  <link rel="stylesheet" href="assets/css/quiz-screen.css?v=20260801-terra-quiz">
 </head>
 <body class="game-page">
   <a class="skip-link" href="#answerInput">문제로 바로가기</a>
@@ -22,15 +20,12 @@
     <header class="quiz-app-header">
       <button id="ui-homeButton" class="quiz-back" type="button" aria-label="장독대 고르기로">‹</button>
       <div class="quiz-header-title"><small id="ui-trainingCategory">화학 장독대</small><strong id="ui-trainingName">원자 번호 장독대 채우기</strong></div>
-      <div class="quiz-header-tools"><span id="ui-difficultyLabel">보통</span><button id="ui-pauseButton" type="button" aria-pressed="false" aria-label="일시정지">Ⅱ</button></div>
+      <div class="mobile-header-stats" aria-label="현재 점수, 물, 남은 시간"><span>점수 <b id="mobileScoreValue">0</b></span><span>물 <b id="mobileWaterValue">70</b>%</span><span>시간 <b id="mobileTimerValue">15</b></span></div>
+      <div class="quiz-header-tools"><span id="ui-difficultyLabel">보통</span><button id="ui-pauseButton" type="button" aria-pressed="false" aria-label="게임 일시정지">Ⅱ</button></div>
       <a class="sr-only" href="index.html" data-game-title>콩쥐야 줘때써 - 화학편</a>
     </header>
 
     <section class="play-layout">
-      <section class="mobile-compact-shell" id="ui-mobileCompact" aria-label="모바일 게임 현황" hidden>
-        <div class="mobile-compact-bar"><button id="ui-compactHome" type="button" aria-label="장독대 고르기">‹</button><strong id="ui-compactTraining">원자 번호</strong><span id="ui-compactDifficulty">보통</span><button id="ui-compactPause" type="button" aria-label="일시정지">Ⅱ</button></div>
-      </section>
-
       <section class="scene-panel" aria-label="콩쥐의 장독대">
         <div class="game-stage" id="visualStage">
           <div class="scene-vignette" aria-hidden="true"></div>
@@ -71,15 +66,12 @@
           <div class="feedback" id="feedback" role="status" aria-live="polite">정답을 맞히면 장독대에 물을 채웁니다.</div>
         </section>
 
-        <section id="ui-mobileInputDock" class="mobile-input-dock" aria-label="모바일 정답 입력 도구"></section>
-
         <section class="training-progress">
           <div class="progress-copy"><div><span id="ui-progressTraining">원자 번호 장독대 채우기</span><strong>현재 진행</strong></div><div><span>정답 <b id="ui-correctCount">0</b></span><span>오답 <b id="ui-wrongCount">0</b></span></div></div>
           <p>목표 점수 <strong id="ui-targetScore">3,000</strong> · 완료 <span id="correctInStage">0</span>/10</p>
           <p id="stageDescription"></p>
         </section>
 
-        <div class="mobile-actions"><button id="ui-mobilePauseButton" class="secondary-button" type="button">일시정지</button><button id="ui-mobileHomeButton" class="secondary-button" type="button">메인으로</button></div>
       </aside>
     </section>
 
@@ -89,26 +81,20 @@
   </main>
 
   <nav class="game-bottom-toolbar" aria-label="게임 도구 모음">
-    <button id="ui-toolbarHome" type="button"><span>⌂</span>장독대</button>
-    <button class="is-active" type="button" aria-current="page"><span>⚗</span>문제</button>
-    <button id="ui-toolbarPause" type="button"><span>Ⅱ</span>일시정지</button>
-    <button id="ui-toolbarRestart" type="button"><span>↻</span>새로 시작</button>
+    <button id="ui-toolbarHome" type="button"><span aria-hidden="true">⌂</span>장독대</button>
+    <button class="is-active" type="button" aria-current="page"><span aria-hidden="true">⚗</span>문제</button>
+    <button id="ui-toolbarPause" type="button" aria-pressed="false"><span aria-hidden="true">Ⅱ</span>일시정지</button>
+    <button id="ui-toolbarRestart" type="button"><span aria-hidden="true">↻</span>새로 시작</button>
   </nav>
 
   <dialog id="exitDialog" class="modal-card" aria-labelledby="exitTitle">
     <form method="dialog"><p class="eyebrow">PAUSED</p><h2 id="exitTitle">장독대 채우기를 멈출까요?</h2><p>진행 상태는 브라우저에 저장됩니다.</p><div class="dialog-actions"><button id="continueButton" class="primary-button" value="cancel">계속하기</button><button id="confirmHomeButton" class="danger-button" value="home">메인으로</button></div></form>
   </dialog>
 
-  <script type="module" src="assets/js/ui-effects.js?v=20260729-04"></script>
-  <script type="module" src="assets/js/mobile-input-rescue.js?v=20260729-04"></script>
-  <script>
-    document.addEventListener("click",event=>{
-      if(event.target.closest("#ui-toolbarHome"))document.getElementById("ui-homeButton")?.click();
-      if(event.target.closest("#ui-toolbarPause"))document.getElementById("ui-pauseButton")?.click();
-      if(event.target.closest("#ui-toolbarRestart")&&confirm("현재 장독대를 처음부터 다시 채울까요?"))location.reload();
-    });
-    addEventListener("game:pause",()=>{const button=document.getElementById("ui-toolbarPause");if(button)button.innerHTML="<span>▶</span>계속하기"});
-    addEventListener("game:resume",()=>{const button=document.getElementById("ui-toolbarPause");if(button)button.innerHTML="<span>Ⅱ</span>일시정지"});
-  </script>
+  <dialog id="restartDialog" class="modal-card" aria-labelledby="restartTitle">
+    <form method="dialog"><p class="eyebrow">RESTART</p><h2 id="restartTitle">처음부터 다시 채울까요?</h2><p>현재 장독대의 진행 상태가 새 게임으로 바뀝니다.</p><div class="dialog-actions"><button class="ghost-button" value="cancel">취소</button><button id="confirmRestartButton" class="danger-button" value="restart">새로 시작</button></div></form>
+  </dialog>
+
+  <script type="module" src="assets/js/ui-effects.js?v=20260801-terra-quiz"></script>
 </body>
 </html>

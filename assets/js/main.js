@@ -1,9 +1,37 @@
-import{GAME_CONFIG}from"../../data/game-config.js";import{BEAN_REWARDS}from"../../data/upgrades.js";import{TRAINING_MODES,getTrainingMode}from"../../data/training-modes.js";import{QUESTIONS,validateQuestions}from"../../data/questions.js";import{QuestionEngine}from"./question-engine.js";import{GameCore}from"./game-core.js";import{GameStorage}from"./storage.js";import{UpgradeSystem}from"./upgrade-system.js";import{ActionSystem}from"./action-system.js";import{UIAdapter}from"./ui-adapter.js";
+import{GAME_CONFIG}from"../../data/game-config.js";
+import{BEAN_REWARDS}from"../../data/upgrades.js";
+import{TRAINING_MODES,getTrainingMode}from"../../data/training-modes.js";
+import{QUESTIONS,validateQuestions}from"../../data/questions.js";
+import{QuestionEngine}from"./question-engine.js";
+import{GameCore}from"./game-core.js";
+import{GameStorage}from"./storage.js";
+import{UpgradeSystem}from"./upgrade-system.js";
+import{ActionSystem}from"./action-system.js";
+import{UIAdapter}from"./ui-adapter.js";
 const errors=validateQuestions();if(errors.length)throw new Error(`문항 데이터 오류: ${errors.join(", ")}`);
 const storage=new GameStorage(),upgrades=new UpgradeSystem(storage),questionEngine=new QuestionEngine(QUESTIONS),actions=new ActionSystem({upgrades,storage}),game=new GameCore({questionEngine,config:GAME_CONFIG,upgradeSystem:upgrades,actionSystem:actions}),ui=new UIAdapter();
-const requestedId=new URLSearchParams(location.search).get("training");let selectedTrainingId=getTrainingMode(requestedId)?.id||null,selectedDifficulty=storage.data.settings.difficulty||"normal",questionStartedAt=performance.now(),lastFrame=performance.now();
-function saveRun(){if(["running","paused"].includes(game.state.status))storage.saveCurrentRun(game.snapshot())}function selectTraining(id){selectedTrainingId=getTrainingMode(id)?.id||null;const url=new URL(location.href);selectedTrainingId?url.searchParams.set("training",selectedTrainingId):url.searchParams.delete("training");history.replaceState({},"",url)}function start(options={}){if(!selectedTrainingId){ui.feedback("먼저 훈련을 선택해 주세요.","wrong");return}storage.startRun(selectedTrainingId,selectedDifficulty);game.start({trainingId:selectedTrainingId,difficulty:selectedDifficulty,...options});questionStartedAt=performance.now();saveRun();ui.clearAnswer()}function submit(value){const result=game.submit(value??ui.answer());if(result.accepted){storage.recordAnswer(result.question,result.correct,false,performance.now()-questionStartedAt,game.state.difficulty);questionStartedAt=performance.now();saveRun();ui.clearAnswer();ui.render()}else if(result.reason==="empty")ui.feedback("정답을 입력해 주세요.","wrong")}
-ui.bind(game,{start,submit,restart:start});ui.installTrainingSelector(TRAINING_MODES.map(mode=>({...mode,bestScore:storage.getTrainingStats(mode.id).bestScore})),selectedTrainingId,selectTraining);ui.installDifficulty(selectedDifficulty,value=>{selectedDifficulty=value;storage.updateSettings({difficulty:value})});
-game.on("answer:timeout",detail=>{storage.recordAnswer(detail.question,false,true,performance.now()-questionStartedAt,game.state.difficulty);questionStartedAt=performance.now();saveRun()});game.on("answer:correct",detail=>{storage.recordWaterPour(detail.state.trainingId);saveRun()});game.on("answer:wrong",saveRun);game.on("game:pause",saveRun);game.on("fever:start",detail=>storage.recordFeverTier(detail.feverTier,detail.state.trainingId));game.on("game:over",detail=>storage.finishRun(detail.state));game.on("game:clear",detail=>{const previous=storage.getTrainingStats(detail.state.trainingId).bestScore;if(detail.state.score>previous){const bonus=actions.earn(BEAN_REWARDS.newHighScore,"new_high_score",detail.state.trainingId);detail.state.beansEarned=(detail.state.beansEarned||0)+bonus}storage.finishRun(detail.state)});
-function frame(now){game.tick((now-lastFrame)/1000);lastFrame=now;if(["running","paused"].includes(game.state.status))ui.render();requestAnimationFrame(frame)}requestAnimationFrame(frame);document.addEventListener("visibilitychange",()=>{lastFrame=performance.now();if(document.hidden&&game.state.status==="running")game.pause()});document.addEventListener("keydown",event=>{if(!event.ctrlKey&&!event.altKey&&!event.metaKey&&ui.chooseShortcut(event.key)){event.preventDefault();return}if(event.code==="Space"&&!["INPUT","TEXTAREA","SELECT"].includes(event.target?.tagName)){event.preventDefault();game.togglePause();ui.render()}});window.addEventListener("upgrade:purchased",()=>game.speak("upgradePurchased"));window.addEventListener("ui:device-mode",event=>storage.updateSettings({deviceMode:event.detail?.mode||"auto"}));window.addEventListener("beforeunload",saveRun);
-window.dispatchEvent(new CustomEvent("upgrades:loaded",{detail:{upgrades:upgrades.levels()}}));globalThis.KongJuiYaGame=Object.freeze({game,questionEngine,storage,upgrades,actions,TRAINING_MODES,start,submit,selectTraining,purchaseUpgrade:id=>upgrades.purchase(id),getUpgradeCards:shop=>upgrades.cards(shop)});
+const requestedId=new URLSearchParams(location.search).get("training");
+let selectedTrainingId=getTrainingMode(requestedId)?.id||null,selectedDifficulty=storage.data.settings.difficulty||"normal",questionStartedAt=performance.now(),lastFrame=performance.now(),lastRender=0;
+function saveRun(){if(["running","paused"].includes(game.state.status))storage.saveCurrentRun(game.snapshot())}
+function selectTraining(id){selectedTrainingId=getTrainingMode(id)?.id||null;const url=new URL(location.href);if(selectedTrainingId)url.searchParams.set("training",selectedTrainingId);else url.searchParams.delete("training");history.replaceState({},"",url)}
+function start(options={}){if(!selectedTrainingId){ui.feedback("먼저 장독대를 선택해 주세요.","wrong");return null}storage.startRun(selectedTrainingId,selectedDifficulty);game.start({trainingId:selectedTrainingId,difficulty:selectedDifficulty,...options});questionStartedAt=performance.now();saveRun();ui.clearAnswer();return game.snapshot()}
+function submit(value){const result=game.submit(value??ui.answer());if(result.accepted){storage.recordAnswer(result.question,result.correct,false,performance.now()-questionStartedAt,game.state.difficulty);questionStartedAt=performance.now();saveRun();ui.clearAnswer()}else if(result.reason==="empty")ui.feedback("정답을 입력해 주세요.","wrong");return result}
+ui.bind(game,{start,submit,restart:start});
+ui.installTrainingSelector(TRAINING_MODES.map(mode=>({...mode,bestScore:storage.getTrainingStats(mode.id).bestScore})),selectedTrainingId,selectTraining);
+ui.installDifficulty(selectedDifficulty,value=>{selectedDifficulty=value;storage.updateSettings({difficulty:value})});
+game.on("answer:timeout",detail=>{storage.recordAnswer(detail.question,false,true,performance.now()-questionStartedAt,game.state.difficulty);questionStartedAt=performance.now();saveRun()});
+game.on("answer:correct",detail=>{storage.recordWaterPour(detail.state.trainingId);saveRun()});
+game.on("answer:wrong",saveRun);
+game.on("game:pause",saveRun);
+game.on("fever:start",detail=>storage.recordFeverTier(detail.feverTier,detail.state.trainingId));
+game.on("game:over",detail=>storage.finishRun(detail.state));
+game.on("game:clear",detail=>{const previous=storage.getTrainingStats(detail.state.trainingId).bestScore;if(detail.state.score>previous){const bonus=actions.earn(BEAN_REWARDS.newHighScore,"new_high_score",detail.state.trainingId);detail.state.beansEarned=(detail.state.beansEarned||0)+bonus}storage.finishRun(detail.state)});
+function frame(now){game.tick((now-lastFrame)/1000);lastFrame=now;if(["running","paused"].includes(game.state.status)&&now-lastRender>=100){lastRender=now;ui.render()}requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+document.addEventListener("visibilitychange",()=>{lastFrame=performance.now();if(document.hidden&&game.state.status==="running")game.pause()});
+document.addEventListener("keydown",event=>{if(!event.ctrlKey&&!event.altKey&&!event.metaKey&&ui.chooseShortcut(event.key)){event.preventDefault();return}if(event.code==="Space"&&!["INPUT","TEXTAREA","SELECT"].includes(event.target?.tagName)){event.preventDefault();game.togglePause();ui.render()}});
+window.addEventListener("upgrade:purchased",()=>game.speak("upgradePurchased"));
+window.addEventListener("ui:device-mode",event=>storage.updateSettings({deviceMode:event.detail?.mode||"auto"}));
+window.addEventListener("beforeunload",saveRun);
+window.dispatchEvent(new CustomEvent("upgrades:loaded",{detail:{upgrades:upgrades.levels()}}));
+globalThis.KongJuiYaGame=Object.freeze({game,questionEngine,storage,upgrades,actions,TRAINING_MODES,start,submit,selectTraining,purchaseUpgrade:id=>upgrades.purchase(id),getUpgradeCards:shop=>upgrades.cards(shop)});
