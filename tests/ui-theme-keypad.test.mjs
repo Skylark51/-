@@ -2,7 +2,7 @@ import test from"node:test";
 import assert from"node:assert/strict";
 import{readFile}from"node:fs/promises";
 const read=path=>readFile(new URL(path,import.meta.url),"utf8");
-test("모바일 키패드는 문항 메타데이터만 참조한다",async()=>{const code=await read("../assets/js/mobile-keypad.js");assert.match(code,/questionInput/);assert.match(code,/allowedKeys/);assert.match(code,/inputMode/);assert.doesNotMatch(code,/questionText|includes\(\"산화\"\)/)});
+test("모바일 키패드는 문항 메타데이터만 참조한다",async()=>{const code=await read("../assets/js/mobile-keypad.js");assert.match(code,/questionInput/);assert.match(code,/allowedKeys/);assert.match(code,/integer_keypad/);assert.match(code,/coefficient_keypad/);assert.match(code,/inputMode/);assert.doesNotMatch(code,/questionText|includes\(\"산화\"\)/)});
 test("키패드는 한 번 mount하고 update 가능한 생명주기를 제공한다",async()=>{const code=await read("../assets/js/mobile-keypad.js");for(const method of["mount","update","setValue","clear","setLocked","destroy"])assert.match(code,new RegExp(method));assert.doesNotMatch(code,/MutationObserver|setInterval|setTimeout/);assert.match(code,/removeEventListener\(\"input\"/)});
 test("숫자 키패드는 삭제, 전체 지우기, 제출을 제공한다",async()=>{const code=await read("../assets/js/mobile-keypad.js");assert.match(code,/makeButton\(\"⌫\"/);assert.match(code,/makeButton\(\"전체\"/);assert.match(code,/makeButton\(\"제출\"/)});
 test("게임 문서는 구형 로비 CSS와 복구 모듈을 불러오지 않는다",async()=>{const html=await read("../콩쥐야_줘때써.html");assert.match(html,/quiz-screen\.css\?v=20260801-terra-quiz/);assert.doesNotMatch(html,/ui-v3\.css|mobile-dashboard-v4\.css|mobile-input-v5\.css|mobile-input-rescue\.js/);assert.match(html,/restartDialog/)});

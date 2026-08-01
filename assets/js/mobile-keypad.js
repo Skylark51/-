@@ -1,6 +1,6 @@
 const DIGITS=["1","2","3","4","5","6","7","8","9"];
 const CHOICE_MODES=new Set(["choice","binary_choice","multiple_choice"]);
-const NUMERIC_MODES=new Set(["numeric_keypad","signed_numeric_keypad","numeric","decimal"]);
+const NUMERIC_MODES=new Set(["integer_keypad","numeric_keypad","coefficient_keypad","signed_numeric_keypad","numeric","decimal"]);
 const isMobile=()=>document.documentElement.dataset.deviceLayout==="mobile";
 function keypadKind(descriptor={}){if((descriptor.choices||[]).length||CHOICE_MODES.has(descriptor.inputMode))return"choice";if(NUMERIC_MODES.has(descriptor.inputMode))return"numeric";const keys=descriptor.allowedKeys||[];return keys.length&&keys.every(key=>/^[0-9.+-]$/.test(key))?"numeric":null}
 function makeButton(label,onClick,className="keypad-key",ariaLabel=label){const button=document.createElement("button");button.type="button";button.className=className;button.textContent=label;button.setAttribute("aria-label",ariaLabel);button.addEventListener("click",onClick);return button}

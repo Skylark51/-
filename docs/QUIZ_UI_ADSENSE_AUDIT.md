@@ -37,3 +37,11 @@
 - 입력 descriptor가 없는 형식은 기본 text input과 제출 버튼을 유지하고 console warning을 남긴다.
 - PC와 모바일 레이아웃은 동일 DOM을 CSS grid로 재배치하며, 전체 앱에는 scale transform을 사용하지 않는다.
 - AdSense 코드는 config가 비어 있거나 disabled일 때 네트워크 요청을 전혀 하지 않는다.
+## 반영 결과
+
+- 게임 HTML은 이제 `game.css`, `themes-keypad.css`, `quiz-screen.css`만 로드한다. 로비 dashboard CSS와 응급 mobile CSS는 게임 페이지에서 제외했다.
+- `mobile-input-rescue.js`와 `mobile-input-v5.css`를 제거하고, 키패드는 mount 한 번과 descriptor update만 사용한다.
+- `UIAdapter`는 문항 입력 descriptor가 달라질 때만 선택지를 다시 만든다. 프레임마다 DOM을 교체하지 않는다.
+- viewport 이벤트는 requestAnimationFrame으로 묶고, 기기 모드 이벤트는 실제 서명이 바뀔 때만 발생시킨다.
+- 320×568 실제 브라우저 검사에서 발견한 keypad-toolbar 겹침과 두꺼비 절단을 수정했고, 위치 경계 검사를 자동 QA에 추가했다.
+- AdSense는 ID와 CMP가 없으므로 비활성화되어 있으며, 실행 중 퀴즈 화면에는 광고 영역이 없다.
