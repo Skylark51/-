@@ -100,6 +100,7 @@
   min-height: 150px; border-radius: 16px; background-color: #f0f1ff;
   background-repeat: no-repeat; box-shadow: inset 0 0 0 1px rgba(87,90,135,.09);
 }
+.shop-item-visual.real-skin-thumbnail::before { content: none !important; }
 .shop-item-visual[data-category="outfit"],.shop-item-visual[data-category="tool"]{background-size:800% 400%;background-position-x:0%}
 .shop-item-visual[data-category="outfit"]{background-image:url("../art/sprites/kongjwi-outfits.svg")}
 .shop-item-visual[data-category="tool"]{background-image:url("../art/sprites/tools.svg")}
