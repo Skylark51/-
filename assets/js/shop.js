@@ -1,11 +1,14 @@
 import { GameStorage } from "./storage.js";
 import { CosmeticSystem, COSMETIC_STORAGE_KEY } from "./cosmetic-system.js";
 import { SHOP_CATEGORIES, SHOP_ITEMS, SHOP_ITEM_MAP } from "../../data/shop-catalog.js";
+import { mountSixtyFrameAnimation } from "./animation-system.js";
 
 const gameStorage = new GameStorage();
 const cosmetics = new CosmeticSystem(gameStorage);
 const $ = selector => document.querySelector(selector);
 const number = value => Math.max(0, Math.floor(Number(value) || 0)).toLocaleString("ko-KR");
+const previewStage = $("#shopPreviewStage");
+const previewAnimation = mountSixtyFrameAnimation(previewStage, { motionEnabled: true, preview: true });
 let activeCategory = SHOP_CATEGORIES[0].id;
 let selectedId = cosmetics.equipped(activeCategory);
 let statusTimer = 0;
@@ -27,8 +30,8 @@ function updateWallet() {
 function preview(item = SHOP_ITEM_MAP[selectedId]) {
   if (!item) return;
   selectedId = item.id;
-  const overrides = { [item.category]: item.id };
-  cosmetics.apply($("#shopPreviewStage"), overrides);
+  cosmetics.apply(previewStage, { [item.category]: item.id });
+  previewStage.classList.add("real-sprite-art");
   $("#previewName").textContent = item.title;
   $("#previewDescription").textContent = item.description;
   $("#previewRarity").textContent = item.rarity;
@@ -45,6 +48,9 @@ function preview(item = SHOP_ITEM_MAP[selectedId]) {
     action.disabled = !card.affordable;
   }
   document.querySelectorAll(".shop-item").forEach(node => node.classList.toggle("is-selected", node.dataset.itemId === item.id));
+  if (item.category === "outfit" || item.category === "tool") previewAnimation?.triggerPour();
+  else if (item.category === "toad") previewAnimation?.triggerHit();
+  else previewAnimation?.setState("idle");
 }
 
 function actionFor(item) {
@@ -89,7 +95,9 @@ function createCard(item) {
   article.classList.toggle("is-selected", item.id === selectedId);
 
   const visual = document.createElement("div");
-  visual.className = "shop-item-visual";
+  visual.className = "shop-item-visual real-skin-thumbnail";
+  visual.dataset.category = item.category;
+  visual.dataset.visual = item.visualKey;
   visual.setAttribute("aria-hidden", "true");
   const title = document.createElement("h3");
   title.textContent = item.title;
@@ -152,6 +160,7 @@ addEventListener("storage", event => {
     preview(SHOP_ITEM_MAP[selectedId]);
   }
 });
+addEventListener("beforeunload", () => previewAnimation?.destroy(), { once: true });
 
 renderTabs();
 renderGrid();
