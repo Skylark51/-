@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" data-page="lobby" data-ui-version="20260801-terra-lobby">
+<html lang="ko" data-page="lobby" data-ui-version="20260801-shop1">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -12,8 +12,16 @@
   <meta name="twitter:title" content="콩쥐야 줘때써 - 화학편">
   <meta name="twitter:description" content="장독대를 채우며 화학 문제를 풀어 보세요.">
   <title>콩쥐야 줘때써 - 화학편</title>
-  <link rel="stylesheet" href="assets/css/game.css?v=20260801-terra-lobby">
-  <link rel="stylesheet" href="assets/css/lobby-dashboard.css?v=20260801-terra-lobby">
+  <link rel="stylesheet" href="assets/css/game.css?v=20260801-shop1">
+  <link rel="stylesheet" href="assets/css/lobby-dashboard.css?v=20260801-shop1">
+  <style>
+    .quick-menu-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+    .menu-gold{background:#fff5d9;color:#a9720d}
+    .research-summary-actions{display:flex;align-items:center;gap:8px}
+    .research-summary-actions a{white-space:nowrap}
+    @media(max-width:980px){.quick-menu-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:760px){.quick-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mobile-bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr))}.research-summary-actions{grid-column:1/-1}.research-summary-actions>*{flex:1}.mobile-bottom-nav a,.mobile-bottom-nav button{min-width:0;padding-inline:2px;font-size:8px}}
+  </style>
 </head>
 <body class="lobby-page">
   <a class="skip-link" href="#trainingSection">장독대 목록으로 바로가기</a>
@@ -86,8 +94,12 @@
         </a>
         <button id="labButton" class="quick-menu-card" type="button">
           <span class="menu-icon menu-orange" aria-hidden="true">🐸</span>
-          <strong>두꺼비 연구소</strong><small>콩으로 장비 강화</small>
+          <strong>두꺼비 연구소</strong><small>게임 능력치 강화</small>
         </button>
+        <a class="quick-menu-card" href="shop.html">
+          <span class="menu-icon menu-gold" aria-hidden="true">🫘</span>
+          <strong>콩 상점</strong><small>옷·도구·두꺼비·장독대 스킨</small>
+        </a>
       </div>
     </section>
 
@@ -101,7 +113,7 @@
           <div class="dashboard-stat"><span>총 플레이</span><strong id="dashboardTotalPlays">0</strong><small>누적 도전 횟수</small></div>
           <div class="dashboard-stat"><span>전체 정답률</span><strong id="dashboardAccuracy">—</strong><small>정답·오답 합산</small></div>
           <div class="dashboard-stat"><span>최고 콤보</span><strong id="dashboardBestCombo">0</strong><small>연속 정답 기록</small></div>
-          <div class="dashboard-stat"><span>보유 콩</span><strong id="dashboardBeans">0</strong><small>연구소 재화</small></div>
+          <div class="dashboard-stat"><span>보유 콩</span><strong id="dashboardBeans">0</strong><small>연구소·상점 재화</small></div>
         </div>
         <div id="dashboardTrendRegion" class="dashboard-chart-wrap" aria-live="polite"></div>
       </article>
@@ -119,8 +131,8 @@
     </section>
 
     <section class="research-summary" aria-labelledby="researchSummaryTitle">
-      <div><p class="eyebrow">TOAD LAB</p><h2 id="researchSummaryTitle">두꺼비 연구소</h2><p id="researchSummaryText">보유 콩으로 바가지와 장독대 장비를 강화할 수 있습니다.</p></div>
-      <button id="researchSummaryButton" class="ghost-button" type="button">연구소 열기</button>
+      <div><p class="eyebrow">TOAD LAB & BEAN STORE</p><h2 id="researchSummaryTitle">연구소와 콩 상점</h2><p id="researchSummaryText">연구소에서는 능력치를 강화하고, 상점에서는 콩쥐와 장독대를 꾸밀 수 있습니다.</p></div>
+      <div class="research-summary-actions"><button id="researchSummaryButton" class="ghost-button" type="button">연구소 열기</button><a class="primary-button" href="shop.html">콩 상점 가기</a></div>
     </section>
 
     <section id="trainingSection" class="lobby-section" aria-labelledby="trainingTitle">
@@ -150,6 +162,7 @@
   <nav class="mobile-bottom-nav" aria-label="주요 메뉴">
     <a href="#lobbyTop" aria-current="page"><span aria-hidden="true">⌂</span>홈</a>
     <a href="#trainingSection"><span aria-hidden="true">⚛</span>장독대</a>
+    <a href="shop.html"><span aria-hidden="true">🫘</span>상점</a>
     <a href="#recordsSection"><span aria-hidden="true">⌁</span>기록</a>
     <button id="bottomSettingsButton" type="button" aria-label="설정 열기"><span aria-hidden="true">⚙</span>설정</button>
   </nav>
@@ -185,6 +198,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="assets/js/lobby-actions.js?v=20260801-terra-lobby"></script>
+  <script type="module" src="assets/js/lobby-actions.js?v=20260801-shop1"></script>
 </body>
 </html>
