@@ -1,4 +1,5 @@
 import "./real-art-style.js";
+import "./photoreal-scene.js";
 import { GameStorage } from "./storage.js";
 import { CosmeticSystem, COSMETIC_STORAGE_KEY } from "./cosmetic-system.js";
 import { mountSixtyFrameAnimation } from "./animation-system.js";
@@ -11,7 +12,7 @@ if (root) {
   const apply = () => cosmetics.apply(root);
   apply();
 
-  const animation = mountSixtyFrameAnimation(root, {
+  const animation = root.dataset.visualMode === "photoreal" ? null : mountSixtyFrameAnimation(root, {
     motionEnabled: storage.data.settings?.animations !== false
   });
 
