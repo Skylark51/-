@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang='ko'>
+<head><meta charset='utf-8'><title>콩쥐야 줘때써 - 화학편 문항 데이터 테스트</title></head>
+<body>
+<h1>문항 데이터 자동 점검</h1>
+<pre id='result'>검사 중...</pre>
+<script type='module'>
+import { QUESTIONS, QUESTION_BANKS, validateQuestions } from '../data/questions.js';
+import { TRAINING_MODES } from '../data/training-modes.js';
+const errors = validateQuestions();
+const counts = Object.entries(QUESTION_BANKS).map(([id, items]) => id + ': ' + items.length).join('\n');
+const modeIds = new Set(TRAINING_MODES.map(mode => mode.id));
+for (const question of QUESTIONS) if (!modeIds.has(question.trainingId)) errors.push('invalid trainingId: ' + question.id);
+document.querySelector('#result').textContent = [
+  '총 문항: ' + QUESTIONS.length,
+  '모드 수: ' + TRAINING_MODES.length,
+  counts,
+  errors.length ? '실패\n' + errors.join('\n') : '통과: 0 errors'
+].join('\n');
+</script>
+</body>
+</html>
