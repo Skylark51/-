@@ -57,13 +57,12 @@
   content: "";
   position: absolute;
   inset: -5px;
-  border: 3px solid rgba(119,226,242,var(--hole-wetness));
-  border-left-color: rgba(180,248,255,calc(var(--hole-wetness) * .82));
-  border-bottom-color: rgba(39,126,188,calc(var(--hole-wetness) * .72));
+  border: 3px solid rgba(119,226,242,.92);
+  border-left-color: rgba(180,248,255,.88);
+  border-bottom-color: rgba(39,126,188,.82);
   border-radius: inherit;
-  box-shadow: 0 0 10px rgba(65,190,225,calc(var(--hole-wetness) * .38));
-  opacity: var(--seal-pressure);
-  transform: scale(calc(.93 + var(--seal-pressure) * .07));
+  box-shadow: 0 0 10px rgba(65,190,225,.46);
+  opacity: var(--hole-wetness);
   pointer-events: none;
 }
 
@@ -85,16 +84,16 @@
   background:
     radial-gradient(ellipse at 38% 34%, rgba(255,255,255,.28) 0 9%, transparent 11%),
     radial-gradient(circle at 66% 67%, rgba(58,65,42,.32) 0 5%, transparent 7%),
-    linear-gradient(145deg, color-mix(in srgb, var(--seal-color) 78%, white), var(--seal-color) 58%, color-mix(in srgb, var(--seal-color) 72%, black));
+    linear-gradient(145deg, rgba(255,255,255,.24), var(--seal-color) 42%, var(--seal-edge));
   box-shadow:
     inset 7px 7px 10px rgba(255,255,255,.18),
     inset -8px -7px 11px rgba(38,42,25,.28),
-    0 0 0 4px rgba(83,204,221,calc(var(--seal-pressure) * .28)),
+    0 0 0 4px rgba(83,204,221,.28),
     -4px 4px 12px rgba(17,22,27,.26);
-  opacity: calc(.62 + var(--seal-pressure) * .38);
+  opacity: var(--seal-pressure);
   transform:
     translate(var(--toad-contact-x), var(--toad-contact-y))
-    scale(calc(.88 + var(--seal-pressure) * .12), calc(1.06 - var(--seal-pressure) * .06))
+    scale(var(--toad-squash-x), var(--toad-squash-y))
     rotate(-8deg);
   transform-origin: 22% 56%;
   pointer-events: none;
@@ -123,7 +122,6 @@
     linear-gradient(70deg, transparent 45%, #fff4a4 47% 52%, transparent 54%) 48px 0/25px 28px no-repeat,
     linear-gradient(118deg, transparent 45%, #8eeef4 47% 52%, transparent 54%) 4px 31px/27px 29px no-repeat;
   filter: drop-shadow(0 0 5px rgba(255,235,120,.7));
-  transform: scale(calc(.78 + var(--impact-flash) * .3));
 }
 
 /* Leakage visibly responds to whether the toad is sealing or being knocked away. */
@@ -195,9 +193,9 @@
   height: 49%;
   border: 3px solid var(--seal-edge);
   border-radius: 48% 42% 51% 45% / 46% 52% 43% 55%;
-  background: linear-gradient(145deg, color-mix(in srgb, var(--seal-color) 78%, white), var(--seal-color));
-  box-shadow: 0 0 0 3px rgba(83,204,221,calc(var(--seal-pressure) * .25));
-  opacity: calc(.66 + var(--seal-pressure) * .34);
+  background: linear-gradient(145deg, rgba(255,255,255,.24), var(--seal-color) 44%, var(--seal-edge));
+  box-shadow: 0 0 0 3px rgba(83,204,221,.25);
+  opacity: var(--seal-pressure);
 }
 .shop-preview-stage.real-sprite-art::after {
   content: "";
