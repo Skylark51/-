@@ -1,0 +1,12 @@
+import test from"node:test";
+import assert from"node:assert/strict";
+import{access,readFile}from"node:fs/promises";
+import{MONETIZATION_CONFIG,isMonetizationConfigured}from"../assets/js/monetization-config.js";
+const root=new URL("../",import.meta.url);
+const read=path=>readFile(new URL(path,root),"utf8");
+test("광고 구성은 실제 식별자 전까지 비활성화된다",()=>{assert.equal(MONETIZATION_CONFIG.enabled,false);assert.equal(MONETIZATION_CONFIG.publisherId,"");assert.equal(isMonetizationConfigured(),false)});
+test("비활성 광고 로더는 설정 검사를 먼저 수행한다",async()=>{const code=await read("assets/js/adsense-loader.js");assert.match(code,/if\(!isMonetizationConfigured\(config\)\)return Promise\.resolve\(false\)/);assert.match(code,/if\(!isMonetizationConfigured\(config\)\)return\{enabled:false,mounted:0\}/);assert.doesNotMatch(code,/ca-pub-0000000000000000/)});
+test("실행 중 퀴즈 화면에는 광고 로더나 slot이 없다",async()=>{const html=await read("콩쥐야_줘때써.html");assert.doesNotMatch(html,/adsense-loader|data-ad-slot|adsbygoogle/)});
+test("정보 페이지는 고유한 SEO 메타데이터와 footer를 제공한다",async()=>{for(const page of["about.html","how-to-play.html","chemistry-guide.html","faq.html","privacy.html","terms.html","contact.html"]){const html=await read(page);assert.match(html,/<html lang="ko">/);assert.match(html,/<title>[^<]+\| 콩쥐야 줘때써 - 화학편<\/title>/);assert.match(html,/<meta name="description"/);assert.match(html,/<link rel="canonical"/);assert.match(html,/<h1>/);assert.match(html,/privacy\.html/);assert.match(html,/terms\.html/);assert.match(html,/contact\.html/)}});
+test("robots와 sitemap은 공개 파일만 가리킨다",async()=>{const robots=await read("robots.txt"),sitemap=await read("sitemap.xml");assert.match(robots,/User-agent: \*/);assert.doesNotMatch(robots,/Disallow:\s*\//);for(const match of sitemap.matchAll(/<loc>https:\/\/skylark51\.github\.io\/KongJuiYa_Chem\/([^<]*)<\/loc>/g)){const path=decodeURIComponent(match[1]||"index.html");await access(new URL(path,root))}});
+test("실제 ads.txt에는 예시 placeholder가 없다",async()=>{const ads=await read("ads.txt");assert.doesNotMatch(ads,/REPLACE_WITH|0000000000000000/);await access(new URL("ads.txt.example",root))});

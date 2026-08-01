@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://skylark51.github.io/KongJuiYa_Chem/sitemap.xml

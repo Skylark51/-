@@ -1,0 +1,3 @@
+# Copy this file to the domain root only after Google assigns a real publisher ID.
+# Do not deploy this placeholder as ads.txt.
+google.com, pub-REPLACE_WITH_YOUR_PUBLISHER_ID, DIRECT, f08c47fec0942fa0
