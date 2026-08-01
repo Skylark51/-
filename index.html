@@ -1,135 +1,190 @@
 <!doctype html>
-<html lang="ko" data-page="lobby" data-ui-version="20260729-03">
+<html lang="ko" data-page="lobby" data-ui-version="20260801-terra-lobby">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f5f5ff">
-  <link rel="icon" href="data:,">
-  <meta name="description" content="콩쥐야 줘때써 - 화학편 · 새는 장독대를 막는 두꺼비와 함께 화학 문제를 풀어 물을 채우세요.">
+  <meta name="description" content="콩쥐야 줘때써 - 화학편: 장독대를 채우며 화학 문제를 풀어 보세요.">
+  <meta property="og:type" content="website">
   <meta property="og:title" content="콩쥐야 줘때써 - 화학편">
+  <meta property="og:description" content="장독대를 채우며 화학 문제를 풀어 보세요.">
+  <meta property="og:url" content="https://skylark51.github.io/KongJuiYa_Chem/index.html">
+  <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="콩쥐야 줘때써 - 화학편">
+  <meta name="twitter:description" content="장독대를 채우며 화학 문제를 풀어 보세요.">
   <title>콩쥐야 줘때써 - 화학편</title>
-  <style>html,body{margin:0;background:#f5f5ff;color:#20213e;font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif}</style>
-  <link rel="stylesheet" href="assets/css/game.css?v=20260729-03">
-  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260729-03">
-  <link rel="stylesheet" href="assets/css/ui-v3.css?v=20260729-03">
-  <link rel="stylesheet" href="assets/css/mobile-dashboard-v4.css?v=20260729-03">
+  <link rel="stylesheet" href="assets/css/game.css?v=20260801-terra-lobby">
+  <link rel="stylesheet" href="assets/css/lobby-dashboard.css?v=20260801-terra-lobby">
 </head>
 <body class="lobby-page">
-  <a class="skip-link" href="#trainingGrid">장독대 목록으로 바로가기</a>
+  <a class="skip-link" href="#trainingSection">장독대 목록으로 바로가기</a>
 
-  <main class="app-frame lobby-shell">
-    <header class="mobile-app-header">
-      <a class="app-brand" href="index.html" aria-label="홈">
-        <span class="brand-flask" aria-hidden="true">⚗</span>
-        <span><strong data-game-title>콩쥐야 줘때써 - 화학편</strong><small>CHEMISTRY JAR ADVENTURE</small></span>
+  <main id="mainContent" class="lobby-shell">
+    <header class="app-topbar">
+      <a class="app-logo" href="index.html" aria-label="콩쥐야 줘때써 - 화학편 로비">
+        <span class="app-logo-mark" aria-hidden="true">⚗</span>
+        <span><strong data-game-title>콩쥐야 줘때써 - 화학편</strong><small>CHEMISTRY JAR GAME</small></span>
       </a>
-      <button id="settingsButton" class="round-icon-button" type="button" aria-label="설정 열기">⚙</button>
+      <button id="settingsButton" class="icon-button" type="button" aria-label="설정 열기">⚙</button>
     </header>
 
-    <section class="home-welcome" aria-labelledby="welcomeTitle">
-      <div class="welcome-copy">
-        <p class="welcome-kicker">안녕하세요, 화학 탐험가!</p>
-        <h1 id="welcomeTitle">오늘도 장독대가<br><em>줘때기 직전입니다.</em></h1>
-        <p>문제를 풀고 물을 채워 두꺼비의 퇴근을 도와주세요.</p>
+    <section id="lobbyTop" class="dashboard-hero lobby-hero" aria-labelledby="lobbyTitle">
+      <div class="hero-copy">
+        <p class="eyebrow">WELCOME BACK</p>
+        <h1 id="lobbyTitle"><span data-game-title>콩쥐야 줘때써 - 화학편</span></h1>
+        <p>한 문제씩 물을 채우며, 나만의 장독대 기록을 만들어 보세요.</p>
+        <div class="hero-actions">
+          <button id="mainCta" class="primary-button" type="button">첫 장독대 채우기</button>
+          <a id="alternativeCta" class="ghost-button" href="#trainingSection">장독대 선택</a>
+        </div>
+        <p id="ctaHint" class="cta-hint" aria-live="polite">저장된 기본 난도로 시작합니다.</p>
       </div>
-      <div class="welcome-avatar" aria-hidden="true">
-        <span class="avatar-bubble">오늘은<br>틀리지 마.</span>
-        <span class="avatar-toad">●‿●</span>
+      <div class="hero-visual" aria-hidden="true">
+        <span class="hero-bubble">오늘도 물을 채워 볼까?</span>
+        <span class="hero-spark spark-a">✦</span><span class="hero-spark spark-b">✦</span>
+        <div class="hero-jar"><span></span></div><div class="hero-toad">•ᴗ•</div>
       </div>
     </section>
 
-    <section class="level-card" aria-label="오늘의 미션">
-      <div class="level-icon" aria-hidden="true">🧪</div>
-      <div class="level-copy"><small>오늘의 미션</small><strong>화학 장독대 구조대</strong><span>빠른 정답으로 피버를 터뜨리세요.</span></div>
-      <div class="level-progress" aria-hidden="true"><i></i></div>
-      <span class="level-arrow" aria-hidden="true">›</span>
+    <section class="mission-card" aria-labelledby="missionTitle">
+      <div class="mission-icon" aria-hidden="true">☀</div>
+      <div class="mission-copy">
+        <p class="eyebrow">DAILY MISSION</p>
+        <h2 id="missionTitle">오늘의 미션</h2>
+        <p id="missionDescription">오늘의 미션을 준비하고 있습니다.</p>
+        <div class="mission-progress-row">
+          <div class="mission-progress" aria-label="오늘의 미션 진행도">
+            <i id="missionProgressFill"></i>
+          </div>
+          <span id="missionProgressText">0 / 0</span>
+        </div>
+        <div id="missionProgress" class="sr-only" role="progressbar" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"></div>
+      </div>
+      <div class="mission-actions">
+        <span id="missionReward">보상 콩 0개</span>
+        <button id="missionClaimButton" class="ghost-button" type="button" disabled>미션 진행 중</button>
+        <p id="missionStatus" class="live-status" role="status" aria-live="polite"></p>
+      </div>
     </section>
 
-    <section class="home-menu-grid" aria-label="빠른 메뉴">
-      <a href="#trainingGrid"><span class="menu-icon menu-purple">⚛</span><strong>장독대 선택</strong><small>개념별 문제 시작</small></a>
-      <a href="#trainingGrid"><span class="menu-icon menu-blue">⚗</span><strong>빠른 퀴즈</strong><small>점수와 피버 도전</small></a>
-      <a href="#recordsTitle"><span class="menu-icon menu-green">▦</span><strong>학습 기록</strong><small>정답률과 콤보 확인</small></a>
-      <button type="button" class="menu-settings-proxy"><span class="menu-icon menu-orange">🐸</span><strong>두꺼비 연구소</strong><small>설정과 화면 모드</small></button>
+    <section id="quickMenu" class="quick-menu-section" aria-labelledby="quickMenuTitle">
+      <div class="section-heading compact-heading">
+        <div><p class="eyebrow">QUICK MENU</p><h2 id="quickMenuTitle">바로 시작하기</h2></div>
+      </div>
+      <div class="quick-menu-grid">
+        <button id="quickQuizButton" class="quick-menu-card" type="button">
+          <span class="menu-icon menu-blue" aria-hidden="true">⚗</span>
+          <strong id="quickQuizLabel">빠른 퀴즈</strong>
+          <small id="quickQuizDetail">추천 장독대를 고르는 중입니다.</small>
+        </button>
+        <a class="quick-menu-card" href="#trainingSection">
+          <span class="menu-icon menu-purple" aria-hidden="true">⚛</span>
+          <strong>장독대 선택</strong><small>개념별 문제 시작</small>
+        </a>
+        <a class="quick-menu-card" href="#dashboardSection">
+          <span class="menu-icon menu-green" aria-hidden="true">⌁</span>
+          <strong>학습 대시보드</strong><small>실제 플레이 기록 보기</small>
+        </a>
+        <button id="labButton" class="quick-menu-card" type="button">
+          <span class="menu-icon menu-orange" aria-hidden="true">🐸</span>
+          <strong>두꺼비 연구소</strong><small>콩으로 장비 강화</small>
+        </button>
+      </div>
     </section>
 
-    <section class="learning-dashboard" aria-labelledby="dashboardTitle">
+    <section id="dashboardSection" class="learning-dashboard" aria-labelledby="dashboardTitle">
       <article class="dashboard-main">
         <div class="dashboard-heading">
-          <div><h2 id="dashboardTitle">학습 대시보드</h2><p>최근 플레이 점수와 전체 누적 기록을 한눈에 확인합니다.</p></div>
+          <div><p class="eyebrow">LEARNING DASHBOARD</p><h2 id="dashboardTitle">학습 대시보드</h2><p>저장된 플레이 기록만 표시합니다.</p></div>
           <span class="dashboard-period">최근 8회</span>
         </div>
         <div class="dashboard-summary-grid">
           <div class="dashboard-stat"><span>총 플레이</span><strong id="dashboardTotalPlays">0</strong><small>누적 도전 횟수</small></div>
-          <div class="dashboard-stat"><span>전체 정답률</span><strong id="dashboardAccuracy">0%</strong><small>정답·오답 합산</small></div>
+          <div class="dashboard-stat"><span>전체 정답률</span><strong id="dashboardAccuracy">—</strong><small>정답·오답 합산</small></div>
           <div class="dashboard-stat"><span>최고 콤보</span><strong id="dashboardBestCombo">0</strong><small>연속 정답 기록</small></div>
-          <div class="dashboard-stat"><span>보유 콩</span><strong id="dashboardBeans">0</strong><small>업그레이드 재화</small></div>
+          <div class="dashboard-stat"><span>보유 콩</span><strong id="dashboardBeans">0</strong><small>연구소 재화</small></div>
         </div>
-        <div class="dashboard-chart-wrap"><svg id="dashboardTrendChart" class="dashboard-chart" role="img" aria-label="최근 플레이 점수 추이"></svg></div>
+        <div id="dashboardTrendRegion" class="dashboard-chart-wrap" aria-live="polite"></div>
       </article>
-      <aside class="dashboard-side">
-        <h3>장독대별 정답률</h3>
-        <p>플레이 빈도와 정답률을 기준으로 상위 장독대를 표시합니다.</p>
+
+      <aside class="dashboard-side" aria-labelledby="dashboardDetailTitle">
+        <h3 id="dashboardDetailTitle">플레이 요약</h3>
+        <dl class="dashboard-extra-grid">
+          <div><dt>평균 반응 시간</dt><dd id="dashboardAverageResponse">—</dd></div>
+          <div><dt>가장 많이 틀린 장독대</dt><dd id="dashboardMostMissed">—</dd></div>
+          <div><dt>최근 플레이</dt><dd id="dashboardRecentPlayed">—</dd></div>
+        </dl>
+        <h3 class="mode-progress-title">플레이한 장독대</h3>
         <div id="dashboardModeBars" class="dashboard-mode-list"></div>
       </aside>
     </section>
 
-    <section id="resumePanel" class="resume-panel" hidden aria-labelledby="resumeTitle">
-      <div class="resume-icon" aria-hidden="true">▶</div>
-      <div><p class="eyebrow">CONTINUE</p><h2 id="resumeTitle">지난 장독대 이어 채우기</h2><p id="resumeSummary"></p></div>
-      <div class="resume-actions"><button id="resumeButton" class="primary-button" type="button">이어하기</button><button id="freshButton" class="secondary-button" type="button">처음부터</button></div>
+    <section class="research-summary" aria-labelledby="researchSummaryTitle">
+      <div><p class="eyebrow">TOAD LAB</p><h2 id="researchSummaryTitle">두꺼비 연구소</h2><p id="researchSummaryText">보유 콩으로 바가지와 장독대 장비를 강화할 수 있습니다.</p></div>
+      <button id="researchSummaryButton" class="ghost-button" type="button">연구소 열기</button>
     </section>
 
-    <section class="lobby-section" aria-labelledby="jarSectionTitle">
-      <div class="section-heading"><div><p class="eyebrow">CONCEPT JARS</p><h2 id="jarSectionTitle">오늘 채울 장독대</h2></div><p>각 장독대에서 한 가지 화학 개념만 집중해서 풉니다.</p></div>
-      <div class="category-filter" id="categoryFilter" role="group" aria-label="장독대 카테고리"></div>
-      <label class="mobile-category" for="categorySelect">카테고리<select id="categorySelect"></select></label>
-      <div class="training-grid" id="trainingGrid" aria-live="polite"></div>
+    <section id="trainingSection" class="lobby-section" aria-labelledby="trainingTitle">
+      <div class="section-heading">
+        <div><p class="eyebrow">JAR SELECTION</p><h2 id="trainingTitle">장독대 선택</h2></div>
+        <p>장독대마다 실제 최고 점수와 정답률을 확인하고 바로 시작할 수 있습니다.</p>
+      </div>
+      <div id="categoryFilter" class="category-filter" aria-label="장독대 카테고리"></div>
+      <label class="mobile-category" for="categorySelect">카테고리
+        <select id="categorySelect"></select>
+      </label>
+      <div id="trainingGrid" class="training-grid" aria-live="polite"></div>
     </section>
 
-    <section class="records-section" aria-labelledby="recordsTitle">
-      <div class="section-heading"><div><p class="eyebrow">LEARNING RECORDS</p><h2 id="recordsTitle">장독대별 기록</h2></div><p>최고 점수, 콤보, 정답률을 장독대별로 확인합니다.</p></div>
-      <div class="record-grid" id="recordGrid"></div>
+    <section id="recordsSection" class="records-section" aria-labelledby="recordsTitle">
+      <div class="section-heading">
+        <div><p class="eyebrow">DETAIL RECORDS</p><h2 id="recordsTitle">상세 기록</h2></div>
+        <p>플레이한 장독대만 펼쳐서 확인할 수 있습니다.</p>
+      </div>
+      <details id="recordDetails" class="record-details">
+        <summary>상세 기록 보기</summary>
+        <div id="recordGrid" class="record-grid" aria-live="polite"></div>
+      </details>
     </section>
   </main>
 
   <nav class="mobile-bottom-nav" aria-label="주요 메뉴">
-    <a class="is-active" href="index.html"><span>⌂</span>홈</a>
-    <a href="#trainingGrid"><span>⚛</span>장독대</a>
-    <a href="#dashboardTitle"><span>⌁</span>대시보드</a>
-    <button class="bottom-settings-proxy" type="button"><span>⚙</span>설정</button>
+    <a href="#lobbyTop" aria-current="page"><span aria-hidden="true">⌂</span>홈</a>
+    <a href="#trainingSection"><span aria-hidden="true">⚛</span>장독대</a>
+    <a href="#recordsSection"><span aria-hidden="true">⌁</span>기록</a>
+    <button id="bottomSettingsButton" type="button" aria-label="설정 열기"><span aria-hidden="true">⚙</span>설정</button>
   </nav>
-
-  <dialog id="difficultyDialog" class="modal-card" aria-labelledby="difficultyTitle">
-    <form method="dialog">
-      <button class="modal-close" value="cancel" aria-label="닫기">×</button>
-      <p class="eyebrow">SELECT DIFFICULTY</p>
-      <h2 id="difficultyTitle">난도 선택</h2>
-      <p id="difficultyDescription"></p>
-      <div class="difficulty-grid">
-        <button type="button" data-difficulty="easy"><span class="difficulty-icon">🌱</span><strong>쉬움</strong><span>넉넉한 시간 · 느린 누수</span></button>
-        <button type="button" data-difficulty="normal"><span class="difficulty-icon">⚗</span><strong>보통</strong><span>균형 잡힌 기본 난도</span></button>
-        <button type="button" data-difficulty="hard"><span class="difficulty-icon">🔥</span><strong>어려움</strong><span>짧은 시간 · 높은 난도</span></button>
-      </div>
-    </form>
-  </dialog>
 
   <dialog id="settingsDialog" class="modal-card" aria-labelledby="settingsTitle">
     <form method="dialog">
-      <button class="modal-close" value="cancel" aria-label="닫기">×</button>
-      <p class="eyebrow">SETTINGS</p><h2 id="settingsTitle"><span data-game-title>콩쥐야 줘때써 - 화학편</span> 설정</h2>
+      <button class="modal-close" value="cancel" aria-label="설정 닫기">×</button>
+      <p class="eyebrow">SETTINGS</p>
+      <h2 id="settingsTitle"><span data-game-title>콩쥐야 줘때써 - 화학편</span> 설정</h2>
       <label>음량 <input id="volumeSetting" type="range" min="0" max="1" step="0.1"></label>
+      <label>기본 난도
+        <select id="difficultySetting">
+          <option value="easy">쉬움</option>
+          <option value="normal">보통</option>
+          <option value="hard">어려움</option>
+        </select>
+      </label>
       <label class="toggle-row"><input id="motionSetting" type="checkbox"> 애니메이션 사용</label>
-      <button class="primary-button" value="save">저장</button>
+      <div class="dialog-actions"><button class="ghost-button" value="cancel">취소</button><button class="primary-button" value="save">저장</button></div>
     </form>
   </dialog>
 
-  <script type="module" src="assets/js/ui-effects.js?v=20260729-03"></script>
-  <script type="module" src="assets/js/dashboard-v4.js?v=20260729-03"></script>
-  <script>
-    document.addEventListener("click",event=>{
-      if(event.target.closest(".menu-settings-proxy,.bottom-settings-proxy"))document.getElementById("settingsButton")?.click();
-    });
-  </script>
+  <dialog id="labDialog" class="modal-card lab-dialog" aria-labelledby="labTitle">
+    <form method="dialog">
+      <button class="modal-close" value="cancel" aria-label="두꺼비 연구소 닫기">×</button>
+      <p class="eyebrow">TOAD LAB</p>
+      <h2 id="labTitle">두꺼비 연구소</h2>
+      <p>게임에서 사용하는 기존 업그레이드 효과와 가격을 그대로 표시합니다.</p>
+      <div class="lab-bean-balance"><span aria-hidden="true">●</span> 보유 콩 <strong id="labBeans">0</strong></div>
+      <div id="upgradeGrid" class="upgrade-grid"></div>
+      <p id="upgradeStatus" class="live-status" role="status" aria-live="polite"></p>
+      <div class="dialog-actions"><button class="primary-button" value="cancel">닫기</button></div>
+    </form>
+  </dialog>
+
+  <script type="module" src="assets/js/lobby-actions.js?v=20260801-terra-lobby"></script>
 </body>
 </html>
