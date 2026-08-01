@@ -15,6 +15,11 @@ const cloneDefaults = () => ({
 });
 
 const object = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
+const emit = (type, detail) => {
+  if (typeof globalThis.CustomEvent === "function") {
+    globalThis.dispatchEvent?.(new CustomEvent(type, { detail }));
+  }
+};
 
 function normalize(value) {
   const source = object(value);
@@ -117,8 +122,8 @@ export class CosmeticSystem {
         return { ok: false, reason: "save_failed" };
       }
       const detail = { id, item, beans: this.beans(), equipped: { ...this.data.equipped } };
-      globalThis.dispatchEvent?.(new CustomEvent("cosmetic:purchased", { detail }));
-      globalThis.dispatchEvent?.(new CustomEvent("cosmetic:equipped", { detail }));
+      emit("cosmetic:purchased", detail);
+      emit("cosmetic:equipped", detail);
       return { ok: true, ...detail };
     } finally {
       this.busy = false;
@@ -132,7 +137,7 @@ export class CosmeticSystem {
     this.data.equipped[item.category] = id;
     if (!this.save()) return { ok: false, reason: "save_failed" };
     const detail = { id, item, beans: this.beans(), equipped: { ...this.data.equipped } };
-    globalThis.dispatchEvent?.(new CustomEvent("cosmetic:equipped", { detail }));
+    emit("cosmetic:equipped", detail);
     return { ok: true, ...detail };
   }
 
