@@ -1,33 +1,42 @@
-﻿# Chemistry Content Rules
+# 콩쥐야 줘때써 - 화학편 문항 규칙
 
-## Fixed title
+## 공통 원칙
 
-The public title is `콩쥐야 줘때써 - 화학편`. Both entry documents use this exact `<title>` and visible brand text.
+- 공식 제목은 콩쥐야 줘때써 - 화학편이다.
+- 발문, 해설, 모드 설명에는 교육과정상, 교육과정에 따르면, 교육과정 기준, 교과 과정상 표현을 쓰지 않는다.
+- 출제 원소는 H부터 Ca까지 20개로 제한한다.
+- 문항 ID는 전체 문항에서 유일해야 한다.
+- 모든 문항은 유효한 trainingId, 발문, 정답, 해설, 입력 메타데이터를 가진다.
 
-## Shared constants
+## 원자 구조
 
-`data/chemistry-constants.js` is the single source for elements H through Ca, atomic numbers, atomic masses, periods, groups, valence electrons, and electronegativity.
+- 원자 번호는 원소 기호에서 숫자를 입력하는 방향만 허용한다.
+- 원자량은 H 1, He 4, Li 7, Be 9, B 11, C 12, N 14, O 16, F 19, Ne 20, Na 23, Mg 24, Al 27, Si 28, P 31, S 32, Cl 35.5, Ar 40, K 39, Ca 40을 사용한다.
+- 주기와 족은 한 문항에서 하나만 묻고, 족은 1족·2족·13족~18족으로 표시한다.
+- He, Ne, Ar의 원자가 전자 수는 이 프로젝트에서 0으로 채점한다.
 
-Atomic masses are fixed as H 1, He 4, Li 7, Be 9, B 11, C 12, N 14, O 16, F 19, Ne 20, Na 23, Mg 24, Al 27, Si 28, P 31, S 32, Cl 35.5, Ar 40, K 39, and Ca 40. Alternative decimal values are rejected.
+## 전기 음성도
 
-Valence-electron answers for He, Ne, and Ar are 0. Electronegativity numeric questions omit those three elements and use only H 2.1, Li 1.0, Be 1.5, B 2.0, C 2.5, N 3.0, O 3.5, F 4.0, Na 0.9, Mg 1.2, Al 1.5, Si 1.8, P 2.1, S 2.5, Cl 3.0, K 0.8, and Ca 1.0. Numeric tolerance is 0.05.
+H 2.1, Li 1.0, Be 1.5, B 2.0, C 2.5, N 3.0, O 3.5, F 4.0, Na 0.9, Mg 1.2, Al 1.5, Si 1.8, P 2.1, S 2.5, Cl 3.0, K 0.8, Ca 1.0만 사용한다. He, Ne, Ar의 숫자 입력 문항은 만들지 않는다.
 
-## Jar-filling ranges
+## 몰수·질량·기체
 
-- Atomic number: all 20 symbols H-Ca; symbol to integer only. Difficulty changes game pressure, not element range.
-- Atomic mass: all 20 symbols H-Ca using the fixed table.
-- Period/group: separate prompt per property; numeric value and display label are stored separately. Groups use 1, 2, and 13-18 only.
-- Valence electrons: all 20 symbols H-Ca with noble-gas answers fixed to 0.
-- Electronegativity: 17 numeric values, comparisons, and difference calculations are distinct question records.
-- Mole/mass: only compounds made from elements H-Ca. Numeric answer accepts an optional declared unit with or without a space.
-- Gas molar volume: every question states either a temperature/pressure or explicitly says the same temperature and pressure. Questions cover amount-volume conversion, volume ratio, and equation coefficient ratio.
-- Redox: each binary item asks exactly one of oxidation/reduction, electron gain/loss, oxidation-number direction, or oxidizing/reducing agent.
-- Acid/base: classification, generated ion, neutralization products, mole ratio, and acidic/neutral/basic property are separate tagged groups.
+- 몰수→질량, 질량→몰수, 몰질량, 두 단계 계산 유형을 분리한다.
+- 화합물은 H~Ca 원소로만 구성하고 지정 원자량으로 계산한다.
+- 기체 문항은 온도·압력 조건 또는 같은 온도·같은 압력 조건을 반드시 적는다.
+- 이상 기체, 이상 기체 방정식, PV=nRT 표현은 사용하지 않는다.
 
-## Answer and mobile metadata
+## 산화환원·산염기
 
-Every question provides `inputMode`, `allowedKeys`, and `autoSubmit`. Numeric, integer, signed numeric, coefficient, formula, multiple-choice, and binary-choice modes are explicit. `getInputDescriptor()` returns these fields directly without reading the prompt. Numeric grading removes commas and declared unit suffixes, respects tolerance, and preserves integer-only grading where requested.
+- 산화환원은 한 문항에서 산화/환원, 전자 이동, 산화수 방향, 산화제/환원제 중 하나만 묻는다.
+- 산염기는 분류, 생성 이온, 중화 반응, 몰비, 산성·중성·염기성 유형을 분리한다.
+- 반응식은 원자 수, 전하, 전자 수, 산화수와 발문의 주어가 일치해야 한다.
 
-## Validation
+## 입력 메타데이터
 
-`validateQuestions()` checks unique IDs, required content fields, supported type, difficulty, answer data, choice correctness, tags, and all mobile metadata. `tests/chemistry-content.test.mjs` enforces every fixed value and content restriction.
+모든 문항은 inputMode, allowedKeys, autoSubmit을 가진다. 숫자 문항은 tolerance를 가지며, 단위가 필요한 계산은 unit과 허용 단위를 명시한다.
+
+## 검증 명령
+
+node scripts/validate-questions.mjs
+node --test tests/chemistry-content.test.mjs
