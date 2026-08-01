@@ -1,3 +1,4 @@
+import "./real-art-style.js";
 import { GameStorage } from "./storage.js";
 import { CosmeticSystem, COSMETIC_STORAGE_KEY } from "./cosmetic-system.js";
 import { SHOP_CATEGORIES, SHOP_ITEMS, SHOP_ITEM_MAP } from "../../data/shop-catalog.js";
