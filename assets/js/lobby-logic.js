@@ -1,3 +1,4 @@
+import "./lobby-navigation.js";
 import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js";
 
 export const BEGINNER_TRAINING_IDS = Object.freeze([
