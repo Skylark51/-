@@ -1,33 +1,67 @@
 export const DEVICE_MODE_KEY = "kongjuiya-device-mode";
 const VALID = new Set(["auto", "desktop", "mobile"]);
+let viewportFrame = null;
+
+function normalizedMode(mode) {
+  return VALID.has(mode) ? mode : "auto";
+}
+
+function eventFor(windowRef, type, detail) {
+  const EventConstructor = windowRef.CustomEvent || CustomEvent;
+  return new EventConstructor(type, { detail });
+}
 
 export function getDeviceMode(storage = localStorage) {
   const value = storage.getItem(DEVICE_MODE_KEY);
   return VALID.has(value) ? value : null;
 }
+
 export function detectDevice(windowRef = window) {
-  return windowRef.matchMedia("(max-width: 760px), (pointer: coarse)").matches ? "mobile" : "desktop";
+  const query = windowRef.matchMedia?.("(max-width: 760px), (pointer: coarse)");
+  return query?.matches || windowRef.innerWidth <= 760 ? "mobile" : "desktop";
 }
-export function syncViewport(windowRef = window) {
-  const height = Math.round(windowRef.visualViewport?.height || windowRef.innerHeight);
-  document.documentElement.style.setProperty("--game-viewport-height", `${height}px`);
-  document.documentElement.dataset.orientation = windowRef.innerWidth > windowRef.innerHeight ? "landscape" : "portrait";
+
+export function syncViewport(windowRef = window, documentRef = windowRef.document || document) {
+  const viewport = windowRef.visualViewport;
+  const height = Math.max(1, Math.round(viewport?.height || windowRef.innerHeight || 0));
+  const width = Math.max(1, Math.round(viewport?.width || windowRef.innerWidth || 0));
+  const orientation = width > height ? "landscape" : "portrait";
+  const root = documentRef.documentElement;
+  root.style.setProperty("--game-viewport-height", `${height}px`);
+  root.dataset.orientation = orientation;
+  return { height, width, orientation };
 }
-export function applyDeviceMode(mode = getDeviceMode() || "auto") {
-  const resolved = mode === "auto" ? detectDevice() : mode;
-  syncViewport();
-  document.documentElement.dataset.deviceMode = mode;
-  document.documentElement.dataset.deviceLayout = resolved;
-  document.body?.classList.toggle("layout-mobile", resolved === "mobile");
-  document.body?.classList.toggle("layout-desktop", resolved === "desktop");
-  dispatchEvent(new CustomEvent("ui:device-mode", { detail: { mode, resolved } }));
+
+export function applyDeviceMode(mode = getDeviceMode() || "auto", {
+  windowRef = window,
+  documentRef = windowRef.document || document,
+  force = false
+} = {}) {
+  const selectedMode = normalizedMode(mode);
+  const resolved = selectedMode === "auto" ? detectDevice(windowRef) : selectedMode;
+  const root = documentRef.documentElement;
+  const previousMode = root.dataset.deviceMode;
+  const previousLayout = root.dataset.deviceLayout;
+  syncViewport(windowRef, documentRef);
+  root.dataset.deviceMode = selectedMode;
+  root.dataset.deviceLayout = resolved;
+  documentRef.body?.classList.toggle("layout-mobile", resolved === "mobile");
+  documentRef.body?.classList.toggle("layout-desktop", resolved === "desktop");
+  if (force || previousMode !== selectedMode || previousLayout !== resolved) {
+    windowRef.dispatchEvent(eventFor(windowRef, "ui:device-mode", {
+      mode: selectedMode,
+      resolved
+    }));
+  }
   return resolved;
 }
-export function setDeviceMode(mode) {
-  if (!VALID.has(mode)) mode = "auto";
-  localStorage.setItem(DEVICE_MODE_KEY, mode);
-  return applyDeviceMode(mode);
+
+export function setDeviceMode(mode, storage = localStorage) {
+  const selectedMode = normalizedMode(mode);
+  storage.setItem(DEVICE_MODE_KEY, selectedMode);
+  return applyDeviceMode(selectedMode, { force: true });
 }
+
 export function mountDeviceControls({ settingsForm, before, requireChoice = false } = {}) {
   const field = document.createElement("fieldset");
   field.className = "device-mode-field";
@@ -40,13 +74,16 @@ export function mountDeviceControls({ settingsForm, before, requireChoice = fals
     if ("vibrate" in navigator) {
       const vibration = document.createElement("label");
       vibration.className = "toggle-row";
-      vibration.innerHTML = `<input id="ui-vibrationSetting" type="checkbox"> 정답·타격 때 짧게 진동`;
+      vibration.innerHTML = `<input id="ui-vibrationSetting" type="checkbox"> 정답·경고에 짧게 진동`;
       const checkbox = vibration.querySelector("input");
       checkbox.checked = localStorage.getItem("kongjuiya-vibration") === "on";
       checkbox.addEventListener("change", () => localStorage.setItem("kongjuiya-vibration", checkbox.checked ? "on" : "off"));
       settingsForm.insertBefore(vibration, before || settingsForm.lastElementChild);
     }
-  } else document.body.append(field);
+  } else {
+    document.body.append(field);
+  }
+
   if (requireChoice && !getDeviceMode()) {
     const dialog = document.createElement("dialog");
     dialog.id = "ui-deviceGate";
@@ -58,12 +95,24 @@ export function mountDeviceControls({ settingsForm, before, requireChoice = fals
   }
   return field;
 }
-const refreshViewport = () => {
-  syncViewport();
-  if ((getDeviceMode() || "auto") === "auto") applyDeviceMode("auto");
-};
-syncViewport();
-applyDeviceMode(getDeviceMode() || "auto");
-addEventListener("resize", refreshViewport, { passive: true });
-addEventListener("orientationchange", refreshViewport, { passive: true });
-window.visualViewport?.addEventListener("resize", refreshViewport, { passive: true });
+
+function scheduleViewportRefresh() {
+  if (viewportFrame !== null) return;
+  const refresh = () => {
+    viewportFrame = null;
+    const mode = getDeviceMode() || "auto";
+    if (mode === "auto") applyDeviceMode(mode);
+    else syncViewport();
+  };
+  viewportFrame = typeof window.requestAnimationFrame === "function"
+    ? window.requestAnimationFrame(refresh)
+    : window.setTimeout(refresh, 16);
+}
+
+if (typeof window !== "undefined") {
+  applyDeviceMode(getDeviceMode() || "auto", { force: true });
+  window.addEventListener("resize", scheduleViewportRefresh, { passive: true });
+  window.addEventListener("orientationchange", scheduleViewportRefresh, { passive: true });
+  window.visualViewport?.addEventListener("resize", scheduleViewportRefresh, { passive: true });
+  window.visualViewport?.addEventListener("scroll", scheduleViewportRefresh, { passive: true });
+}
