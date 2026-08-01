@@ -1,0 +1,68 @@
+/* App-style lobby screen navigation. Sections are switched, never anchor-scrolled. */
+.lobby-page .app-screen-section[hidden] {
+  display: none !important;
+}
+
+.lobby-page .app-screen-section.is-active-screen {
+  animation: lobby-screen-enter 180ms ease-out both;
+}
+
+.lobby-page[data-lobby-screen="jars"] #trainingSection,
+.lobby-page[data-lobby-screen="records"] #dashboardSection {
+  margin-top: 16px;
+}
+
+.lobby-page[data-lobby-screen="jars"] #trainingSection,
+.lobby-page[data-lobby-screen="records"] #dashboardSection,
+.lobby-page[data-lobby-screen="records"] #recordsSection {
+  min-height: calc(100dvh - 170px);
+}
+
+.mobile-bottom-nav a.is-active,
+.mobile-bottom-nav button.is-active {
+  background: var(--lobby-soft, #eeedff);
+  color: var(--lobby-primary, #665cf5);
+}
+
+.mobile-bottom-nav a,
+.mobile-bottom-nav button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes lobby-screen-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 760px) {
+  .lobby-page .lobby-shell {
+    min-height: calc(100dvh - 86px - env(safe-area-inset-bottom));
+  }
+
+  .lobby-page[data-lobby-screen="jars"] #trainingSection,
+  .lobby-page[data-lobby-screen="records"] #dashboardSection {
+    margin-top: 8px;
+  }
+
+  .lobby-page[data-lobby-screen="jars"] #trainingSection,
+  .lobby-page[data-lobby-screen="records"] #dashboardSection,
+  .lobby-page[data-lobby-screen="records"] #recordsSection {
+    min-height: calc(100dvh - 142px - env(safe-area-inset-bottom));
+  }
+
+  .lobby-page[data-lobby-screen="records"] #recordsSection {
+    margin-top: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lobby-page .app-screen-section.is-active-screen {
+    animation: none;
+  }
+}
