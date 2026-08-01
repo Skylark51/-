@@ -10,7 +10,6 @@
   display: none;
 }
 
-@media (max-width: 760px), (pointer: coarse) {
   html[data-device-layout="mobile"],
   html[data-device-layout="mobile"] body {
     width: 100%;
@@ -450,8 +449,6 @@
     outline: 3px solid color-mix(in srgb, var(--accent) 60%, white);
     outline-offset: 2px;
   }
-}
-
 @media (max-height: 650px) and (orientation: portrait) {
   :root {
     --mobile-key-height: 33px;

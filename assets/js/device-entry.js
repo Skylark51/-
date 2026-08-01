@@ -23,8 +23,12 @@ export function detectDevice(windowRef = window) {
 
 export function syncViewport(windowRef = window, documentRef = windowRef.document || document) {
   const viewport = windowRef.visualViewport;
-  const height = Math.max(1, Math.round(viewport?.height || windowRef.innerHeight || 0));
-  const width = Math.max(1, Math.round(viewport?.width || windowRef.innerWidth || 0));
+  const layoutHeight = Math.max(1, Math.round(windowRef.innerHeight || 0));
+  const layoutWidth = Math.max(1, Math.round(windowRef.innerWidth || 0));
+  const visualHeight = Math.round(viewport?.height || 0);
+  const visualWidth = Math.round(viewport?.width || 0);
+  const height = visualHeight > 0 && visualHeight <= layoutHeight + 1 ? visualHeight : layoutHeight;
+  const width = visualWidth > 0 && visualWidth <= layoutWidth + 1 ? visualWidth : layoutWidth;
   const orientation = width > height ? "landscape" : "portrait";
   const root = documentRef.documentElement;
   root.style.setProperty("--game-viewport-height", `${height}px`);
@@ -113,6 +117,8 @@ if (typeof window !== "undefined") {
   applyDeviceMode(getDeviceMode() || "auto", { force: true });
   window.addEventListener("resize", scheduleViewportRefresh, { passive: true });
   window.addEventListener("orientationchange", scheduleViewportRefresh, { passive: true });
+  window.matchMedia?.("(orientation: landscape)")?.addEventListener?.("change", scheduleViewportRefresh);
   window.visualViewport?.addEventListener("resize", scheduleViewportRefresh, { passive: true });
   window.visualViewport?.addEventListener("scroll", scheduleViewportRefresh, { passive: true });
+
 }
