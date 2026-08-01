@@ -1,0 +1,10 @@
+/* Photorealistic 60-frame scene atlas. Loaded after SVG cosmetic layers. */
+.game-shell[data-visual-mode="photoreal"] .game-stage{background:#201813}
+.game-shell[data-visual-mode="photoreal"] .photoreal-scene-frame{position:absolute;z-index:7;inset:0;overflow:hidden;border-radius:inherit;background-image:url("../art/photoreal/kongjwi-scene-60.png");background-repeat:no-repeat;background-size:1000% 600%;background-position:var(--photo-frame-x,0%) var(--photo-frame-y,0%);filter:saturate(1.04) contrast(1.03);transform:translateZ(0);will-change:background-position,filter,transform}
+.game-shell[data-visual-mode="photoreal"] .photoreal-scene-frame::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(14,12,15,.08),transparent 26%,transparent 72%,rgba(10,9,13,.18)),radial-gradient(circle at 72% 38%,transparent 0 44%,rgba(17,12,11,.12) 82%)}
+.game-shell[data-visual-mode="photoreal"] .kongjwi,.game-shell[data-visual-mode="photoreal"] .jar-wrap,.game-shell[data-visual-mode="photoreal"] .pour-stream,.game-shell[data-visual-mode="photoreal"] .scene-vignette{display:none!important}
+.game-shell[data-visual-mode="photoreal"] .scene-status,.game-shell[data-visual-mode="photoreal"] .leak-info,.game-shell[data-visual-mode="photoreal"] .toad-bubble,.game-shell[data-visual-mode="photoreal"] .splash,.game-shell[data-visual-mode="photoreal"] .danger,.game-shell[data-visual-mode="photoreal"] .paused-curtain,.game-shell[data-visual-mode="photoreal"] .fever-aura,.game-shell[data-visual-mode="photoreal"] .drop-particles{z-index:30}
+.game-shell[data-photo-state="hit"] .photoreal-scene-frame{filter:saturate(.96) contrast(1.08) brightness(.98)}
+.game-shell[data-photo-state="clear"] .photoreal-scene-frame{filter:saturate(1.12) contrast(1.06) brightness(1.07)}
+.game-shell[data-photo-state="over"] .photoreal-scene-frame{filter:grayscale(.38) brightness(.78) contrast(1.08)}
+@media(prefers-reduced-motion:reduce){.game-shell[data-visual-mode="photoreal"] .photoreal-scene-frame{--photo-frame-x:0%!important;--photo-frame-y:0%!important;will-change:auto}}
