@@ -10,13 +10,6 @@ class MemoryStorage {
   setItem(key, value) { this.map.set(key, String(value)); }
 }
 
-const eventBackup = globalThis.CustomEvent;
-if (typeof globalThis.CustomEvent !== "function") {
-  globalThis.CustomEvent = class CustomEvent extends Event {
-    constructor(type, options = {}) { super(type); this.detail = options.detail; }
-  };
-}
-
 function gameStorage(beans = 1000) {
   return {
     data: { economy: { beans, spentBeans: 0 }, overall: { totalBeansSpent: 0 } },
@@ -58,5 +51,3 @@ test("all procedural animation timelines contain exactly 60 frames", () => {
     for (const value of Object.values(frame)) assert.equal(Number.isFinite(value), true);
   }
 });
-
-if (eventBackup) globalThis.CustomEvent = eventBackup;
