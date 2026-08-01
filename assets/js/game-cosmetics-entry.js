@@ -1,3 +1,4 @@
+import "./real-art-style.js";
 import { GameStorage } from "./storage.js";
 import { CosmeticSystem, COSMETIC_STORAGE_KEY } from "./cosmetic-system.js";
 import { mountSixtyFrameAnimation } from "./animation-system.js";
