@@ -1,207 +1,93 @@
 <!doctype html>
-<html lang="ko" data-page="game" data-ui-version="20260802-realart1">
+<html lang="ko" data-page="game" data-ui-version="20260802-jar-rebuild1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
-  <meta name="theme-color" content="#f5f5ff">
-  <link rel="icon" href="data:,">
-  <meta name="description" content="콩쥐야 줘때써 - 화학편 · 새는 장독대를 막는 두꺼비와 함께 화학 문제를 풀어 물을 채우세요.">
+  <meta name="theme-color" content="#17130f">
+  <meta name="description" content="콩쥐야 줘때써 - 화학편 · 구멍 난 장독대를 막는 두꺼비와 함께 화학 문제를 풀어 물을 채우세요.">
   <meta property="og:title" content="콩쥐야 줘때써 - 화학편">
   <meta name="twitter:title" content="콩쥐야 줘때써 - 화학편">
+  <link rel="icon" href="data:,">
   <title>콩쥐야 줘때써 - 화학편</title>
-  <style>html,body{margin:0;background:#f5f5ff;color:#20213e;font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif}</style>
-  <link rel="stylesheet" href="assets/css/game.css?v=20260802-realart1">
-  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260802-realart1">
-  <link rel="stylesheet" href="assets/css/ui-v3.css?v=20260802-realart1">
-  <link rel="stylesheet" href="assets/css/mobile-game.css?v=20260802-realart1">
-  <link rel="stylesheet" href="assets/css/cosmetics.css?v=20260802-realart1">
-  <style id="mobile-collision-contract">
-    html[data-device-layout="mobile"] .game-bottom-toolbar {
-      display:none!important;
-    }
-    html[data-device-layout="mobile"] .game-shell {
-      height:var(--game-viewport-height,100dvh)!important;
-    }
-    html[data-device-layout="mobile"] .play-layout {
-      padding-bottom:max(4px,env(safe-area-inset-bottom));
-    }
-    html[data-device-layout="mobile"] .keypad-keys.is-numeric {
-      grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    }
-    html[data-device-layout="mobile"] .keypad-keys.is-numeric .keypad-submit {
-      grid-column:1 / -1!important;
-    }
-    @media (orientation:portrait) {
-      html[data-device-layout="mobile"] .play-layout {
-        grid-template-rows:auto clamp(190px,29vh,300px) minmax(0,1fr);
-      }
-      html[data-device-layout="mobile"] .question-panel {
-        grid-template-rows:clamp(112px,15vh,136px) minmax(0,1fr);
-        min-height:0;
-        overflow:hidden;
-      }
-      html[data-device-layout="mobile"] .question-card {
-        display:grid;
-        grid-template-rows:auto minmax(42px,1fr) auto;
-        min-height:0;
-        overflow:hidden;
-      }
-      html[data-device-layout="mobile"] .question-topline,
-      html[data-device-layout="mobile"] .timer-meta,
-      html[data-device-layout="mobile"] .timer-track {
-        display:none;
-      }
-      html[data-device-layout="mobile"] .question-card h2 {
-        display:-webkit-box;
-        min-height:0;
-        margin:6px 0 4px;
-        overflow:hidden;
-        -webkit-box-orient:vertical;
-        -webkit-line-clamp:2;
-      }
-      html[data-device-layout="mobile"] .feedback {
-        min-height:27px;
-        max-height:31px;
-        margin:0;
-        overflow:hidden;
-        white-space:nowrap;
-        text-overflow:ellipsis;
-      }
-      html[data-device-layout="mobile"] .mobile-input-dock {
-        width:100%;
-        height:100%;
-        min-height:0;
-        overflow:hidden;
-      }
-      html[data-device-layout="mobile"] .mobile-keypad {
-        display:grid!important;
-        grid-template-rows:auto minmax(0,1fr);
-        width:100%;
-        height:100%;
-        min-height:0;
-        margin:0!important;
-        overflow:hidden!important;
-      }
-      html[data-device-layout="mobile"] .keypad-display-row,
-      html[data-device-layout="mobile"] .keypad-keys {
-        min-height:0;
-      }
-      html[data-device-layout="mobile"] .keypad-keys {
-        height:100%;
-        grid-auto-rows:minmax(0,1fr);
-      }
-      html[data-device-layout="mobile"] .keypad-keys.is-numeric {
-        grid-template-rows:repeat(5,minmax(0,1fr));
-      }
-      html[data-device-layout="mobile"] .mobile-keypad button {
-        height:100%;
-        min-height:0!important;
-      }
-    }
-    @media (orientation:portrait) and (max-height:700px) {
-      html[data-device-layout="mobile"] .play-layout {
-        grid-template-rows:auto clamp(160px,25vh,205px) minmax(0,1fr);
-      }
-      html[data-device-layout="mobile"] .question-panel {
-        grid-template-rows:104px minmax(0,1fr);
-      }
-      html[data-device-layout="mobile"] .question-progress-line {
-        font-size:7px;
-      }
-      html[data-device-layout="mobile"] .question-card h2 {
-        font-size:clamp(13px,3.8vw,16px);
-      }
-      html[data-device-layout="mobile"] .feedback {
-        min-height:24px;
-        max-height:26px;
-        padding:4px 6px;
-        font-size:8px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="assets/css/game-scene.css?v=20260802-jar-rebuild1">
+  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260802-jar-rebuild1">
+  <link rel="stylesheet" href="assets/css/game-responsive.css?v=20260802-jar-rebuild1">
 </head>
-<body class="game-page">
+<body class="jar-game-page">
   <a class="skip-link" href="#questionText">문제로 바로가기</a>
-  <main class="game-app-frame game-shell is-idle" id="ui-gameApp">
-    <header class="quiz-app-header">
-      <button id="ui-homeButton" class="quiz-back" type="button" aria-label="장독대 고르기로">‹</button>
-      <div class="quiz-header-title"><small id="ui-trainingCategory">화학 장독대</small><strong id="ui-trainingName">원자 번호 장독대 채우기</strong></div>
-      <div class="quiz-header-tools"><span id="ui-difficultyLabel">보통</span><button id="ui-pauseButton" type="button" aria-pressed="false" aria-label="일시정지">Ⅱ</button></div>
+
+  <main id="ui-gameApp" class="jar-game-shell" data-scene-state="loading">
+    <header class="jar-game-header">
+      <button id="ui-homeButton" class="header-button header-home" type="button" aria-label="장독대 고르기로 돌아가기"><span aria-hidden="true">‹</span></button>
+      <div class="header-title">
+        <small id="ui-trainingCategory">화학 장독대</small>
+        <strong id="ui-trainingName">원자 번호 장독대 채우기</strong>
+        <span id="stageNumber" class="sr-only">원자 번호 장독대 채우기</span>
+      </div>
+      <div class="header-status">
+        <span id="ui-difficultyLabel" class="difficulty-badge">보통</span>
+        <button id="ui-pauseButton" class="header-button" type="button" aria-pressed="false" aria-label="게임 일시정지">Ⅱ</button>
+      </div>
       <a class="sr-only" href="index.html" data-game-title>콩쥐야 줘때써 - 화학편</a>
     </header>
 
-    <section class="play-layout">
-      <section class="mobile-compact-shell" id="ui-mobileCompact" aria-label="모바일 게임 현황" hidden>
-        <div class="mobile-compact-bar"><strong id="ui-compactTraining">원자 번호</strong><span id="ui-compactDifficulty">보통</span></div>
+    <section class="jar-game-layout">
+      <section class="game-hud" aria-label="현재 게임 현황">
+        <div class="hud-card hud-score"><small>점수</small><strong id="scoreValue">0</strong></div>
+        <div class="hud-card hud-combo"><small>콤보</small><strong id="comboValue">0</strong></div>
+        <div class="hud-card hud-water"><small>물</small><strong><span id="waterValue">70</span>%</strong></div>
+        <div class="hud-card hud-time"><small>남은 시간</small><strong id="timerBadge">15초</strong></div>
       </section>
 
-      <section class="scene-panel" aria-label="콩쥐의 장독대">
-        <div class="game-stage" id="visualStage">
-          <div class="scene-vignette" aria-hidden="true"></div>
-          <div class="scene-status"><span class="status-dot" aria-hidden="true"></span><div><small>현재 상태</small><strong id="statusBadge">물 채우기 준비</strong></div></div>
-          <div class="leak-info"><small>누수 속도</small><strong id="leakRateText">초당 1.5%</strong></div>
-          <div class="fever-aura" aria-hidden="true"></div>
-          <div class="kongjwi" aria-label="바가지로 물을 붓는 콩쥐"><div class="kongjwi-sprite" aria-hidden="true"></div><div class="bucket" aria-hidden="true"></div><span class="character-name">콩쥐</span></div>
-          <div class="pour-stream" aria-hidden="true"></div>
-          <div class="jar-wrap"><div class="jar-lid" aria-hidden="true"></div><div class="jar-rim" aria-hidden="true"></div><div class="jar"><div class="jar-shine" aria-hidden="true"></div><div class="water" id="waterVisual"><i></i><i></i><i></i></div><div class="hole" aria-label="장독대 구멍"></div></div><div class="toad" aria-label="구멍을 막는 두꺼비"><div class="toad-sprite" aria-hidden="true"></div></div><div class="leak" aria-hidden="true"><i></i><i></i><i></i></div></div>
-          <div id="toadBubble" class="toad-bubble" role="status" aria-live="polite" hidden><span id="toadBubbleText"></span></div>
+      <section class="scene-panel" aria-label="콩쥐와 두꺼비의 장독대 장면">
+        <div id="visualStage" class="game-stage" role="img" aria-label="콩쥐가 바가지로 장독대에 물을 붓고 두꺼비가 구멍을 막는 장면">
+          <div class="scene-frame-stack" aria-hidden="true"><div id="sceneFrameA" class="scene-frame is-visible"></div><div id="sceneFrameB" class="scene-frame"></div></div>
+          <div class="scene-cinematic-shade" aria-hidden="true"></div>
+          <div class="scene-water-meter" aria-label="장독대 물 수위"><span>물</span><div class="scene-water-track"><div id="waterVisual" class="scene-water-fill"></div></div></div>
+          <div class="scene-status-card"><span class="status-dot" aria-hidden="true"></span><div><small>현재 상태</small><strong id="statusBadge">물 채우기 준비</strong></div></div>
+          <div class="scene-leak-card"><small>누수</small><strong id="leakRateText">초당 1.5%</strong></div>
+          <div id="sceneCosmeticNotice" class="scene-cosmetic-notice" hidden>장착 스킨 원화 준비 중 · 기본 장면 표시</div>
+          <div class="scene-leak-effect" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div id="scenePourArc" class="scene-pour-arc" aria-hidden="true"></div>
           <div id="dropParticles" class="drop-particles" aria-hidden="true"></div>
-          <div class="splash" id="splash" aria-live="polite">물 +20</div>
-          <div class="danger" id="dangerOverlay" aria-hidden="true"></div>
-          <div class="paused-curtain" id="ui-pausedCurtain" aria-live="assertive"><strong>잠시 멈춤</strong><span>계속하기를 누르면 다시 시작합니다.</span></div>
+          <div id="splash" class="splash" role="status" aria-live="polite">물 +20</div>
+          <div id="dangerOverlay" class="danger-overlay" aria-hidden="true"></div>
+          <div id="toadBubble" class="toad-bubble" role="status" aria-live="polite" hidden><span id="toadBubbleText"></span><span id="ui-toadSpeech" class="sr-only"></span></div>
+          <div id="ui-pausedCurtain" class="paused-curtain" aria-live="assertive"><strong>잠시 멈춤</strong><span>계속하기를 누르면 다시 시작합니다.</span></div>
         </div>
       </section>
 
       <aside class="question-panel" aria-label="화학 문제">
-        <section class="game-hud" aria-label="장독대 채우기 현황">
-          <div><span class="hud-icon">★</span><small>점수</small><strong id="scoreValue">0</strong></div>
-          <div><span class="hud-icon">🔥</span><small>콤보</small><strong><span id="comboValue">0</span></strong></div>
-          <div><span class="hud-icon">💧</span><small>물</small><strong><span id="waterValue">70</span>%</strong></div>
-        </section>
-
         <section class="fever-panel" aria-label="피버 게이지">
-          <div><span id="feverLabel">FEVER 준비</span><strong id="feverMultiplier">×1</strong></div>
-          <div class="fever-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="feverGauge"><i id="feverFill"></i></div>
-          <small id="feverTimer" aria-live="polite">빠른 연속 정답으로 피버를 충전하세요.</small>
+          <div class="fever-copy"><span id="feverLabel">FEVER 준비</span><strong id="feverMultiplier">×1</strong></div>
+          <div id="feverGauge" class="fever-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="feverFill"></i></div>
+          <small id="feverTimer" aria-live="polite">연속 정답으로 피버를 충전하세요.</small>
         </section>
 
         <section class="question-card">
-          <div class="question-progress-line"><span>문제 <b id="ui-questionCount">1</b> / 10</span><div class="track"><div class="fill" id="stageProgress"></div></div><strong id="timerBadge" aria-label="남은 시간">15초</strong></div>
-          <div class="question-topline"><div><p id="categoryLabel">원자 번호 장독대 채우기</p><span class="question-type" id="ui-questionType">직접 입력</span></div></div>
-          <h2 id="questionText" tabindex="-1">문제를 준비하고 있습니다.</h2>
-          <div class="timer-meta"><span>남은 시간</span><strong id="timeText">15.0초</strong></div>
-          <div class="track timer-track"><div class="fill" id="timeBar"></div></div>
-          <form id="ui-answerForm" novalidate><label for="answerInput">정답 입력</label><div class="answer-row"><input id="answerInput" type="text" autocomplete="off" inputmode="text" placeholder="정답을 입력하세요" aria-describedby="feedback"><button class="submit-button" id="submitButton" type="submit">물 붓기</button></div></form>
-          <div class="feedback" id="feedback" role="status" aria-live="polite">정답을 맞히면 장독대에 물을 채웁니다.</div>
+          <div class="question-progress-line"><span>문제 <b id="ui-questionCount">1</b> / 10</span><div class="track"><div id="stageProgress" class="fill"></div></div><strong class="desktop-timer" aria-hidden="true"><span id="timeText">15.0초</span></strong></div>
+          <div class="question-meta"><p id="categoryLabel">원자 구조 · 원자 번호 장독대 채우기</p><span id="ui-questionType" class="question-type">직접 입력</span></div>
+          <h1 id="questionText" tabindex="-1">문제를 준비하고 있습니다.</h1>
+          <div class="track timer-track" aria-hidden="true"><div id="timeBar" class="fill"></div></div>
+          <form id="ui-answerForm" class="answer-form" novalidate><label class="sr-only" for="answerInput">정답 입력</label><div class="answer-row"><input id="answerInput" type="text" autocomplete="off" inputmode="text" placeholder="정답을 입력하세요" aria-describedby="feedback"><button id="submitButton" class="submit-button" type="submit">물 붓기</button></div></form>
+          <div id="feedback" class="feedback" role="status" aria-live="polite">정답을 맞히면 장독대에 물을 채웁니다.</div>
         </section>
 
         <section id="ui-mobileInputDock" class="mobile-input-dock" aria-label="모바일 정답 입력 도구" hidden></section>
-
-        <section class="training-progress">
-          <div class="progress-copy"><div><span id="ui-progressTraining">원자 번호 장독대 채우기</span><strong>현재 진행</strong></div><div><span>정답 <b id="ui-correctCount">0</b></span><span>오답 <b id="ui-wrongCount">0</b></span></div></div>
-          <p>목표 점수 <strong id="ui-targetScore">3,000</strong> · 완료 <span id="correctInStage">0</span>/10</p>
+        <section class="training-progress" aria-label="현재 장독대 진행 기록">
+          <div><span id="ui-progressTraining">원자 번호 장독대 채우기</span><strong>현재 진행</strong></div>
+          <dl><div><dt>정답</dt><dd id="ui-correctCount">0</dd></div><div><dt>오답</dt><dd id="ui-wrongCount">0</dd></div><div><dt>완료</dt><dd><span id="correctInStage">0</span>/10</dd></div><div><dt>목표 점수</dt><dd id="ui-targetScore">3,000</dd></div></dl>
           <p id="stageDescription"></p>
         </section>
       </aside>
     </section>
 
-    <section class="hidden" id="startOverlay" aria-hidden="true"><button id="startButton" type="button">시작</button></section>
-    <section class="result-panel hidden" id="resultPanel" role="dialog" aria-modal="true" aria-live="assertive" aria-labelledby="resultTitle"></section>
-    <div class="sr-only" id="ui-accessibleStatus" aria-live="assertive"></div>
+    <section id="startOverlay" class="hidden" aria-hidden="true"><button id="startButton" type="button">시작</button></section>
+    <section id="resultPanel" class="result-panel hidden" role="dialog" aria-modal="true" aria-live="assertive" aria-labelledby="resultTitle"></section>
+    <div id="ui-accessibleStatus" class="sr-only" aria-live="assertive"></div>
   </main>
 
-  <nav class="game-bottom-toolbar" aria-label="게임 도구 모음">
-    <button id="ui-toolbarHome" type="button" aria-label="장독대 고르기로 이동"><span aria-hidden="true">⌂</span><span>장독대</span></button>
-    <button id="ui-toolbarQuestion" class="is-active" type="button" aria-current="page" aria-label="현재 문제"><span aria-hidden="true">⚗</span><span>문제</span></button>
-    <button id="ui-toolbarPause" type="button" aria-pressed="false" aria-label="게임 일시정지"><span aria-hidden="true">Ⅱ</span><span>일시정지</span></button>
-    <button id="ui-toolbarRestart" type="button" aria-label="처음부터 다시 채우기"><span aria-hidden="true">↻</span><span>새로 시작</span></button>
-  </nav>
-
-  <dialog id="exitDialog" class="modal-card" aria-labelledby="exitTitle">
-    <form method="dialog"><p class="eyebrow">PAUSED</p><h2 id="exitTitle">장독대 채우기를 멈출까요?</h2><p>진행 상태는 브라우저에 저장됩니다.</p><div class="dialog-actions"><button id="continueButton" class="primary-button" value="cancel">계속하기</button><button id="confirmHomeButton" class="danger-button" value="home">장독대 고르기로</button></div></form>
-  </dialog>
-
-  <script type="module" src="assets/js/ui-effects.js?v=20260802-realart1"></script>
-  <script type="module" src="assets/js/game-cosmetics-entry.js?v=20260802-realart1"></script>
+  <dialog id="exitDialog" class="modal-card" aria-labelledby="exitTitle"><form method="dialog"><p class="eyebrow">PAUSED</p><h2 id="exitTitle">장독대 채우기를 멈출까요?</h2><p>진행 상태는 브라우저에 저장됩니다.</p><div class="dialog-actions"><button id="continueButton" class="primary-button" value="cancel">계속하기</button><button id="confirmHomeButton" class="danger-button" value="home">장독대 고르기로</button></div></form></dialog>
+  <script type="module" src="assets/js/ui-effects.js?v=20260802-jar-rebuild1"></script>
 </body>
 </html>
