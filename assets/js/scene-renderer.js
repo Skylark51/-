@@ -1,44 +1,59 @@
 import { SceneStateMachine } from "./scene-state-machine.js";
-import { loadSceneAtlasUrl } from "./scene-art-loader.js";
-const GRID = Object.freeze({ columns: 2, rows: 2 });
-const STATE_CELLS = Object.freeze({
-  loading: [0, 0],
-  ready: [0, 0],
-  idle: [0, 0],
-  pour: [1, 0],
-  correctRecovery: [1, 0],
-  wrong: [0, 1],
-  timeout: [0, 1],
-  fever: [1, 0],
-  clear: [1, 1],
-  gameOver: [0, 1]
+import { SCENE_ATLAS_URL, preloadSceneAtlas } from "./scene-art-loader.js";
+
+const ART_ASPECT_RATIO = 3 / 2;
+const DEFAULT_VISUALS = Object.freeze({
+  tool: "wood",
+  outfit: "classic-red",
+  toad: "field-brown",
+  jar: "onggi"
 });
-const DEFAULT_VISUALS = Object.freeze({ tool: "wood", outfit: "classic-red", toad: "field-brown", jar: "onggi" });
-const listen = (target, type, handler) => {
+
+const STATE_TO_CELL = Object.freeze({
+  loading: "idle",
+  ready: "idle",
+  idle: "idle",
+  pour: "pour",
+  correctRecovery: "pour",
+  wrong: "wrong",
+  timeout: "wrong",
+  fever: "pour",
+  clear: "clear",
+  gameOver: "wrong"
+});
+
+const STATE_LABELS = Object.freeze({
+  loading: "장면 준비 중",
+  ready: "문제 준비",
+  idle: "두꺼비가 구멍을 막는 중",
+  pour: "콩쥐가 물을 붓는 중",
+  correctRecovery: "물결이 가라앉는 중",
+  wrong: "두꺼비가 밀렸습니다",
+  timeout: "시간 초과 · 물이 샙니다",
+  fever: "피버 · 누수 억제",
+  clear: "장독대 채우기 완료",
+  gameOver: "물이 모두 샜습니다",
+  paused: "잠시 멈춤"
+});
+
+function listen(target, type, handler) {
   target.addEventListener(type, handler);
   return () => target.removeEventListener(type, handler);
-};
-
-async function loadAtlas() {
-  const url = await loadSceneAtlasUrl();
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.decoding = "async";
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("장면 원화를 해석하지 못했습니다."));
-    image.src = url;
-  });
 }
 
-function coverSource(targetWidth, targetHeight, cellWidth, cellHeight) {
-  const targetRatio = targetWidth / Math.max(1, targetHeight);
-  const sourceRatio = cellWidth / cellHeight;
-  if (targetRatio < sourceRatio) {
-    const width = cellHeight * targetRatio;
-    return { x: (cellWidth - width) / 2, y: 0, width, height: cellHeight };
+function fitArtwork(stage, root) {
+  const { width, height } = stage.getBoundingClientRect();
+  if (width < 1 || height < 1) return;
+
+  let artWidth = width;
+  let artHeight = width / ART_ASPECT_RATIO;
+  if (artHeight > height) {
+    artHeight = height;
+    artWidth = height * ART_ASPECT_RATIO;
   }
-  const height = cellWidth / targetRatio;
-  return { x: 0, y: (cellHeight - height) / 2, width: cellWidth, height };
+
+  root.style.setProperty("--scene-art-width", `${Math.round(artWidth)}px`);
+  root.style.setProperty("--scene-art-height", `${Math.round(artHeight)}px`);
 }
 
 export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
@@ -49,109 +64,73 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
   const frameB = root.querySelector("#sceneFrameB");
   const notice = root.querySelector("#sceneCosmeticNotice");
   const waterText = root.querySelector("#waterValue");
-  if (!stage || !(frameA instanceof HTMLCanvasElement) || !(frameB instanceof HTMLCanvasElement)) {
-    throw new Error("SceneRenderer 필수 canvas DOM이 없습니다.");
+  const statusBadge = root.querySelector("#statusBadge");
+  const splash = root.querySelector("#splash");
+
+  if (!stage || !frameA || !frameB) {
+    throw new Error("SceneRenderer 필수 DOM이 없습니다.");
   }
 
-  let atlas = null;
-  let front = frameA;
-  let back = frameB;
-  let currentState = "idle";
-  let pendingState = "idle";
+  let frontFrame = frameA;
+  let backFrame = frameB;
+  let currentState = "loading";
+  let assetsReady = false;
   let destroyed = false;
-  const removers = [];
+  const removeListeners = [];
 
-  const draw = (canvas, state) => {
-    if (!atlas || destroyed) return;
-    const rect = stage.getBoundingClientRect();
-    if (rect.width < 1 || rect.height < 1) return;
-    const dpr = Math.min(2, Math.max(1, globalThis.devicePixelRatio || 1));
-    const width = Math.max(1, Math.round(rect.width * dpr));
-    const height = Math.max(1, Math.round(rect.height * dpr));
-    if (canvas.width !== width) canvas.width = width;
-    if (canvas.height !== height) canvas.height = height;
-    const context = canvas.getContext("2d", { alpha: false });
-    if (!context) return;
-    context.imageSmoothingEnabled = true;
-    context.imageSmoothingQuality = "high";
-    const [column, row] = STATE_CELLS[state] || STATE_CELLS.idle;
-    const cellWidth = atlas.naturalWidth / GRID.columns;
-    const cellHeight = atlas.naturalHeight / GRID.rows;
-    const source = coverSource(rect.width, rect.height, cellWidth, cellHeight);
-    context.clearRect(0, 0, width, height);
-    context.drawImage(
-      atlas,
-      column * cellWidth + source.x,
-      row * cellHeight + source.y,
-      source.width,
-      source.height,
-      0,
-      0,
-      width,
-      height
-    );
-    canvas.dataset.sceneAsset = state;
-  };
+  for (const frame of [frameA, frameB]) {
+    frame.style.backgroundImage = `url("${SCENE_ATLAS_URL}")`;
+    frame.dataset.sceneCell = "idle";
+  }
 
-  const showState = state => {
-    pendingState = state;
-    if (!atlas || destroyed || (state === currentState && front.dataset.sceneAsset === state)) return;
-    draw(back, state);
-    back.classList.add("is-visible");
-    front.classList.remove("is-visible");
-    currentState = state;
-    const previous = front;
-    front = back;
-    back = previous;
-  };
+  function showArtwork(state) {
+    const cell = STATE_TO_CELL[state] || "idle";
+    if (!assetsReady || destroyed) return;
+    if (frontFrame.dataset.sceneCell === cell && frontFrame.classList.contains("is-visible")) return;
 
-  const setWaterRatio = value => {
+    backFrame.dataset.sceneCell = cell;
+    backFrame.classList.add("is-visible");
+    frontFrame.classList.remove("is-visible");
+    [frontFrame, backFrame] = [backFrame, frontFrame];
+  }
+
+  function setWaterRatio(value) {
     const percentage = Math.max(0, Math.min(100, Number(value) || 0));
     root.style.setProperty("--water-ratio", String(percentage / 100));
     stage.dataset.waterBand = percentage <= 10 ? "critical" : percentage <= 50 ? "warning" : "normal";
-  };
-  const readWater = () => setWaterRatio(waterText?.textContent);
-  const waterObserver = waterText ? new MutationObserver(readWater) : null;
-  waterObserver?.observe(waterText, { childList: true, characterData: true, subtree: true });
-  readWater();
+  }
 
-  const labels = {
-    loading: "장면 준비 중",
-    ready: "문제 준비",
-    idle: "두꺼비가 구멍을 막는 중",
-    pour: "콩쥐가 물을 붓는 중",
-    correctRecovery: "물결이 가라앉는 중",
-    wrong: "두꺼비가 밀렸습니다",
-    timeout: "시간 초과 · 물이 샙니다",
-    fever: "피버 · 누수 억제",
-    clear: "장독대 채우기 완료",
-    gameOver: "물이 모두 샜습니다",
-    paused: "잠시 멈춤"
-  };
+  function readWater() {
+    setWaterRatio(waterText?.textContent);
+  }
 
-  const renderState = (state, detail = {}) => {
+  function renderState(state, detail = {}) {
+    currentState = state;
     root.dataset.sceneState = state;
     stage.dataset.sceneState = state;
-    if (state !== "paused") showState(state);
-    const badge = root.querySelector("#statusBadge");
-    if (badge) badge.textContent = labels[state] || labels.idle;
-    if (state === "pour" && detail.waterGain != null) {
-      const splash = root.querySelector("#splash");
-      if (splash) splash.textContent = `물 +${Math.round(detail.waterGain)}`;
+    if (state !== "paused") showArtwork(state);
+    if (statusBadge) statusBadge.textContent = STATE_LABELS[state] || STATE_LABELS.idle;
+    if (state === "pour" && splash && detail.waterGain != null) {
+      splash.textContent = `물 +${Math.round(detail.waterGain)}`;
     }
-  };
+  }
+
+  function setCosmetics(visuals) {
+    const next = { ...DEFAULT_VISUALS, ...(visuals || {}) };
+    const pendingCategories = Object.entries(DEFAULT_VISUALS)
+      .filter(([category, defaultValue]) => next[category] !== defaultValue)
+      .map(([category]) => category);
+
+    root.dataset.sceneCosmetics = pendingCategories.length ? "pending" : "default-ready";
+    if (!notice) return;
+
+    notice.hidden = pendingCategories.length === 0;
+    notice.textContent = pendingCategories.length
+      ? `장착 스킨 ${pendingCategories.length}종의 장면 원화 준비 중 · 기본 장면 표시`
+      : "";
+  }
 
   const machine = new SceneStateMachine({ onChange: renderState });
-  const setCosmetics = visual => {
-    const next = { ...DEFAULT_VISUALS, ...(visual || {}) };
-    const unsupported = Object.entries(DEFAULT_VISUALS).filter(([key, value]) => next[key] !== value);
-    root.dataset.sceneCosmetics = unsupported.length ? "pending" : "default-ready";
-    if (notice) {
-      notice.hidden = unsupported.length === 0;
-      if (unsupported.length) notice.textContent = `장착 스킨 ${unsupported.length}종 원화 준비 중 · 기본 실사 장면 표시`;
-    }
-  };
-
   const eventMap = [
     ["game:start", event => machine.markReady(event.detail)],
     ["answer:correct", event => machine.correct(event.detail)],
@@ -165,49 +144,66 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
     ["game:pause", event => machine.pause(event.detail)],
     ["game:resume", event => machine.resume(event.detail)]
   ];
-  for (const [type, handler] of eventMap) removers.push(listen(window, type, handler));
 
-  const resizeObserver = new ResizeObserver(() => {
-    if (atlas) draw(front, currentState);
-  });
+  for (const [type, handler] of eventMap) {
+    removeListeners.push(listen(window, type, handler));
+  }
+
+  const resizeObserver = new ResizeObserver(() => fitArtwork(stage, root));
   resizeObserver.observe(stage);
 
-  setCosmetics(cosmetics);
-  root.dataset.sceneRenderer = "single-authored-state-atlas";
+  const waterObserver = waterText ? new MutationObserver(readWater) : null;
+  waterObserver?.observe(waterText, { childList: true, characterData: true, subtree: true });
+
+  root.dataset.sceneRenderer = "key-pose-dom-renderer";
   root.dataset.sceneAuthoredFrames = "4";
+  root.dataset.sceneAssets = "loading";
+  fitArtwork(stage, root);
+  readWater();
+  setCosmetics(cosmetics);
   renderState("loading");
-  loadAtlas().then(image => {
-    if (destroyed) return;
-    atlas = image;
-    currentState = pendingState;
-    draw(front, currentState);
-    front.classList.add("is-visible");
-    root.dataset.sceneAssets = "ready";
-    machine.markReady();
-  }).catch(error => {
-    console.error(error);
-    root.dataset.sceneAssets = "failed";
-    machine.markReady({ failedAssets: 1 });
-  });
+
+  preloadSceneAtlas()
+    .then(() => {
+      if (destroyed) return;
+      assetsReady = true;
+      root.dataset.sceneAssets = "ready";
+      frontFrame.dataset.sceneCell = STATE_TO_CELL[currentState] || "idle";
+      frontFrame.classList.add("is-visible");
+      machine.markReady();
+    })
+    .catch(error => {
+      console.error(error);
+      root.dataset.sceneAssets = "failed";
+      machine.markReady({ failedAssets: 1 });
+    });
 
   const controller = {
     machine,
     setCosmetics,
     setWaterRatio,
-    setState(state, detail = {}) { return machine.enter(state, detail, { schedule: false }); },
-    resize() { draw(front, currentState); },
+    setState(state, detail = {}) {
+      return machine.enter(state, detail, { schedule: false });
+    },
+    resize() {
+      fitArtwork(stage, root);
+    },
     destroy() {
       if (destroyed) return;
       destroyed = true;
       machine.destroy();
       resizeObserver.disconnect();
       waterObserver?.disconnect();
-      removers.splice(0).forEach(remove => remove());
+      removeListeners.splice(0).forEach(remove => remove());
       delete root.dataset.sceneRenderer;
+      if (globalThis.__KONGJWI_SCENE_RENDERER__ === controller) {
+        delete globalThis.__KONGJWI_SCENE_RENDERER__;
+      }
     }
   };
+
   globalThis.__KONGJWI_SCENE_RENDERER__ = controller;
   return controller;
 }
 
-export { STATE_CELLS, DEFAULT_VISUALS };
+export { DEFAULT_VISUALS, STATE_TO_CELL };

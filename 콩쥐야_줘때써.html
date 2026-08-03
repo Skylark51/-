@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" data-page="game" data-ui-version="20260803-cohesive1">
+<html lang="ko" data-page="game" data-ui-version="20260803-refactor1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
@@ -9,9 +9,7 @@
   <meta name="twitter:title" content="콩쥐야 줘때써 - 화학편">
   <link rel="icon" href="data:,">
   <title>콩쥐야 줘때써 - 화학편</title>
-  <link rel="stylesheet" href="assets/css/game-scene.css?v=20260803-cohesive1">
-  <link rel="stylesheet" href="assets/css/themes-keypad.css?v=20260803-cohesive1">
-  <link rel="stylesheet" href="assets/css/game-responsive.css?v=20260803-cohesive1">
+  <link rel="stylesheet" href="assets/css/game.css?v=20260803-refactor1">
 </head>
 <body class="jar-game-page">
   <a class="skip-link" href="#questionText">문제로 바로가기</a>
@@ -42,12 +40,12 @@
       <section class="scene-panel" aria-label="콩쥐와 두꺼비의 장독대 장면">
         <div id="visualStage" class="game-stage" role="img" aria-label="콩쥐가 바가지로 장독대에 물을 붓고 두꺼비가 구멍을 막는 장면">
           <div class="scene-frame-stack" aria-hidden="true">
-            <canvas id="sceneFrameA" class="scene-frame is-visible" aria-hidden="true"></canvas>
-            <canvas id="sceneFrameB" class="scene-frame" aria-hidden="true"></canvas>
+            <div id="sceneFrameA" class="scene-frame is-visible" data-scene-cell="idle"></div>
+            <div id="sceneFrameB" class="scene-frame" data-scene-cell="idle"></div>
           </div>
           <div class="scene-cinematic-shade" aria-hidden="true"></div>
           <div class="scene-water-meter" aria-label="장독대 물 수위"><span>물</span><div class="scene-water-track"><div id="waterVisual" class="scene-water-fill"></div></div></div>
-          <div class="scene-status-card"><span class="status-dot" aria-hidden="true"></span><div><small>현재 상태</small><strong id="statusBadge">장면 준비 중</strong></div></div>
+          <div class="scene-status-card"><span class="status-dot" aria-hidden="true"></span><div><small>현재 상태</small><strong id="statusBadge">물 채우기 준비</strong></div></div>
           <div class="scene-leak-card"><small>누수</small><strong id="leakRateText">초당 1.5%</strong></div>
           <div id="sceneCosmeticNotice" class="scene-cosmetic-notice" hidden>장착 스킨 원화 준비 중 · 기본 장면 표시</div>
           <div class="scene-leak-effect" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -91,6 +89,6 @@
   </main>
 
   <dialog id="exitDialog" class="modal-card" aria-labelledby="exitTitle"><form method="dialog"><p class="eyebrow">PAUSED</p><h2 id="exitTitle">장독대 채우기를 멈출까요?</h2><p>진행 상태는 브라우저에 저장됩니다.</p><div class="dialog-actions"><button id="continueButton" class="primary-button" value="cancel">계속하기</button><button id="confirmHomeButton" class="danger-button" value="home">장독대 고르기로</button></div></form></dialog>
-  <script type="module" src="assets/js/ui-effects.js?v=20260803-cohesive1"></script>
+  <script type="module" src="assets/js/ui-effects.js?v=20260803-refactor1"></script>
 </body>
 </html>

@@ -1,245 +1,283 @@
 import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js";
 import { GameStorage } from "./storage.js";
-import { applyDeviceMode, getDeviceMode, syncViewport } from "./device-entry.js?v=20260803-cohesive1";
+import { applyDeviceMode, getDeviceMode, syncViewport } from "./device-entry.js";
 import { GAME_TITLE, displayJarName } from "./theme-system.js";
-import { mountMobileKeypad } from "./mobile-keypad.js?v=20260803-cohesive1";
-import { mountGameScene } from "./game-cosmetics-entry.js?v=20260803-cohesive1";
+import { mountMobileKeypad } from "./mobile-keypad.js";
+import { mountGameScene } from "./game-cosmetics-entry.js?v=20260803-refactor1";
 
 const SELECTION_KEY = "kongjuiya-training-selection";
 const storage = new GameStorage();
-const $ = id => document.getElementById(id);
-const number = value => Math.round(Number(value) || 0).toLocaleString("ko-KR");
-const difficultyNames = Object.freeze({ easy: "쉬움", normal: "보통", hard: "어려움" });
+const byId = id => document.getElementById(id);
+const formatNumber = value => Math.round(Number(value) || 0).toLocaleString("ko-KR");
+const DIFFICULTY_NAMES = Object.freeze({ easy: "쉬움", normal: "보통", hard: "어려움" });
 
-function setFixedTitle() {
+function setOfficialTitle() {
   document.title = GAME_TITLE;
-  document.querySelectorAll("[data-game-title]").forEach(node => { node.textContent = GAME_TITLE; });
+  document.querySelectorAll("[data-game-title]").forEach(node => {
+    node.textContent = GAME_TITLE;
+  });
   for (const selector of ["meta[property='og:title']", "meta[name='twitter:title']"]) {
     const node = document.querySelector(selector);
     if (node) node.content = GAME_TITLE;
   }
 }
 
-function parseSelection() {
-  try { return JSON.parse(sessionStorage.getItem(SELECTION_KEY) || "null"); }
-  catch { return null; }
+function readSelection() {
+  try {
+    return JSON.parse(sessionStorage.getItem(SELECTION_KEY) || "null");
+  } catch {
+    return null;
+  }
 }
 
-function applyMotionSetting() {
-  document.documentElement.classList.toggle("reduce-motion", storage.data.settings?.animations === false);
+function applyMotionPreference() {
+  document.documentElement.classList.toggle(
+    "reduce-motion",
+    storage.data.settings?.animations === false
+  );
 }
 
-async function initGame() {
-  const selection = parseSelection();
-  const query = new URLSearchParams(location.search).get("training");
-  if (!query && !selection?.trainingId) {
+function listen(removers, type, handler, target = window) {
+  target.addEventListener(type, handler);
+  removers.push(() => target.removeEventListener(type, handler));
+}
+
+async function initializeGamePage() {
+  const selection = readSelection();
+  const requestedTrainingId = new URLSearchParams(location.search).get("training");
+
+  if (!requestedTrainingId && !selection?.trainingId) {
     location.replace("index.html?view=jars");
     return;
   }
 
-  await import("./main.js?v=20260803-cohesive1");
+  await import("./main.js?v=20260803-refactor1");
   const api = globalThis.KongJuiYaGame;
   if (!api) throw new Error("게임 엔진을 불러오지 못했습니다.");
 
-  const mode = getTrainingMode(query) || getTrainingMode(selection?.trainingId) || TRAINING_MODES[0];
+  const mode =
+    getTrainingMode(requestedTrainingId) ||
+    getTrainingMode(selection?.trainingId) ||
+    TRAINING_MODES[0];
+
+  const savedDifficulty = storage.data.settings?.difficulty;
   const difficulty = mode.difficultyLevels?.includes(selection?.difficulty)
     ? selection.difficulty
-    : mode.difficultyLevels?.includes(storage.data.settings?.difficulty)
-      ? storage.data.settings.difficulty
+    : mode.difficultyLevels?.includes(savedDifficulty)
+      ? savedDifficulty
       : mode.recommendedDifficulty || "normal";
+
   const resumeState = selection?.resume && storage.data.currentRun?.trainingId === mode.id
     ? storage.data.currentRun
     : null;
-  const app = $("ui-gameApp");
-  const jarName = displayJarName(mode);
+
+  const app = byId("ui-gameApp");
   if (!app) throw new Error("게임 화면 루트가 없습니다.");
 
-  applyMotionSetting();
+  applyMotionPreference();
   syncViewport();
   applyDeviceMode(getDeviceMode() || "auto", { force: true });
   api.selectTraining(mode.id);
 
-  const difficultySelect = $("ui-difficultySelect");
+  const difficultySelect = byId("ui-difficultySelect");
   if (difficultySelect) {
     difficultySelect.value = difficulty;
     difficultySelect.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
-  $("ui-trainingName").textContent = jarName;
-  $("ui-trainingCategory").textContent = mode.category;
-  $("ui-difficultyLabel").textContent = difficultyNames[difficulty] || "보통";
-  $("ui-progressTraining").textContent = jarName;
-  $("categoryLabel").textContent = `${mode.category} · ${jarName}`;
-  $("ui-targetScore").textContent = number(3000);
+  const jarName = displayJarName(mode);
+  byId("ui-trainingName").textContent = jarName;
+  byId("ui-trainingCategory").textContent = mode.category;
+  byId("ui-difficultyLabel").textContent = DIFFICULTY_NAMES[difficulty] || "보통";
+  byId("ui-progressTraining").textContent = jarName;
+  byId("categoryLabel").textContent = `${mode.category} · ${jarName}`;
+  byId("ui-targetScore").textContent = formatNumber(3000);
 
   const scene = mountGameScene(app, { storage });
-  const listeners = [];
-  const listen = (type, handler, target = window) => {
-    target.addEventListener(type, handler);
-    listeners.push(() => target.removeEventListener(type, handler));
-  };
-
+  const removers = [];
   let questionCount = 1;
-  let correct = 0;
-  let wrong = 0;
+  let correctCount = 0;
+  let wrongCount = 0;
   let bubbleTimer = 0;
   let feverTimer = 0;
   let keypad = null;
 
-  const announce = text => { $("ui-accessibleStatus").textContent = text; };
-  const syncCounts = () => {
-    $("ui-questionCount").textContent = Math.min(10, questionCount);
-    $("ui-correctCount").textContent = correct;
-    $("ui-wrongCount").textContent = wrong;
-  };
+  function announce(text) {
+    byId("ui-accessibleStatus").textContent = text;
+  }
 
-  const showBubble = (detail = {}) => {
+  function updateCounts() {
+    byId("ui-questionCount").textContent = Math.min(10, questionCount);
+    byId("ui-correctCount").textContent = correctCount;
+    byId("ui-wrongCount").textContent = wrongCount;
+  }
+
+  function showToadBubble(detail = {}) {
     if (!detail.text) return;
     clearTimeout(bubbleTimer);
-    const bubble = $("toadBubble");
+    const bubble = byId("toadBubble");
     bubble.hidden = false;
     bubble.dataset.style = detail.category || detail.style || "normal";
-    $("toadBubbleText").textContent = detail.text;
-    bubbleTimer = setTimeout(() => { bubble.hidden = true; }, Math.max(1700, Math.min(2800, detail.duration || 2200)));
-  };
+    byId("toadBubbleText").textContent = detail.text;
+    bubbleTimer = setTimeout(() => {
+      bubble.hidden = true;
+    }, Math.max(1700, Math.min(2800, detail.duration || 2200)));
+  }
 
-  const syncPauseButton = paused => {
-    const button = $("ui-pauseButton");
+  function updatePauseButton(paused) {
+    const button = byId("ui-pauseButton");
     button.textContent = paused ? "▶" : "Ⅱ";
     button.setAttribute("aria-pressed", String(paused));
     button.setAttribute("aria-label", paused ? "게임 계속하기" : "게임 일시정지");
-  };
+  }
 
-  const requestHome = () => {
+  function requestHome() {
     if (api.game.state.status === "running") api.game.pause();
-    if (!$("exitDialog").open) $("exitDialog").showModal();
-  };
+    const dialog = byId("exitDialog");
+    if (!dialog.open) dialog.showModal();
+  }
 
-  const decorateResult = clear => {
-    const panel = $("resultPanel");
+  function decorateResult(clear) {
+    const panel = byId("resultPanel");
     if (!panel) return;
+
     const heading = panel.querySelector("h2");
     if (heading) {
       heading.id = "resultTitle";
       heading.textContent = clear ? "장독대 채우기 완료" : "물이 모두 샜습니다";
     }
-    const restart = panel.querySelector("#ui-restartGameButton");
-    if (restart) restart.textContent = "같은 장독대 다시 채우기";
-    if (!panel.querySelector(".result-home-button")) {
-      const home = document.createElement("button");
-      home.type = "button";
-      home.className = "result-home-button";
-      home.textContent = "장독대 고르기로";
-      home.addEventListener("click", () => { location.href = "index.html?view=jars"; });
-      panel.append(home);
-    }
-  };
 
-  const startFeverUi = (detail = {}) => {
+    const restartButton = panel.querySelector("#ui-restartGameButton");
+    if (restartButton) restartButton.textContent = "같은 장독대 다시 채우기";
+
+    if (!panel.querySelector(".result-home-button")) {
+      const homeButton = document.createElement("button");
+      homeButton.type = "button";
+      homeButton.className = "result-home-button";
+      homeButton.textContent = "장독대 고르기로";
+      homeButton.addEventListener("click", () => {
+        location.href = "index.html?view=jars";
+      });
+      panel.append(homeButton);
+    }
+  }
+
+  function startFeverUi(detail = {}) {
     const tier = detail.tier || detail.feverTier || 1;
-    $("feverLabel").textContent = `FEVER ${tier}`;
-    $("feverMultiplier").textContent = `×${detail.scoreMultiplier || detail.multiplier || 2}`;
+    byId("feverLabel").textContent = `FEVER ${tier}`;
+    byId("feverMultiplier").textContent = `×${detail.scoreMultiplier || detail.multiplier || 2}`;
+
     clearInterval(feverTimer);
     let remaining = Number(detail.remaining || detail.duration || 8);
-    $("feverTimer").textContent = `피버 ${remaining.toFixed(1)}초`;
+    byId("feverTimer").textContent = `피버 ${remaining.toFixed(1)}초`;
     feverTimer = setInterval(() => {
       remaining = Math.max(0, remaining - 0.1);
-      $("feverTimer").textContent = `피버 ${remaining.toFixed(1)}초`;
+      byId("feverTimer").textContent = `피버 ${remaining.toFixed(1)}초`;
       if (!remaining) clearInterval(feverTimer);
     }, 100);
-  };
+  }
 
-  const endFeverUi = () => {
+  function endFeverUi() {
     clearInterval(feverTimer);
-    $("feverLabel").textContent = "FEVER 준비";
-    $("feverMultiplier").textContent = "×1";
-    $("feverTimer").textContent = "연속 정답으로 피버를 충전하세요.";
-  };
+    byId("feverLabel").textContent = "FEVER 준비";
+    byId("feverMultiplier").textContent = "×1";
+    byId("feverTimer").textContent = "연속 정답으로 피버를 충전하세요.";
+  }
 
-  $("ui-pauseButton").addEventListener("click", () => api.game.togglePause());
-  $("ui-homeButton").addEventListener("click", requestHome);
-  $("continueButton").addEventListener("click", () => {
+  byId("ui-pauseButton").addEventListener("click", () => api.game.togglePause());
+  byId("ui-homeButton").addEventListener("click", requestHome);
+  byId("continueButton").addEventListener("click", () => {
     if (api.game.state.status === "paused") api.game.resume();
   });
-  $("confirmHomeButton").addEventListener("click", () => { location.href = "index.html?view=jars"; });
-  $("exitDialog").addEventListener("close", () => {
-    if ($("exitDialog").returnValue !== "home" && api.game.state.status === "paused") api.game.resume();
+  byId("confirmHomeButton").addEventListener("click", () => {
+    location.href = "index.html?view=jars";
+  });
+  byId("exitDialog").addEventListener("close", () => {
+    if (byId("exitDialog").returnValue !== "home" && api.game.state.status === "paused") {
+      api.game.resume();
+    }
   });
 
-  listen("keydown", event => {
+  listen(removers, "keydown", event => {
     if (event.key !== "Escape") return;
     event.preventDefault();
     if (api.game.state.status === "running") api.game.pause();
     else if (api.game.state.status === "paused") api.game.resume();
   }, document);
 
-  listen("question:changed", event => {
+  listen(removers, "question:changed", event => {
     const promptLength = String(event.detail?.question?.prompt || "").length;
     app.dataset.questionLength = promptLength > 74 ? "long" : promptLength > 32 ? "medium" : "short";
   });
-  listen("toad:speak", event => showBubble(event.detail));
-  listen("answer:correct", event => {
-    correct += 1;
+  listen(removers, "toad:speak", event => showToadBubble(event.detail));
+  listen(removers, "answer:correct", event => {
+    correctCount += 1;
     questionCount += 1;
-    syncCounts();
-    $("splash").textContent = `물 +${Math.round(event.detail?.waterGain || 0)} · +${Math.round(event.detail?.scoreGain || 0)}점`;
+    updateCounts();
+    byId("splash").textContent = `물 +${Math.round(event.detail?.waterGain || 0)} · +${Math.round(event.detail?.scoreGain || 0)}점`;
     announce("정답입니다. 장독대에 물을 부었습니다.");
   });
-  listen("answer:wrong", () => {
-    wrong += 1;
+  listen(removers, "answer:wrong", () => {
+    wrongCount += 1;
     questionCount += 1;
-    syncCounts();
+    updateCounts();
     announce("오답입니다. 두꺼비가 밀렸습니다.");
   });
-  listen("answer:timeout", () => {
-    wrong += 1;
+  listen(removers, "answer:timeout", () => {
+    wrongCount += 1;
     questionCount += 1;
-    syncCounts();
+    updateCounts();
     announce("시간이 초과되어 물이 샙니다.");
   });
-  listen("water:warning", () => announce("물이 절반 이하로 줄었습니다."));
-  listen("water:critical", () => announce("물이 매우 부족합니다."));
-  listen("game:pause", () => syncPauseButton(true));
-  listen("game:resume", () => syncPauseButton(false));
-  listen("game:over", () => {
+  listen(removers, "water:warning", () => announce("물이 절반 이하로 줄었습니다."));
+  listen(removers, "water:critical", () => announce("물이 매우 부족합니다."));
+  listen(removers, "game:pause", () => updatePauseButton(true));
+  listen(removers, "game:resume", () => updatePauseButton(false));
+  listen(removers, "game:over", () => {
     decorateResult(false);
     announce("게임 오버");
     keypad?.setLocked(true);
   });
-  listen("game:clear", () => {
+  listen(removers, "game:clear", () => {
     decorateResult(true);
-    $("feedback").textContent = "장독대 채우기 완료!";
+    byId("feedback").textContent = "장독대 채우기 완료!";
     announce("장독대 채우기 완료");
     keypad?.setLocked(true);
   });
-  listen("fever:charge", event => {
+  listen(removers, "fever:charge", event => {
     const detail = event.detail || {};
     const value = Math.min(100, (detail.charge || 0) / Math.max(1, detail.required || 3) * 100);
-    $("feverFill").style.width = `${value}%`;
-    $("feverGauge").setAttribute("aria-valuenow", String(Math.round(value)));
+    byId("feverFill").style.width = `${value}%`;
+    byId("feverGauge").setAttribute("aria-valuenow", String(Math.round(value)));
   });
-  listen("fever:start", event => startFeverUi(event.detail));
-  listen("fever:extend", event => startFeverUi(event.detail));
-  listen("fever:end", endFeverUi);
-  listen("ui:device-mode", () => syncViewport());
+  listen(removers, "fever:start", event => startFeverUi(event.detail));
+  listen(removers, "fever:extend", event => startFeverUi(event.detail));
+  listen(removers, "fever:end", endFeverUi);
+  listen(removers, "ui:device-mode", () => syncViewport());
 
   api.start({ difficulty, resumeState });
-  keypad = mountMobileKeypad({ api, form: $("ui-answerForm"), input: $("answerInput"), dock: $("ui-mobileInputDock") });
-  syncCounts();
-  syncPauseButton(false);
+  keypad = mountMobileKeypad({
+    api,
+    form: byId("ui-answerForm"),
+    input: byId("answerInput"),
+    dock: byId("ui-mobileInputDock")
+  });
+
+  updateCounts();
+  updatePauseButton(false);
 
   addEventListener("beforeunload", () => {
     clearTimeout(bubbleTimer);
     clearInterval(feverTimer);
     keypad?.destroy();
     scene.destroy();
-    listeners.splice(0).forEach(remove => remove());
+    removers.splice(0).forEach(remove => remove());
   }, { once: true });
 }
 
-setFixedTitle();
-initGame().catch(error => {
+setOfficialTitle();
+initializeGamePage().catch(error => {
   console.error(error);
-  const feedback = $("feedback");
+  const feedback = byId("feedback");
   if (feedback) feedback.textContent = "게임을 시작하지 못했습니다. 페이지를 새로고침해 주세요.";
 });
