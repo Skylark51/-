@@ -13,6 +13,7 @@ const [
   renderer,
   shop,
   loader,
+  keypad,
   navigation,
   lobbyActions,
   structure
@@ -24,6 +25,7 @@ const [
   read("assets/js/scene-renderer.js"),
   read("assets/js/shop.js"),
   read("assets/js/scene-art-loader.js"),
+  read("assets/js/mobile-keypad.js"),
   read("assets/js/lobby-navigation.js"),
   read("assets/js/lobby-actions.js"),
   read("docs/PROJECT_STRUCTURE.md")
@@ -46,6 +48,11 @@ assert.match(loader, /context\.drawImage/);
 assert.match(loader, /canvas\.toDataURL/);
 assert.match(loader, /SCENE_ATLAS_COLUMNS = 2/);
 assert.match(loader, /SCENE_ATLAS_ROWS = 2/);
+
+assert.match(keypad, /keypad-actions/);
+assert.match(keypad, /createButton\("확인"/);
+assert.match(keypad, /repeat\(4, minmax/);
+assert.doesNotMatch(keypad, /createButton\("제출"/);
 
 assert.match(shopHtml, /assets\/css\/shop\.css/);
 assert.doesNotMatch(shopHtml, /cosmetics\.css|animation-system|real-art-style/);
