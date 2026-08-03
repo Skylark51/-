@@ -1,3 +1,3 @@
 GitHub Pages static publish marker.
-UI build: 2026-08-03-contain1
-Scene cells are decoded into independent images and rendered with object-fit: contain. CSS background cropping and forced aspect fitting are no longer used in gameplay.
+UI build: 2026-08-03-confirm1
+Mobile numeric and formula keypads now reserve a separate bottom confirmation row. The 확인 button remains visible on short mobile viewports.
