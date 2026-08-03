@@ -3,7 +3,7 @@ import { GameStorage } from "./storage.js";
 import { applyDeviceMode, getDeviceMode, syncViewport } from "./device-entry.js";
 import { GAME_TITLE, displayJarName } from "./theme-system.js";
 import { mountMobileKeypad } from "./mobile-keypad.js";
-import { mountGameScene } from "./game-cosmetics-entry.js?v=20260803-cell-ratio1";
+import { mountGameScene } from "./game-cosmetics-entry.js?v=20260803-contain1";
 
 const SELECTION_KEY = "kongjuiya-training-selection";
 const storage = new GameStorage();
@@ -51,7 +51,7 @@ async function initializeGamePage() {
     return;
   }
 
-  await import("./main.js?v=20260803-cell-ratio1");
+  await import("./main.js?v=20260803-contain1");
   const api = globalThis.KongJuiYaGame;
   if (!api) throw new Error("게임 엔진을 불러오지 못했습니다.");
 

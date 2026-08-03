@@ -1,9 +1,5 @@
 import { SceneStateMachine } from "./scene-state-machine.js";
-import {
-  SCENE_ATLAS_URL,
-  preloadSceneAtlas,
-  sceneCellAspectRatio
-} from "./scene-art-loader.js?v=20260803-cell-ratio1";
+import { preloadSceneFrames } from "./scene-art-loader.js?v=20260803-contain1";
 
 const DEFAULT_VISUALS = Object.freeze({
   tool: "wood",
@@ -12,7 +8,7 @@ const DEFAULT_VISUALS = Object.freeze({
   jar: "onggi"
 });
 
-const STATE_TO_CELL = Object.freeze({
+const STATE_TO_FRAME = Object.freeze({
   loading: "idle",
   ready: "idle",
   idle: "idle",
@@ -44,24 +40,15 @@ function listen(target, type, handler) {
   return () => target.removeEventListener(type, handler);
 }
 
-function fitArtwork(stage, root, aspectRatio) {
-  const { width, height } = stage.getBoundingClientRect();
-  if (width < 1 || height < 1) return;
-
-  const safeRatio = Number.isFinite(aspectRatio) && aspectRatio > 0
-    ? aspectRatio
-    : 16 / 9;
-
-  let artWidth = width;
-  let artHeight = width / safeRatio;
-  if (artHeight > height) {
-    artHeight = height;
-    artWidth = height * safeRatio;
-  }
-
-  root.style.setProperty("--scene-art-width", `${Math.floor(artWidth)}px`);
-  root.style.setProperty("--scene-art-height", `${Math.floor(artHeight)}px`);
-  root.dataset.sceneCellAspect = safeRatio.toFixed(6);
+function configureContainedImage(image) {
+  image.alt = "";
+  image.draggable = false;
+  image.decoding = "async";
+  image.style.width = "100%";
+  image.style.height = "100%";
+  image.style.objectFit = "contain";
+  image.style.objectPosition = "center";
+  image.style.background = "transparent";
 }
 
 export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
@@ -75,29 +62,28 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
   const statusBadge = root.querySelector("#statusBadge");
   const splash = root.querySelector("#splash");
 
-  if (!stage || !frameA || !frameB) {
-    throw new Error("SceneRenderer 필수 DOM이 없습니다.");
+  if (!stage || !(frameA instanceof HTMLImageElement) || !(frameB instanceof HTMLImageElement)) {
+    throw new Error("SceneRenderer 필수 이미지 DOM이 없습니다.");
   }
+
+  configureContainedImage(frameA);
+  configureContainedImage(frameB);
 
   let frontFrame = frameA;
   let backFrame = frameB;
   let currentState = "loading";
-  let assetsReady = false;
+  let frameUrls = null;
   let destroyed = false;
-  let cellAspectRatio = 16 / 9;
   const removeListeners = [];
 
-  for (const frame of [frameA, frameB]) {
-    frame.style.backgroundImage = `url("${SCENE_ATLAS_URL}")`;
-    frame.dataset.sceneCell = "idle";
-  }
-
   function showArtwork(state) {
-    const cell = STATE_TO_CELL[state] || "idle";
-    if (!assetsReady || destroyed) return;
-    if (frontFrame.dataset.sceneCell === cell && frontFrame.classList.contains("is-visible")) return;
+    if (!frameUrls || destroyed) return;
+    const frameName = STATE_TO_FRAME[state] || "idle";
+    const nextSource = frameUrls[frameName] || frameUrls.idle;
+    if (frontFrame.dataset.sceneFrame === frameName && frontFrame.classList.contains("is-visible")) return;
 
-    backFrame.dataset.sceneCell = cell;
+    backFrame.src = nextSource;
+    backFrame.dataset.sceneFrame = frameName;
     backFrame.classList.add("is-visible");
     frontFrame.classList.remove("is-visible");
     [frontFrame, backFrame] = [backFrame, frontFrame];
@@ -158,31 +144,25 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
     removeListeners.push(listen(window, type, handler));
   }
 
-  const resizeObserver = new ResizeObserver(() => {
-    fitArtwork(stage, root, cellAspectRatio);
-  });
-  resizeObserver.observe(stage);
-
   const waterObserver = waterText ? new MutationObserver(readWater) : null;
   waterObserver?.observe(waterText, { childList: true, characterData: true, subtree: true });
 
-  root.dataset.sceneRenderer = "key-pose-dom-renderer";
+  root.dataset.sceneRenderer = "contained-image-renderer";
   root.dataset.sceneAuthoredFrames = "4";
   root.dataset.sceneAssets = "loading";
-  fitArtwork(stage, root, cellAspectRatio);
   readWater();
   setCosmetics(cosmetics);
   renderState("loading");
 
-  preloadSceneAtlas()
-    .then(image => {
+  preloadSceneFrames()
+    .then(result => {
       if (destroyed) return;
-      cellAspectRatio = sceneCellAspectRatio(image);
-      fitArtwork(stage, root, cellAspectRatio);
-      root.dataset.sceneSourceSize = `${image.naturalWidth}x${image.naturalHeight}`;
-      assetsReady = true;
+      frameUrls = result.frames;
+      root.dataset.sceneSourceSize = `${result.atlasWidth}x${result.atlasHeight}`;
+      root.dataset.sceneFrameSize = `${result.frameWidth}x${result.frameHeight}`;
       root.dataset.sceneAssets = "ready";
-      frontFrame.dataset.sceneCell = STATE_TO_CELL[currentState] || "idle";
+      frontFrame.src = frameUrls[STATE_TO_FRAME[currentState] || "idle"];
+      frontFrame.dataset.sceneFrame = STATE_TO_FRAME[currentState] || "idle";
       frontFrame.classList.add("is-visible");
       machine.markReady();
     })
@@ -200,13 +180,12 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
       return machine.enter(state, detail, { schedule: false });
     },
     resize() {
-      fitArtwork(stage, root, cellAspectRatio);
+      // <img object-fit="contain"> follows its container automatically.
     },
     destroy() {
       if (destroyed) return;
       destroyed = true;
       machine.destroy();
-      resizeObserver.disconnect();
       waterObserver?.disconnect();
       removeListeners.splice(0).forEach(remove => remove());
       delete root.dataset.sceneRenderer;
@@ -220,4 +199,4 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
   return controller;
 }
 
-export { DEFAULT_VISUALS, STATE_TO_CELL };
+export { DEFAULT_VISUALS, STATE_TO_FRAME };
