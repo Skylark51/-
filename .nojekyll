@@ -1,3 +1,3 @@
 GitHub Pages static publish marker.
-UI build: 2026-08-03-jar-rebuild2
-Single SceneRenderer jar game deployed from the rebuilt branch; legacy purple UI and browser-generated fake atlas disabled.
+UI build: 2026-08-03-cohesive1
+Lobby, jar selection, records, and gameplay share one Korean folk-arcade design. Broken CSS keypose cropping was replaced by canvas rendering of four authored key poses.
