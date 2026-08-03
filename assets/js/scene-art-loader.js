@@ -1,16 +1,28 @@
 /**
  * Shared scene artwork contract.
  *
- * The source image contains four distinct 3:2 key poses in a 2×2 grid:
+ * The source image is a 2×2 key-pose sheet:
  * idle, pour, wrong, and clear. It is not a 60-frame animation.
  */
-export const SCENE_ART_BUILD = "20260803-entry-hotfix1";
+export const SCENE_ART_BUILD = "20260803-cell-ratio1";
+export const SCENE_ATLAS_COLUMNS = 2;
+export const SCENE_ATLAS_ROWS = 2;
 export const SCENE_ATLAS_URL = new URL(
   `../art/photoreal/kongjwi-keyposes.png?v=${SCENE_ART_BUILD}`,
   import.meta.url
 ).href;
 
 let preloadPromise = null;
+
+export function sceneCellAspectRatio(image) {
+  const width = Number(image?.naturalWidth || image?.width || 0);
+  const height = Number(image?.naturalHeight || image?.height || 0);
+  if (!width || !height) return 16 / 9;
+
+  const cellWidth = width / SCENE_ATLAS_COLUMNS;
+  const cellHeight = height / SCENE_ATLAS_ROWS;
+  return cellWidth / cellHeight;
+}
 
 export function preloadSceneAtlas() {
   if (preloadPromise) return preloadPromise;
@@ -27,9 +39,7 @@ export function preloadSceneAtlas() {
 }
 
 /**
- * Compatibility entry used by the lobby navigation module.
- * Keeping this function prevents the lobby view controller from failing
- * when older cached navigation code imports the previous API name.
+ * Compatibility entry used by cached lobby navigation code.
  */
 export function loadSceneAtlasUrl() {
   return preloadSceneAtlas().then(() => SCENE_ATLAS_URL);

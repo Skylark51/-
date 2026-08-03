@@ -1,7 +1,10 @@
 import { SceneStateMachine } from "./scene-state-machine.js";
-import { SCENE_ATLAS_URL, preloadSceneAtlas } from "./scene-art-loader.js";
+import {
+  SCENE_ATLAS_URL,
+  preloadSceneAtlas,
+  sceneCellAspectRatio
+} from "./scene-art-loader.js?v=20260803-cell-ratio1";
 
-const ART_ASPECT_RATIO = 3 / 2;
 const DEFAULT_VISUALS = Object.freeze({
   tool: "wood",
   outfit: "classic-red",
@@ -41,19 +44,24 @@ function listen(target, type, handler) {
   return () => target.removeEventListener(type, handler);
 }
 
-function fitArtwork(stage, root) {
+function fitArtwork(stage, root, aspectRatio) {
   const { width, height } = stage.getBoundingClientRect();
   if (width < 1 || height < 1) return;
 
+  const safeRatio = Number.isFinite(aspectRatio) && aspectRatio > 0
+    ? aspectRatio
+    : 16 / 9;
+
   let artWidth = width;
-  let artHeight = width / ART_ASPECT_RATIO;
+  let artHeight = width / safeRatio;
   if (artHeight > height) {
     artHeight = height;
-    artWidth = height * ART_ASPECT_RATIO;
+    artWidth = height * safeRatio;
   }
 
-  root.style.setProperty("--scene-art-width", `${Math.round(artWidth)}px`);
-  root.style.setProperty("--scene-art-height", `${Math.round(artHeight)}px`);
+  root.style.setProperty("--scene-art-width", `${Math.floor(artWidth)}px`);
+  root.style.setProperty("--scene-art-height", `${Math.floor(artHeight)}px`);
+  root.dataset.sceneCellAspect = safeRatio.toFixed(6);
 }
 
 export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
@@ -76,6 +84,7 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
   let currentState = "loading";
   let assetsReady = false;
   let destroyed = false;
+  let cellAspectRatio = 16 / 9;
   const removeListeners = [];
 
   for (const frame of [frameA, frameB]) {
@@ -149,7 +158,9 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
     removeListeners.push(listen(window, type, handler));
   }
 
-  const resizeObserver = new ResizeObserver(() => fitArtwork(stage, root));
+  const resizeObserver = new ResizeObserver(() => {
+    fitArtwork(stage, root, cellAspectRatio);
+  });
   resizeObserver.observe(stage);
 
   const waterObserver = waterText ? new MutationObserver(readWater) : null;
@@ -158,14 +169,17 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
   root.dataset.sceneRenderer = "key-pose-dom-renderer";
   root.dataset.sceneAuthoredFrames = "4";
   root.dataset.sceneAssets = "loading";
-  fitArtwork(stage, root);
+  fitArtwork(stage, root, cellAspectRatio);
   readWater();
   setCosmetics(cosmetics);
   renderState("loading");
 
   preloadSceneAtlas()
-    .then(() => {
+    .then(image => {
       if (destroyed) return;
+      cellAspectRatio = sceneCellAspectRatio(image);
+      fitArtwork(stage, root, cellAspectRatio);
+      root.dataset.sceneSourceSize = `${image.naturalWidth}x${image.naturalHeight}`;
       assetsReady = true;
       root.dataset.sceneAssets = "ready";
       frontFrame.dataset.sceneCell = STATE_TO_CELL[currentState] || "idle";
@@ -186,7 +200,7 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
       return machine.enter(state, detail, { schedule: false });
     },
     resize() {
-      fitArtwork(stage, root);
+      fitArtwork(stage, root, cellAspectRatio);
     },
     destroy() {
       if (destroyed) return;

@@ -1,6 +1,6 @@
 import { GameStorage } from "./storage.js";
 import { CosmeticSystem, COSMETIC_STORAGE_KEY } from "./cosmetic-system.js";
-import { mountSceneRenderer } from "./scene-renderer.js?v=20260803-refactor1";
+import { mountSceneRenderer } from "./scene-renderer.js?v=20260803-cell-ratio1";
 
 /**
  * Connects persisted cosmetics to the gameplay scene renderer.

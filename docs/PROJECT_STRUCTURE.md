@@ -27,19 +27,20 @@
 - `assets/js/ui-effects.js`: 게임 페이지 이벤트와 DOM 연결
 - `assets/js/scene-renderer.js`: 장면 상태와 원화 전환
 - `assets/js/scene-state-machine.js`: 장면 상태 전이 규칙
-- `assets/js/scene-art-loader.js`: 공통 장면 원화 주소와 선로딩
+- `assets/js/scene-art-loader.js`: 공통 장면 원화 주소, 실제 셀 비율 계산, 선로딩
 - `assets/js/mobile-keypad.js`: 모바일 정답 입력
 
 ## 장면 원화 계약
 
-`assets/art/photoreal/kongjwi-keyposes.png`는 2×2 배열의 서로 다른 핵심 포즈 4개다.
+`assets/art/photoreal/kongjwi-keyposes.png`는 **512×288 PNG**이며 2×2 배열의 서로 다른 핵심 포즈 4개를 포함한다.
+각 셀은 **256×144, 16:9**다.
 
 1. 대기
 2. 물 붓기
 3. 오답·시간 초과·게임 오버
 4. 클리어
 
-이는 60장의 독립 프레임이 아니다. `scene-renderer.js`는 캔버스 `cover` 크롭을 사용하지 않고, 원화 셀과 같은 3:2 장면 영역을 계산해 DOM 배경 셀을 전환한다.
+이는 60장의 독립 프레임이 아니다. `scene-renderer.js`는 비율을 3:2로 추측하지 않는다. `scene-art-loader.js`가 PNG의 실제 `naturalWidth`와 `naturalHeight`에서 셀 비율을 계산하고, 렌더러는 그 비율로 장면 영역을 맞춘 뒤 DOM 배경 셀을 전환한다.
 
 기본 외형이 아닌 구매 스킨은 저장·장착 상태를 유지하되, 독립 장면 원화가 없는 경우 기본 장면과 “원화 준비 중” 안내를 표시한다. 색상 필터만 바꿔 완성된 스킨처럼 표시하지 않는다.
 
