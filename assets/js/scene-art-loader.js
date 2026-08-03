@@ -1,15 +1,16 @@
-/**
+﻿/**
  * Shared scene artwork contract.
  *
  * The source PNG is decoded once, split into four independent key-pose
  * images in memory, and then rendered with <img object-fit="contain">.
  * Runtime presentation never uses CSS background cropping.
  */
-export const SCENE_ART_BUILD = "20260803-contain1";
+export const SCENE_ART_BUILD = "20260803-grok-fit1";
+export const SCENE_ART_LAYOUT = "single";
 export const SCENE_ATLAS_COLUMNS = 2;
 export const SCENE_ATLAS_ROWS = 2;
 export const SCENE_ATLAS_URL = new URL(
-  `../art/photoreal/kongjwi-keyposes.png?v=${SCENE_ART_BUILD}`,
+  `../art/photoreal/grok.jpg?v=${SCENE_ART_BUILD}`,
   import.meta.url
 ).href;
 
@@ -64,6 +65,19 @@ export function preloadSceneFrames() {
   if (framesPromise) return framesPromise;
 
   framesPromise = preloadSceneAtlas().then(image => {
+    if (SCENE_ART_LAYOUT === "single") {
+      const frames = Object.fromEntries(
+        CELL_ORDER.map(([name]) => [name, SCENE_ATLAS_URL])
+      );
+      return Object.freeze({
+        frames: Object.freeze(frames),
+        atlasWidth: image.naturalWidth,
+        atlasHeight: image.naturalHeight,
+        frameWidth: image.naturalWidth,
+        frameHeight: image.naturalHeight
+      });
+    }
+
     const cellWidth = Math.floor(image.naturalWidth / SCENE_ATLAS_COLUMNS);
     const cellHeight = Math.floor(image.naturalHeight / SCENE_ATLAS_ROWS);
     if (!cellWidth || !cellHeight) throw new Error("장면 원화 크기가 올바르지 않습니다.");

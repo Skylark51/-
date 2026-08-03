@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Jar game presentation layer.
  * Owns the gameplay shell, authored key-pose scene, question UI,
  * responsive layout, and mobile keypad. No legacy fix files are required.
@@ -773,3 +773,5 @@ html[data-viewport-width="narrow"] .difficulty-badge { display: none; }
   }
   .scene-frame { transform: translate(-50%, -50%) !important; }
 }
+
+.ad-dialog{width:min(680px,calc(100vw - 28px))}.ad-slot{display:grid;min-height:250px;place-items:center;margin:16px 0;border:1px dashed rgba(91,202,222,.45);border-radius:16px;background:linear-gradient(145deg,rgba(42,125,144,.18),rgba(13,17,21,.8));color:#bceff6;font-size:14px;font-weight:900;letter-spacing:.16em}.ad-dialog .dialog-actions{grid-template-columns:1fr}

@@ -1,3 +1,4 @@
+﻿import { getInputDescriptor } from "./question-engine.js";
 const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 const CHOICE_MODES = new Set(["choice", "binary_choice", "multiple_choice"]);
 const NUMERIC_MODES = new Set([

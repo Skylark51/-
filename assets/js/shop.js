@@ -39,6 +39,13 @@ const VISUAL_SWATCHES = Object.freeze({
   "night-lacquer": ["#0d0d13", "#4e315c"]
 });
 
+const JAR_SPRITE_OFFSETS = Object.freeze({
+  onggi: "24%",
+  celadon: "-29%",
+  "moon-white": "-82%",
+  "night-lacquer": "-135%"
+});
+
 const gameStorage = new GameStorage();
 const cosmetics = new CosmeticSystem(gameStorage);
 const byId = id => document.getElementById(id);
@@ -156,6 +163,16 @@ function createProductCard(item) {
   visual.className = "shop-item-visual";
   visual.dataset.symbol = CATEGORY_SYMBOLS[item.category] || "物";
   visual.setAttribute("aria-hidden", "true");
+
+  if (item.category === "jar") {
+    visual.classList.add("shop-jar-visual");
+    const sprite = document.createElement("img");
+    sprite.className = "shop-jar-sprite";
+    sprite.src = "assets/art/sprites/jars.png";
+    sprite.alt = "";
+    sprite.style.setProperty("--jar-sprite-left", JAR_SPRITE_OFFSETS[item.visualKey] || "24%");
+    visual.append(sprite);
+  }
 
   const title = document.createElement("h3");
   title.textContent = item.title;

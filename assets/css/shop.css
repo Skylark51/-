@@ -107,6 +107,8 @@ a { color: inherit; }
 .shop-item.is-equipped::after { content: "장착 중"; position: absolute; z-index: 3; right: 10px; top: 10px; padding: 5px 8px; border-radius: 999px; background: rgba(105, 206, 145, 0.18); color: #9be8b9; font-size: 8px; font-weight: 900; }
 .shop-item-visual { position: relative; display: grid; place-items: center; height: 112px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 14px; background: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.11), transparent 32%), linear-gradient(145deg, var(--swatch-a, #76502f), var(--swatch-b, #d19b62)); }
 .shop-item-visual::before { content: attr(data-symbol); display: grid; place-items: center; width: 62px; height: 62px; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 20px; background: rgba(18, 14, 10, 0.36); color: #fff8e8; font-family: "Noto Serif KR", serif; font-size: 29px; box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22); backdrop-filter: blur(8px); }
+.shop-item-visual.shop-jar-visual::before { content: none; }
+.shop-jar-sprite { position: absolute; left: var(--jar-sprite-left); top: 44%; width: 200%; max-width: none; height: auto; transform: translateY(-50%); filter: drop-shadow(0 10px 11px rgba(0, 0, 0, 0.38)); pointer-events: none; user-select: none; }
 .shop-item h3 { margin: 12px 0 5px; font-family: "Noto Serif KR", serif; font-size: 18px; letter-spacing: -0.035em; }
 .shop-item > p { margin: 0; color: var(--shop-muted); font-size: 10px; line-height: 1.5; }
 .shop-item-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 12px; }
@@ -172,4 +174,21 @@ a { color: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+/* Jar atlas: one complete jar per square product card. */
+.shop-item { min-height: 0; aspect-ratio: 1; overflow: hidden; }
+.shop-item-visual { width: min(48%, 168px); height: auto; aspect-ratio: 1; align-self: center; flex: 0 0 auto; }
+.shop-item-visual.shop-jar-visual > .shop-jar-sprite { display: none; }
+.shop-item-visual.shop-jar-visual::after { content: ""; position: absolute; z-index: 1; left: 50%; top: 0; width: 71.64%; height: 100%; transform: translateX(-50%); background-image: url("../art/sprites/jars.png"); background-repeat: no-repeat; background-size: 400% 191.04%; background-position: var(--jar-sprite-position, 0%) 50%; filter: drop-shadow(0 10px 11px rgba(0, 0, 0, 0.38)); }
+.shop-item[data-item-id="jar_onggi"] .shop-item-visual::after { --jar-sprite-position: 0%; }
+.shop-item[data-item-id="jar_celadon"] .shop-item-visual::after { --jar-sprite-position: 33.333%; }
+.shop-item[data-item-id="jar_moon_white"] .shop-item-visual::after { --jar-sprite-position: 66.667%; }
+.shop-item[data-item-id="jar_night_lacquer"] .shop-item-visual::after { --jar-sprite-position: 100%; }
+.shop-item h3 { margin: 8px 0 3px; font-size: clamp(14px, 1.6vw, 17px); line-height: 1.2; }
+.shop-item > p { display: -webkit-box; overflow: hidden; font-size: 9px; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.shop-item-meta { padding-top: 7px; }
+.shop-item button { min-height: 36px; margin-top: 6px; font-size: 10px; }
+.asset-state { overflow: hidden; margin-top: 5px; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 520px) {
+  .shop-grid { grid-template-columns: 1fr; }
 }

@@ -1,8 +1,8 @@
-import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js";
+﻿import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js";
 import { GameStorage } from "./storage.js";
 import { applyDeviceMode, getDeviceMode, syncViewport } from "./device-entry.js";
 import { GAME_TITLE, displayJarName } from "./theme-system.js";
-import { mountMobileKeypad } from "./mobile-keypad.js?v=20260803-confirm1";
+import { mountMobileKeypad } from "./mobile-keypad.js?v=20260803-mobilekeypad1";
 import { mountGameScene } from "./game-cosmetics-entry.js?v=20260803-contain1";
 
 const SELECTION_KEY = "kongjuiya-training-selection";
@@ -131,6 +131,11 @@ async function initializeGamePage() {
     button.setAttribute("aria-label", paused ? "게임 계속하기" : "게임 일시정지");
   }
 
+  function showAdSlot() {
+    const dialog = byId("adDialog");
+    if (dialog && !dialog.open) dialog.showModal();
+  }
+
   function requestHome() {
     if (api.game.state.status === "running") api.game.pause();
     const dialog = byId("exitDialog");
@@ -237,12 +242,14 @@ async function initializeGamePage() {
     decorateResult(false);
     announce("게임 오버");
     keypad?.setLocked(true);
+    showAdSlot();
   });
   listen(removers, "game:clear", () => {
     decorateResult(true);
     byId("feedback").textContent = "장독대 채우기 완료!";
     announce("장독대 채우기 완료");
     keypad?.setLocked(true);
+    showAdSlot();
   });
   listen(removers, "fever:charge", event => {
     const detail = event.detail || {};
