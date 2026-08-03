@@ -58,17 +58,25 @@ function createPanel(dock) {
 
     const displayRow = document.createElement("div");
     displayRow.className = "keypad-display-row";
+
     const display = document.createElement("output");
     display.className = "keypad-display";
     display.setAttribute("aria-live", "polite");
     display.setAttribute("aria-label", "입력한 정답");
+
     const modifiers = document.createElement("div");
     modifiers.className = "keypad-modifiers";
     modifiers.setAttribute("aria-label", "추가 입력 키");
+
     const keys = document.createElement("div");
     keys.className = "keypad-keys";
+
+    const actions = document.createElement("div");
+    actions.className = "keypad-actions";
+    actions.setAttribute("aria-label", "정답 확인");
+
     displayRow.append(display, modifiers);
-    panel.append(displayRow, keys);
+    panel.append(displayRow, keys, actions);
   }
 
   if (panel.parentElement !== dock) dock.append(panel);
@@ -85,9 +93,11 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
   activeController?.destroy();
 
   const panel = createPanel(dock);
+  const displayRow = panel.querySelector(".keypad-display-row");
   const display = panel.querySelector(".keypad-display");
   const modifiers = panel.querySelector(".keypad-modifiers");
   const keys = panel.querySelector(".keypad-keys");
+  const actions = panel.querySelector(".keypad-actions");
   const original = {
     inputMode: input.getAttribute("inputmode"),
     readOnly: input.readOnly,
@@ -163,6 +173,32 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
     releaseLockSoon();
   };
 
+  const applyPanelLayout = mode => {
+    const viewportHeight = window.visualViewport?.height || window.innerHeight;
+    const compact = viewportHeight < 680;
+    const keyMinHeight = compact ? 32 : 40;
+    const confirmHeight = compact ? 40 : 46;
+
+    panel.style.display = "grid";
+    panel.style.gridTemplateRows = mode === "choice"
+      ? "minmax(0, 1fr)"
+      : "auto minmax(0, 1fr) auto";
+    panel.style.overflow = "hidden";
+
+    displayRow.hidden = mode === "choice";
+    actions.hidden = mode === "choice";
+
+    keys.style.minHeight = "0";
+    keys.style.overflow = "hidden";
+
+    for (const button of keys.querySelectorAll("button")) {
+      button.style.minHeight = `${keyMinHeight}px`;
+    }
+    for (const button of actions.querySelectorAll("button")) {
+      button.style.minHeight = `${confirmHeight}px`;
+    }
+  };
+
   const hideNativeForm = () => {
     form.hidden = true;
     form.setAttribute("aria-hidden", "true");
@@ -212,6 +248,15 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
     setLocked(false);
   };
 
+  const renderConfirmAction = () => {
+    actions.replaceChildren(
+      createButton("확인", () => submit(), {
+        className: "keypad-submit keypad-confirm",
+        ariaLabel: "입력한 정답 확인"
+      })
+    );
+  };
+
   const renderChoiceKeys = () => {
     keys.className = "keypad-keys is-choice";
     for (const choice of descriptor.choices || []) {
@@ -230,15 +275,20 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
     const decimal = descriptor.inputMode === "numeric_keypad" || allowed.has(".");
     const signed = descriptor.inputMode === "signed_numeric_keypad" || descriptor.allowNegative || allowed.has("-");
     const coefficient = descriptor.inputMode === "coefficient_keypad" || allowed.has(",");
+
     keys.className = `keypad-keys is-numeric${coefficient ? " is-coefficient" : ""}`;
+    keys.style.gridTemplateColumns = "repeat(3, minmax(0, 1fr))";
+    keys.style.gridTemplateRows = "repeat(4, minmax(0, 1fr))";
+
     for (const digit of DIGITS) {
       keys.append(createButton(digit, () => edit(digit), { ariaLabel: `숫자 ${digit}` }));
     }
     keys.append(
       createButton("⌫", () => edit("backspace"), { className: "keypad-backspace", ariaLabel: "한 글자 지우기" }),
-      createButton("전체", () => edit("clear"), { className: "keypad-clear", ariaLabel: "입력 전체 지우기" }),
-      createButton("제출", () => submit(), { className: "keypad-submit", ariaLabel: "정답 제출" })
+      createButton("전체", () => edit("clear"), { className: "keypad-clear", ariaLabel: "입력 전체 지우기" })
     );
+    renderConfirmAction();
+
     if (decimal) modifiers.append(createButton(".", () => edit("."), { className: "keypad-modifier", ariaLabel: "소수점" }));
     if (signed) {
       modifiers.append(
@@ -251,6 +301,9 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
 
   const renderFormulaKeys = () => {
     keys.className = "keypad-keys is-formula";
+    keys.style.removeProperty("grid-template-rows");
+    keys.style.removeProperty("grid-template-columns");
+
     for (const symbol of formulaSymbols(question)) {
       keys.append(createButton(symbol, () => edit(symbol), { className: "keypad-formula", ariaLabel: `${symbol} 원소 기호` }));
     }
@@ -259,9 +312,9 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
     }
     keys.append(
       createButton("⌫", () => edit("backspace"), { className: "keypad-backspace", ariaLabel: "한 글자 지우기" }),
-      createButton("전체", () => edit("clear"), { className: "keypad-clear", ariaLabel: "입력 전체 지우기" }),
-      createButton("제출", () => submit(), { className: "keypad-submit", ariaLabel: "정답 제출" })
+      createButton("전체", () => edit("clear"), { className: "keypad-clear", ariaLabel: "입력 전체 지우기" })
     );
+    renderConfirmAction();
   };
 
   const update = (nextDescriptor, nextQuestion) => {
@@ -273,6 +326,7 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
       showValue();
     }
     window.clearTimeout(lockTimer);
+
     if (!isMobileLayout()) {
       restoreDesktopInput();
       return false;
@@ -287,10 +341,14 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
     try {
       modifiers.replaceChildren();
       keys.replaceChildren();
+      actions.replaceChildren();
       panel.dataset.inputMode = descriptor.inputMode || "";
+
       if (mode === "choice") renderChoiceKeys();
       else if (mode === "formula") renderFormulaKeys();
       else renderNumericKeys();
+
+      applyPanelLayout(mode);
       showValue();
       dock.hidden = false;
       panel.hidden = false;
@@ -306,13 +364,19 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
 
   const onQuestionChanged = event => update(event.detail?.input, event.detail?.question);
   const onDeviceMode = () => update();
+  const onViewportResize = () => {
+    if (!panel.hidden) applyPanelLayout(keypadMode(descriptor));
+  };
   const onPause = () => setLocked(true);
   const onResume = () => setLocked(false);
   const onInput = () => showValue();
+
   window.addEventListener("question:changed", onQuestionChanged);
   window.addEventListener("ui:device-mode", onDeviceMode);
   window.addEventListener("game:pause", onPause);
   window.addEventListener("game:resume", onResume);
+  window.addEventListener("resize", onViewportResize);
+  window.visualViewport?.addEventListener("resize", onViewportResize);
   input.addEventListener("input", onInput);
 
   const controller = {
@@ -329,6 +393,8 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
       window.removeEventListener("ui:device-mode", onDeviceMode);
       window.removeEventListener("game:pause", onPause);
       window.removeEventListener("game:resume", onResume);
+      window.removeEventListener("resize", onViewportResize);
+      window.visualViewport?.removeEventListener("resize", onViewportResize);
       input.removeEventListener("input", onInput);
       restoreDesktopInput();
       panel.remove();
