@@ -1,1 +1,245 @@
-import{TRAINING_MODES,getTrainingMode}from"../../data/training-modes.js";import{GameStorage}from"./storage.js";import{applyDeviceMode,getDeviceMode,syncViewport}from"./device-entry.js?v=20260802-jar-rebuild1";import{GAME_TITLE,displayJarName}from"./theme-system.js";import{mountMobileKeypad}from"./mobile-keypad.js?v=20260802-jar-rebuild1";import{mountGameScene}from"./game-cosmetics-entry.js?v=20260802-jar-rebuild1";const SELECTION_KEY="kongjuiya-training-selection",storage=new GameStorage,$=id=>document.getElementById(id),number=value=>Math.round(Number(value)||0).toLocaleString("ko-KR"),difficultyNames=Object.freeze({easy:"쉬움",normal:"보통",hard:"어려움"});function setFixedTitle(){document.title=GAME_TITLE;document.querySelectorAll("[data-game-title]").forEach(node=>{node.textContent=GAME_TITLE});for(const selector of["meta[property='og:title']","meta[name='twitter:title']"]){const node=document.querySelector(selector);if(node)node.content=GAME_TITLE}}function parseSelection(){try{return JSON.parse(sessionStorage.getItem(SELECTION_KEY)||"null")}catch{return null}}function applyMotionSetting(){document.documentElement.classList.toggle("reduce-motion",storage.data.settings?.animations===false)}async function initGame(){const selection=parseSelection(),query=new URLSearchParams(location.search).get("training");if(!query&&!selection?.trainingId){location.replace("index.html");return}await import("./main.js?v=20260802-jar-rebuild1");const api=globalThis.KongJuiYaGame;if(!api)throw new Error("게임 엔진을 불러오지 못했습니다.");const mode=getTrainingMode(query)||getTrainingMode(selection?.trainingId)||TRAINING_MODES[0],difficulty=mode.difficultyLevels?.includes(selection?.difficulty)?selection.difficulty:mode.difficultyLevels?.includes(storage.data.settings?.difficulty)?storage.data.settings.difficulty:mode.recommendedDifficulty||"normal",resumeState=selection?.resume&&storage.data.currentRun?.trainingId===mode.id?storage.data.currentRun:null,app=$("ui-gameApp"),jarName=displayJarName(mode);if(!app)throw new Error("게임 화면 루트가 없습니다.");applyMotionSetting();syncViewport();applyDeviceMode(getDeviceMode()||"auto",{force:true});api.selectTraining(mode.id);const difficultySelect=$("ui-difficultySelect");if(difficultySelect){difficultySelect.value=difficulty;difficultySelect.dispatchEvent(new Event("change",{bubbles:true}))}$("ui-trainingName").textContent=jarName;$("ui-trainingCategory").textContent=mode.category;$("ui-difficultyLabel").textContent=difficultyNames[difficulty]||"보통";$("ui-progressTraining").textContent=jarName;$("categoryLabel").textContent=`${mode.category} · ${jarName}`;$("ui-targetScore").textContent=number(3e3);const scene=mountGameScene(app,{storage}),listeners=[],listen=(type,handler,target=window)=>{target.addEventListener(type,handler);listeners.push(()=>target.removeEventListener(type,handler))};let questionCount=1,correct=0,wrong=0,bubbleTimer=0,feverTimer=0,keypad=null;const announce=text=>{$("ui-accessibleStatus").textContent=text},syncCounts=()=>{$("ui-questionCount").textContent=Math.min(10,questionCount);$("ui-correctCount").textContent=correct;$("ui-wrongCount").textContent=wrong},showBubble=(detail={})=>{if(!detail.text)return;clearTimeout(bubbleTimer);const bubble=$("toadBubble");bubble.hidden=false;bubble.dataset.style=detail.category||detail.style||"normal";$("toadBubbleText").textContent=detail.text;bubbleTimer=setTimeout(()=>{bubble.hidden=true},Math.max(1700,Math.min(2800,detail.duration||2200)))},syncPauseButton=paused=>{const button=$("ui-pauseButton");button.textContent=paused?"▶":"Ⅱ";button.setAttribute("aria-pressed",String(paused));button.setAttribute("aria-label",paused?"게임 계속하기":"게임 일시정지")},requestHome=()=>{if(api.game.state.status==="running")api.game.pause();if(!$("exitDialog").open)$("exitDialog").showModal()},decorateResult=clear=>{const panel=$("resultPanel");if(!panel)return;const heading=panel.querySelector("h2");if(heading){heading.id="resultTitle";heading.textContent=clear?"장독대 채우기 완료":"물이 모두 샜습니다"}const restart=panel.querySelector("#ui-restartGameButton");if(restart)restart.textContent="같은 장독대 다시 채우기";if(!panel.querySelector(".result-home-button")){const home=document.createElement("button");home.type="button";home.className="result-home-button";home.textContent="장독대 고르기로";home.addEventListener("click",()=>{location.href="index.html?view=jars"});panel.append(home)}},startFeverUi=(detail={})=>{const tier=detail.tier||detail.feverTier||1;$("feverLabel").textContent=`FEVER ${tier}`;$("feverMultiplier").textContent=`×${detail.scoreMultiplier||detail.multiplier||2}`;clearInterval(feverTimer);let remaining=Number(detail.remaining||detail.duration||8);$("feverTimer").textContent=`피버 ${remaining.toFixed(1)}초`;feverTimer=setInterval(()=>{remaining=Math.max(0,remaining-.1);$("feverTimer").textContent=`피버 ${remaining.toFixed(1)}초`;if(!remaining)clearInterval(feverTimer)},100)},endFeverUi=()=>{clearInterval(feverTimer);$("feverLabel").textContent="FEVER 준비";$("feverMultiplier").textContent="×1";$("feverTimer").textContent="연속 정답으로 피버를 충전하세요."};$("ui-pauseButton").addEventListener("click",()=>api.game.togglePause());$("ui-homeButton").addEventListener("click",requestHome);$("continueButton").addEventListener("click",()=>{if(api.game.state.status==="paused")api.game.resume()});$("confirmHomeButton").addEventListener("click",()=>{location.href="index.html?view=jars"});$("exitDialog").addEventListener("close",()=>{if($("exitDialog").returnValue!=="home"&&api.game.state.status==="paused")api.game.resume()});listen("keydown",event=>{if(event.key!=="Escape")return;event.preventDefault();if(api.game.state.status==="running")api.game.pause();else if(api.game.state.status==="paused")api.game.resume()},document);listen("question:changed",event=>{const promptLength=String(event.detail?.question?.prompt||"").length;app.dataset.questionLength=promptLength>74?"long":promptLength>32?"medium":"short"});listen("toad:speak",event=>showBubble(event.detail));listen("answer:correct",event=>{correct+=1;questionCount+=1;syncCounts();$("splash").textContent=`물 +${Math.round(event.detail?.waterGain||0)} · +${Math.round(event.detail?.scoreGain||0)}점`;announce("정답입니다. 장독대에 물을 부었습니다.")});listen("answer:wrong",()=>{wrong+=1;questionCount+=1;syncCounts();announce("오답입니다. 두꺼비가 밀렸습니다.")});listen("answer:timeout",()=>{wrong+=1;questionCount+=1;syncCounts();announce("시간이 초과되어 물이 샙니다.")});listen("water:warning",()=>announce("물이 절반 이하로 줄었습니다."));listen("water:critical",()=>announce("물이 매우 부족합니다."));listen("game:pause",()=>syncPauseButton(true));listen("game:resume",()=>syncPauseButton(false));listen("game:over",()=>{decorateResult(false);announce("게임 오버");keypad?.setLocked(true)});listen("game:clear",()=>{decorateResult(true);$("feedback").textContent="장독대 채우기 완료!";announce("장독대 채우기 완료");keypad?.setLocked(true)});listen("fever:charge",event=>{const detail=event.detail||{},value=Math.min(100,(detail.charge||0)/Math.max(1,detail.required||3)*100);$("feverFill").style.width=`${value}%`;$("feverGauge").setAttribute("aria-valuenow",String(Math.round(value)))});listen("fever:start",event=>startFeverUi(event.detail));listen("fever:extend",event=>startFeverUi(event.detail));listen("fever:end",endFeverUi);listen("ui:device-mode",()=>syncViewport());api.start({difficulty,resumeState});keypad=mountMobileKeypad({api,form:$("ui-answerForm"),input:$("answerInput"),dock:$("ui-mobileInputDock")});syncCounts();syncPauseButton(false);addEventListener("beforeunload",()=>{clearTimeout(bubbleTimer);clearInterval(feverTimer);keypad?.destroy();scene.destroy();listeners.splice(0).forEach(remove=>remove())},{once:true})}setFixedTitle();initGame().catch(error=>{console.error(error);const feedback=$("feedback");if(feedback)feedback.textContent="게임을 시작하지 못했습니다. 페이지를 새로고침해 주세요."});
+import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js";
+import { GameStorage } from "./storage.js";
+import { applyDeviceMode, getDeviceMode, syncViewport } from "./device-entry.js?v=20260803-cohesive1";
+import { GAME_TITLE, displayJarName } from "./theme-system.js";
+import { mountMobileKeypad } from "./mobile-keypad.js?v=20260803-cohesive1";
+import { mountGameScene } from "./game-cosmetics-entry.js?v=20260803-cohesive1";
+
+const SELECTION_KEY = "kongjuiya-training-selection";
+const storage = new GameStorage();
+const $ = id => document.getElementById(id);
+const number = value => Math.round(Number(value) || 0).toLocaleString("ko-KR");
+const difficultyNames = Object.freeze({ easy: "쉬움", normal: "보통", hard: "어려움" });
+
+function setFixedTitle() {
+  document.title = GAME_TITLE;
+  document.querySelectorAll("[data-game-title]").forEach(node => { node.textContent = GAME_TITLE; });
+  for (const selector of ["meta[property='og:title']", "meta[name='twitter:title']"]) {
+    const node = document.querySelector(selector);
+    if (node) node.content = GAME_TITLE;
+  }
+}
+
+function parseSelection() {
+  try { return JSON.parse(sessionStorage.getItem(SELECTION_KEY) || "null"); }
+  catch { return null; }
+}
+
+function applyMotionSetting() {
+  document.documentElement.classList.toggle("reduce-motion", storage.data.settings?.animations === false);
+}
+
+async function initGame() {
+  const selection = parseSelection();
+  const query = new URLSearchParams(location.search).get("training");
+  if (!query && !selection?.trainingId) {
+    location.replace("index.html?view=jars");
+    return;
+  }
+
+  await import("./main.js?v=20260803-cohesive1");
+  const api = globalThis.KongJuiYaGame;
+  if (!api) throw new Error("게임 엔진을 불러오지 못했습니다.");
+
+  const mode = getTrainingMode(query) || getTrainingMode(selection?.trainingId) || TRAINING_MODES[0];
+  const difficulty = mode.difficultyLevels?.includes(selection?.difficulty)
+    ? selection.difficulty
+    : mode.difficultyLevels?.includes(storage.data.settings?.difficulty)
+      ? storage.data.settings.difficulty
+      : mode.recommendedDifficulty || "normal";
+  const resumeState = selection?.resume && storage.data.currentRun?.trainingId === mode.id
+    ? storage.data.currentRun
+    : null;
+  const app = $("ui-gameApp");
+  const jarName = displayJarName(mode);
+  if (!app) throw new Error("게임 화면 루트가 없습니다.");
+
+  applyMotionSetting();
+  syncViewport();
+  applyDeviceMode(getDeviceMode() || "auto", { force: true });
+  api.selectTraining(mode.id);
+
+  const difficultySelect = $("ui-difficultySelect");
+  if (difficultySelect) {
+    difficultySelect.value = difficulty;
+    difficultySelect.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  $("ui-trainingName").textContent = jarName;
+  $("ui-trainingCategory").textContent = mode.category;
+  $("ui-difficultyLabel").textContent = difficultyNames[difficulty] || "보통";
+  $("ui-progressTraining").textContent = jarName;
+  $("categoryLabel").textContent = `${mode.category} · ${jarName}`;
+  $("ui-targetScore").textContent = number(3000);
+
+  const scene = mountGameScene(app, { storage });
+  const listeners = [];
+  const listen = (type, handler, target = window) => {
+    target.addEventListener(type, handler);
+    listeners.push(() => target.removeEventListener(type, handler));
+  };
+
+  let questionCount = 1;
+  let correct = 0;
+  let wrong = 0;
+  let bubbleTimer = 0;
+  let feverTimer = 0;
+  let keypad = null;
+
+  const announce = text => { $("ui-accessibleStatus").textContent = text; };
+  const syncCounts = () => {
+    $("ui-questionCount").textContent = Math.min(10, questionCount);
+    $("ui-correctCount").textContent = correct;
+    $("ui-wrongCount").textContent = wrong;
+  };
+
+  const showBubble = (detail = {}) => {
+    if (!detail.text) return;
+    clearTimeout(bubbleTimer);
+    const bubble = $("toadBubble");
+    bubble.hidden = false;
+    bubble.dataset.style = detail.category || detail.style || "normal";
+    $("toadBubbleText").textContent = detail.text;
+    bubbleTimer = setTimeout(() => { bubble.hidden = true; }, Math.max(1700, Math.min(2800, detail.duration || 2200)));
+  };
+
+  const syncPauseButton = paused => {
+    const button = $("ui-pauseButton");
+    button.textContent = paused ? "▶" : "Ⅱ";
+    button.setAttribute("aria-pressed", String(paused));
+    button.setAttribute("aria-label", paused ? "게임 계속하기" : "게임 일시정지");
+  };
+
+  const requestHome = () => {
+    if (api.game.state.status === "running") api.game.pause();
+    if (!$("exitDialog").open) $("exitDialog").showModal();
+  };
+
+  const decorateResult = clear => {
+    const panel = $("resultPanel");
+    if (!panel) return;
+    const heading = panel.querySelector("h2");
+    if (heading) {
+      heading.id = "resultTitle";
+      heading.textContent = clear ? "장독대 채우기 완료" : "물이 모두 샜습니다";
+    }
+    const restart = panel.querySelector("#ui-restartGameButton");
+    if (restart) restart.textContent = "같은 장독대 다시 채우기";
+    if (!panel.querySelector(".result-home-button")) {
+      const home = document.createElement("button");
+      home.type = "button";
+      home.className = "result-home-button";
+      home.textContent = "장독대 고르기로";
+      home.addEventListener("click", () => { location.href = "index.html?view=jars"; });
+      panel.append(home);
+    }
+  };
+
+  const startFeverUi = (detail = {}) => {
+    const tier = detail.tier || detail.feverTier || 1;
+    $("feverLabel").textContent = `FEVER ${tier}`;
+    $("feverMultiplier").textContent = `×${detail.scoreMultiplier || detail.multiplier || 2}`;
+    clearInterval(feverTimer);
+    let remaining = Number(detail.remaining || detail.duration || 8);
+    $("feverTimer").textContent = `피버 ${remaining.toFixed(1)}초`;
+    feverTimer = setInterval(() => {
+      remaining = Math.max(0, remaining - 0.1);
+      $("feverTimer").textContent = `피버 ${remaining.toFixed(1)}초`;
+      if (!remaining) clearInterval(feverTimer);
+    }, 100);
+  };
+
+  const endFeverUi = () => {
+    clearInterval(feverTimer);
+    $("feverLabel").textContent = "FEVER 준비";
+    $("feverMultiplier").textContent = "×1";
+    $("feverTimer").textContent = "연속 정답으로 피버를 충전하세요.";
+  };
+
+  $("ui-pauseButton").addEventListener("click", () => api.game.togglePause());
+  $("ui-homeButton").addEventListener("click", requestHome);
+  $("continueButton").addEventListener("click", () => {
+    if (api.game.state.status === "paused") api.game.resume();
+  });
+  $("confirmHomeButton").addEventListener("click", () => { location.href = "index.html?view=jars"; });
+  $("exitDialog").addEventListener("close", () => {
+    if ($("exitDialog").returnValue !== "home" && api.game.state.status === "paused") api.game.resume();
+  });
+
+  listen("keydown", event => {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    if (api.game.state.status === "running") api.game.pause();
+    else if (api.game.state.status === "paused") api.game.resume();
+  }, document);
+
+  listen("question:changed", event => {
+    const promptLength = String(event.detail?.question?.prompt || "").length;
+    app.dataset.questionLength = promptLength > 74 ? "long" : promptLength > 32 ? "medium" : "short";
+  });
+  listen("toad:speak", event => showBubble(event.detail));
+  listen("answer:correct", event => {
+    correct += 1;
+    questionCount += 1;
+    syncCounts();
+    $("splash").textContent = `물 +${Math.round(event.detail?.waterGain || 0)} · +${Math.round(event.detail?.scoreGain || 0)}점`;
+    announce("정답입니다. 장독대에 물을 부었습니다.");
+  });
+  listen("answer:wrong", () => {
+    wrong += 1;
+    questionCount += 1;
+    syncCounts();
+    announce("오답입니다. 두꺼비가 밀렸습니다.");
+  });
+  listen("answer:timeout", () => {
+    wrong += 1;
+    questionCount += 1;
+    syncCounts();
+    announce("시간이 초과되어 물이 샙니다.");
+  });
+  listen("water:warning", () => announce("물이 절반 이하로 줄었습니다."));
+  listen("water:critical", () => announce("물이 매우 부족합니다."));
+  listen("game:pause", () => syncPauseButton(true));
+  listen("game:resume", () => syncPauseButton(false));
+  listen("game:over", () => {
+    decorateResult(false);
+    announce("게임 오버");
+    keypad?.setLocked(true);
+  });
+  listen("game:clear", () => {
+    decorateResult(true);
+    $("feedback").textContent = "장독대 채우기 완료!";
+    announce("장독대 채우기 완료");
+    keypad?.setLocked(true);
+  });
+  listen("fever:charge", event => {
+    const detail = event.detail || {};
+    const value = Math.min(100, (detail.charge || 0) / Math.max(1, detail.required || 3) * 100);
+    $("feverFill").style.width = `${value}%`;
+    $("feverGauge").setAttribute("aria-valuenow", String(Math.round(value)));
+  });
+  listen("fever:start", event => startFeverUi(event.detail));
+  listen("fever:extend", event => startFeverUi(event.detail));
+  listen("fever:end", endFeverUi);
+  listen("ui:device-mode", () => syncViewport());
+
+  api.start({ difficulty, resumeState });
+  keypad = mountMobileKeypad({ api, form: $("ui-answerForm"), input: $("answerInput"), dock: $("ui-mobileInputDock") });
+  syncCounts();
+  syncPauseButton(false);
+
+  addEventListener("beforeunload", () => {
+    clearTimeout(bubbleTimer);
+    clearInterval(feverTimer);
+    keypad?.destroy();
+    scene.destroy();
+    listeners.splice(0).forEach(remove => remove());
+  }, { once: true });
+}
+
+setFixedTitle();
+initGame().catch(error => {
+  console.error(error);
+  const feedback = $("feedback");
+  if (feedback) feedback.textContent = "게임을 시작하지 못했습니다. 페이지를 새로고침해 주세요.";
+});
