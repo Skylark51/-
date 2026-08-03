@@ -1,4 +1,4 @@
-import { loadSceneAtlasUrl } from "./scene-art-loader.js";
+import { preloadSceneAtlas, SCENE_ATLAS_URL } from "./scene-art-loader.js?v=20260803-entry-hotfix1";
 import { GameStorage } from "./storage.js";
 
 const VALID_VIEWS = new Set(["home", "jars", "records"]);
@@ -85,9 +85,9 @@ document.getElementById("missionClaimButton")?.addEventListener("click", () => {
 showView(currentViewFromUrl(), { historyMode: "replace", focus: false });
 syncBeans();
 
-loadSceneAtlasUrl().then(url => {
+preloadSceneAtlas().then(() => {
   const hero = document.querySelector("#lobbyTop");
   if (!hero) return;
-  hero.style.setProperty("--lobby-scene-art", `url("${url}")`);
+  hero.style.setProperty("--lobby-scene-art", `url("${SCENE_ATLAS_URL}")`);
   hero.classList.add("has-scene-art");
 }).catch(error => console.error(error));
