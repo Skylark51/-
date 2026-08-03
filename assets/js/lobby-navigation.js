@@ -1,174 +1,93 @@
-const SCREEN_CONFIG = Object.freeze({
-  home: Object.freeze(["#lobbyTop", ".mission-card", "#quickMenu", ".research-summary"]),
-  jars: Object.freeze(["#trainingSection"]),
-  records: Object.freeze(["#dashboardSection", "#recordsSection"])
-});
+import { loadSceneAtlasUrl } from "./scene-art-loader.js";
+import { GameStorage } from "./storage.js";
 
-const SCREEN_LABELS = Object.freeze({
-  home: "홈",
-  jars: "장독대",
-  records: "학습 기록"
-});
+const VALID_VIEWS = new Set(["home", "jars", "records"]);
+const viewNodes = [...document.querySelectorAll("[data-app-view]")];
+const controls = [...document.querySelectorAll("[data-view-target]")];
+const storage = new GameStorage();
 
-const HASH_SCREEN_MAP = Object.freeze({
-  "#lobbyTop": "home",
-  "#trainingSection": "jars",
-  "#dashboardSection": "records",
-  "#recordsSection": "records"
-});
-
-const VALID_SCREENS = new Set(Object.keys(SCREEN_CONFIG));
-const scrollPositions = new Map(Object.keys(SCREEN_CONFIG).map(screen => [screen, 0]));
-let activeScreen = "home";
-let mounted = false;
-let announcer = null;
-
-function injectNavigationStyles() {
-  if (document.querySelector('link[data-lobby-navigation-style]')) return;
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = new URL("../css/lobby-navigation.css?v=20260801-appnav1", import.meta.url).href;
-  link.dataset.lobbyNavigationStyle = "true";
-  document.head.append(link);
+function normalizedView(value) {
+  return VALID_VIEWS.has(value) ? value : "home";
 }
 
-function normalizeScreen(value) {
-  return VALID_SCREENS.has(value) ? value : "home";
-}
-
-function screenFromLocation() {
+function currentViewFromUrl() {
   const url = new URL(location.href);
-  const requested = url.searchParams.get("view");
-  if (VALID_SCREENS.has(requested)) return requested;
-  return HASH_SCREEN_MAP[url.hash] || "home";
+  if (url.searchParams.has("view")) return normalizedView(url.searchParams.get("view"));
+  if (location.hash === "#trainingSection") return "jars";
+  if (location.hash === "#recordsSection" || location.hash === "#dashboardSection") return "records";
+  return "home";
 }
 
-function screenUrl(screen) {
+function syncBeans() {
+  const value = Math.max(0, Math.floor(Number(storage.data.economy?.beans) || 0));
+  const node = document.getElementById("headerBeans");
+  if (node) node.textContent = value.toLocaleString("ko-KR");
+}
+
+function showView(nextView, { historyMode = "push", focus = true } = {}) {
+  const view = normalizedView(nextView);
+  for (const node of viewNodes) {
+    const active = node.dataset.appView === view;
+    node.hidden = !active;
+    node.setAttribute("aria-hidden", String(!active));
+  }
+  for (const control of controls) {
+    const active = control.dataset.viewTarget === view;
+    if (active) control.setAttribute("aria-current", "page");
+    else control.removeAttribute("aria-current");
+  }
+
+  document.documentElement.dataset.lobbyView = view;
   const url = new URL(location.href);
-  const safe = normalizeScreen(screen);
-  if (safe === "home") url.searchParams.delete("view");
-  else url.searchParams.set("view", safe);
+  url.searchParams.set("view", view);
   url.hash = "";
-  return url.pathname + url.search;
-}
+  if (historyMode === "replace") history.replaceState({ view }, "", url);
+  else if (historyMode === "push") history.pushState({ view }, "", url);
 
-function nodesFor(screen) {
-  return SCREEN_CONFIG[screen].flatMap(selector => [...document.querySelectorAll(selector)]);
-}
-
-function allScreenNodes() {
-  return [...new Set(Object.keys(SCREEN_CONFIG).flatMap(nodesFor))];
-}
-
-function navScreenFor(node) {
-  const explicit = node.dataset.lobbyScreen;
-  if (VALID_SCREENS.has(explicit)) return explicit;
-  const href = node.getAttribute("href");
-  return HASH_SCREEN_MAP[href] || null;
-}
-
-function updateNavigationState(screen) {
-  document.querySelectorAll(".mobile-bottom-nav a, .mobile-bottom-nav button, [data-lobby-screen]").forEach(node => {
-    const target = navScreenFor(node);
-    if (!target) return;
-    const selected = target === screen;
-    node.classList.toggle("is-active", selected);
-    node.setAttribute("aria-selected", String(selected));
-    if (selected) node.setAttribute("aria-current", "page");
-    else node.removeAttribute("aria-current");
-  });
-}
-
-function updateScreenVisibility(screen) {
-  const visible = new Set(nodesFor(screen));
-  for (const node of allScreenNodes()) {
-    const selected = visible.has(node);
-    node.hidden = !selected;
-    node.classList.toggle("is-active-screen", selected);
-    node.setAttribute("aria-hidden", String(!selected));
+  if (focus) {
+    const activeView = viewNodes.find(node => node.dataset.appView === view);
+    activeView?.scrollIntoView({ block: "start", behavior: "auto" });
+    const heading = activeView?.querySelector("h1,h2");
+    if (heading) {
+      heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
+    }
   }
 }
 
-function announceScreen(screen) {
-  if (!announcer) {
-    announcer = document.createElement("div");
-    announcer.className = "sr-only";
-    announcer.setAttribute("role", "status");
-    announcer.setAttribute("aria-live", "polite");
-    document.body.append(announcer);
+for (const control of controls) {
+  control.addEventListener("click", event => {
+    const view = control.dataset.viewTarget;
+    if (!VALID_VIEWS.has(view)) return;
+    event.preventDefault();
+    showView(view);
+  });
+}
+
+addEventListener("popstate", event => {
+  showView(event.state?.view || currentViewFromUrl(), { historyMode: "none", focus: false });
+});
+
+addEventListener("storage", event => {
+  if (!event.key || event.key.includes("kongjuiya")) {
+    storage.data = storage.load();
+    syncBeans();
   }
-  announcer.textContent = SCREEN_LABELS[screen] + " 화면으로 전환했습니다.";
-}
+});
 
-function restoreScreenScroll(screen) {
-  const top = Math.max(0, Number(scrollPositions.get(screen)) || 0);
-  requestAnimationFrame(() => window.scrollTo({ top, left: 0, behavior: "auto" }));
-}
-
-export function switchLobbyScreen(requested, options = {}) {
-  if (!mounted) return;
-  const screen = normalizeScreen(requested);
-  const historyMode = options.historyMode || "push";
-  const shouldAnnounce = options.announce !== false;
-  const changed = activeScreen !== screen;
-
-  if (changed) scrollPositions.set(activeScreen, window.scrollY || 0);
-  activeScreen = screen;
-  document.body.dataset.lobbyScreen = screen;
-  updateScreenVisibility(screen);
-  updateNavigationState(screen);
-
-  if (screen === "records") {
-    const details = document.querySelector("#recordDetails");
-    if (details && !details.open && options.openDetails) details.open = true;
-  }
-
-  const nextUrl = screenUrl(screen);
-  if (historyMode === "push" && changed) history.pushState({ lobbyScreen: screen }, "", nextUrl);
-  else if (historyMode === "replace") history.replaceState({ lobbyScreen: screen }, "", nextUrl);
-
-  restoreScreenScroll(screen);
-  if (shouldAnnounce && changed) announceScreen(screen);
-  if (changed) dispatchEvent(new CustomEvent("lobby:screenchange", { detail: { screen } }));
-}
-
-function bindScreenLinks() {
-  const candidates = document.querySelectorAll("a[href^='#'], [data-lobby-screen]");
-  candidates.forEach(node => {
-    const screen = navScreenFor(node);
-    if (!screen || node.dataset.lobbyNavigationBound === "true") return;
-    node.dataset.lobbyNavigationBound = "true";
-    node.addEventListener("click", event => {
-      event.preventDefault();
-      switchLobbyScreen(screen, { historyMode: "push", openDetails: screen === "records" });
-    });
+document.getElementById("missionClaimButton")?.addEventListener("click", () => {
+  setTimeout(() => {
+    storage.data = storage.load();
+    syncBeans();
   });
-}
+});
 
-function mount() {
-  if (mounted || !document.body?.classList.contains("lobby-page")) return;
-  mounted = true;
-  injectNavigationStyles();
-  history.scrollRestoration = "manual";
+showView(currentViewFromUrl(), { historyMode: "replace", focus: false });
+syncBeans();
 
-  for (const node of allScreenNodes()) node.classList.add("app-screen-section");
-  bindScreenLinks();
-
-  const initial = screenFromLocation();
-  activeScreen = initial;
-  switchLobbyScreen(initial, { historyMode: "replace", announce: false });
-
-  addEventListener("popstate", event => {
-    const screen = normalizeScreen(event.state?.lobbyScreen || screenFromLocation());
-    switchLobbyScreen(screen, { historyMode: "none", announce: true, openDetails: screen === "records" });
-  });
-
-  addEventListener("pagehide", () => {
-    scrollPositions.set(activeScreen, window.scrollY || 0);
-  });
-}
-
-if (typeof document !== "undefined") {
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount, { once: true });
-  else mount();
-}
+loadSceneAtlasUrl().then(url => {
+  const hero = document.querySelector("#lobbyTop");
+  if (!hero) return;
+  hero.style.setProperty("--lobby-scene-art", `url("${url}")`);
+  hero.classList.add("has-scene-art");
+}).catch(error => console.error(error));
