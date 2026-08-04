@@ -86,6 +86,17 @@ function installPhotoStyles() {
   document.head.append(style);
 }
 
+function simplifyHomeScreen() {
+  const home = document.getElementById("homeView");
+  if (!home) return;
+
+  home.querySelector(".quick-start-card")?.remove();
+  home.querySelector(".research-summary")?.remove();
+
+  const homeGrid = home.querySelector(".home-grid");
+  if (homeGrid) homeGrid.style.gridTemplateColumns = "minmax(0, 1fr)";
+}
+
 function installJarSelectionScene() {
   const trainingSection = document.getElementById("trainingSection");
   if (!trainingSection || trainingSection.querySelector(".jar-selection-scene")) return;
@@ -115,6 +126,7 @@ function makeParticle(className, delay) {
 
 export function installLobbyHeroScene() {
   installPhotoStyles();
+  simplifyHomeScreen();
   installJarSelectionScene();
 
   const hero = document.getElementById("lobbyTop");
