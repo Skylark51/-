@@ -71,10 +71,13 @@ function normalizeNumericKeypad() {
   const confirm = panel?.querySelector(".keypad-confirm");
   if (!panel || !keys || !confirm) return;
 
-  if (confirm.parentElement !== keys) keys.append(confirm);
+  keys.querySelector(".keypad-backspace")?.remove();
 
   const clear = keys.querySelector(".keypad-clear");
   const zero = [...keys.children].find(button => button.textContent.trim() === "0");
+
+  if (clear && zero) keys.append(clear, zero, confirm);
+  else if (confirm.parentElement !== keys) keys.append(confirm);
 
   if (clear) {
     clear.style.gridColumn = "1";
