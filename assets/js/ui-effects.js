@@ -4,7 +4,7 @@ import { applyDeviceMode, getDeviceMode, syncViewport } from "./device-entry.js"
 import { GAME_TITLE, displayJarName } from "./theme-system.js";
 import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical2";
 import { mountMobileKeypad } from "./mobile-keypad.js?v=20260804-quiz-reference1";
-import { mountGameScene } from "./game-cosmetics-entry.js?v=20260803-contain1";
+import { mountGameScene } from "./game-cosmetics-entry.js?v=20260805-safe-jar1";
 
 const SELECTION_KEY = "kongjuiya-training-selection";
 const storage = new GameStorage();
