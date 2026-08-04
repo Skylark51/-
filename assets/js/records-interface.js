@@ -1,18 +1,40 @@
-import { getTrainingMode } from "../../data/training-modes.js";
+import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js";
 import { GameStorage } from "./storage.js";
-import { dashboardMetrics, formatPlayedAt } from "./dashboard-v4.js";
 import { applyJarTheme, displayJarName } from "./theme-system.js";
-import { DIFFICULTY_LABELS } from "./lobby-logic.js";
 
 const RECORDS_TAB_KEY = "kongjuiya-records-tab";
 const MOBILE_BREAKPOINT = 760;
+const DIFFICULTY_LABELS = Object.freeze({ easy: "쉬움", normal: "보통", hard: "어려움" });
 const number = value => Math.round(Number(value) || 0).toLocaleString("ko-KR");
+const nonNegative = value => Math.max(0, Number(value) || 0);
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text != null) node.textContent = text;
   return node;
+}
+
+function modeMetrics(stats = {}) {
+  const correct = nonNegative(stats.correct);
+  const wrong = nonNegative(stats.wrong);
+  const timeout = nonNegative(stats.timeout);
+  const attempts = correct + wrong + timeout;
+  return {
+    plays: nonNegative(stats.plays),
+    attempts,
+    accuracy: attempts ? Math.round(correct / attempts * 100) : null,
+    averageResponseMs: nonNegative(stats.averageResponseMs),
+    lastPlayedAt: typeof stats.lastPlayedAt === "string" ? stats.lastPlayedAt : null
+  };
+}
+
+function recordsMetrics(data) {
+  return {
+    entries: TRAINING_MODES
+      .map(mode => ({ mode, metrics: modeMetrics(data.statistics?.[mode.id]) }))
+      .filter(entry => entry.metrics.plays > 0 || entry.metrics.attempts > 0)
+  };
 }
 
 function isMobileInterface() {
@@ -103,7 +125,7 @@ function renderBestRecords(root, metrics) {
     .sort((left, right) => {
       const leftTime = left.metrics.averageResponseMs || Number.POSITIVE_INFINITY;
       const rightTime = right.metrics.averageResponseMs || Number.POSITIVE_INFINITY;
-      return leftTime - rightTime || right.metrics.accuracy - left.metrics.accuracy;
+      return leftTime - rightTime || (right.metrics.accuracy ?? -1) - (left.metrics.accuracy ?? -1);
     });
 
   if (!entries.length) {
@@ -203,7 +225,7 @@ export function installRecordsInterface() {
   recordsView.dataset.recordsInterface = "ready";
 
   const storage = new GameStorage();
-  const metrics = dashboardMetrics(storage.data);
+  const metrics = recordsMetrics(storage.data);
 
   const header = element("header", "records-mobile-header");
   const title = element("div", "records-mobile-title", "기록");
@@ -237,7 +259,8 @@ export function installRecordsInterface() {
   const bestTitle = element("h3", null, "장독대별 반응 기록");
   bestTitle.id = "recordsBestTitle";
   bestHeadingCopy.append(bestTitle, element("p", null, "평균 반응 시간이 빠른 순서입니다."));
-  bestHeading.append(bestHeadingCopy, element("span", "records-count-badge", metrics.entries.length + "개"));
+  const bestCount = element("span", "records-count-badge", metrics.entries.length + "개");
+  bestHeading.append(bestHeadingCopy, bestCount);
   const bestList = element("div", "records-best-list");
   renderBestRecords(bestList, metrics);
   bestPanel.append(bestHeading, bestList);
@@ -250,7 +273,8 @@ export function installRecordsInterface() {
   const dailyTitle = element("h3", null, "일일 기록");
   dailyTitle.id = "recordsDailyTitle";
   dailyHeadingCopy.append(dailyTitle, element("p", null, "최근 플레이를 날짜별로 묶어 표시합니다."));
-  dailyHeading.append(dailyHeadingCopy, element("span", "records-count-badge", storage.data.recentRuns.length + "회"));
+  const dailyCount = element("span", "records-count-badge", storage.data.recentRuns.length + "회");
+  dailyHeading.append(dailyHeadingCopy, dailyCount);
   const dailyList = element("div", "records-daily-list");
   renderDailyRecords(dailyList, storage.data.recentRuns || []);
   dailyPanel.append(dailyHeading, dailyList);
@@ -306,9 +330,11 @@ export function installRecordsInterface() {
   addEventListener("storage", event => {
     if (event.key && !event.key.includes("kongjuiya")) return;
     storage.data = storage.load();
-    const refreshedMetrics = dashboardMetrics(storage.data);
+    const refreshedMetrics = recordsMetrics(storage.data);
     renderBestRecords(bestList, refreshedMetrics);
     renderDailyRecords(dailyList, storage.data.recentRuns || []);
+    bestCount.textContent = refreshedMetrics.entries.length + "개";
+    dailyCount.textContent = storage.data.recentRuns.length + "회";
   });
 
   applyTab(activeTab, false);
