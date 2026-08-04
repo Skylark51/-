@@ -7,7 +7,7 @@ import photo6 from "./scene-photo/jar-photo-6.js";
 import photo7 from "./scene-photo/jar-photo-7.js";
 
 const HERO_ART_URL = `data:image/jpeg;base64,${photo1}${photo2}${photo3}${photo4}${photo5}${photo6}${photo7}`;
-const PHOTO_STYLE_ID = "uploaded-jar-scene-style";
+const PHOTO_STYLE_ID = "uploaded-jar-scene-style-v2";
 
 function installPhotoStyles() {
   if (document.getElementById(PHOTO_STYLE_ID)) return;
@@ -19,10 +19,10 @@ function installPhotoStyles() {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center;
+      object-position: center 52%;
       transform: none !important;
       animation: none !important;
-      filter: saturate(1.02) contrast(1.02) brightness(.98);
+      filter: saturate(1.04) contrast(1.04) brightness(.96);
     }
     .hero-live-scene::before {
       background:
@@ -47,24 +47,26 @@ function installPhotoStyles() {
       object-position: center;
     }
     @media (max-width: 760px), (max-device-width: 760px) {
+      .lobby-hero {
+        min-height: 0 !important;
+        aspect-ratio: 1 / 1;
+      }
       .hero-live-scene {
         background: #1a1109;
       }
       .hero-live-scene__art {
-        top: auto;
-        right: 0;
-        bottom: 0;
-        left: 0;
+        inset: 0;
         width: 100%;
-        height: 57%;
+        height: 100%;
         object-fit: cover;
-        object-position: center;
+        object-position: 48% 58%;
         opacity: 1;
+        filter: saturate(1.05) contrast(1.04) brightness(.94);
       }
       .hero-live-scene::before {
         background:
-          linear-gradient(180deg, rgba(9, 7, 5, .94) 0%, rgba(9, 7, 5, .76) 43%, rgba(9, 7, 5, .24) 58%, transparent 78%),
-          linear-gradient(90deg, rgba(9, 7, 5, .18), transparent 72%);
+          linear-gradient(180deg, rgba(9, 7, 5, .93) 0%, rgba(9, 7, 5, .72) 39%, rgba(9, 7, 5, .20) 63%, rgba(9, 7, 5, .08) 79%, rgba(9, 7, 5, .32) 100%),
+          linear-gradient(90deg, rgba(9, 7, 5, .42), transparent 76%);
       }
       .hero-live-scene__water-glow,
       .hero-live-scene__atmosphere {
@@ -76,6 +78,8 @@ function installPhotoStyles() {
       }
       .jar-selection-scene img {
         max-height: none;
+        aspect-ratio: 1536 / 834;
+        object-position: center;
       }
     }
   `;
