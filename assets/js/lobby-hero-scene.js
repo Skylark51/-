@@ -1,4 +1,105 @@
-const HERO_ART_URL = new URL("../art/photoreal/Grok.jpg?v=20260804-live1", import.meta.url).href;
+import photo1 from "./scene-photo/jar-photo-1.js";
+import photo2 from "./scene-photo/jar-photo-2.js";
+import photo3 from "./scene-photo/jar-photo-3.js";
+import photo4 from "./scene-photo/jar-photo-4.js";
+import photo5 from "./scene-photo/jar-photo-5.js";
+import photo6 from "./scene-photo/jar-photo-6.js";
+import photo7 from "./scene-photo/jar-photo-7.js";
+
+const HERO_ART_URL = `data:image/jpeg;base64,${photo1}${photo2}${photo3}${photo4}${photo5}${photo6}${photo7}`;
+const PHOTO_STYLE_ID = "uploaded-jar-scene-style";
+
+function installPhotoStyles() {
+  if (document.getElementById(PHOTO_STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = PHOTO_STYLE_ID;
+  style.textContent = `
+    .hero-live-scene__art {
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transform: none !important;
+      animation: none !important;
+      filter: saturate(1.02) contrast(1.02) brightness(.98);
+    }
+    .hero-live-scene::before {
+      background:
+        linear-gradient(90deg, rgba(11, 8, 5, .91) 0%, rgba(11, 8, 5, .72) 39%, rgba(11, 8, 5, .10) 68%, rgba(11, 8, 5, .02) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, .06), transparent 58%, rgba(0, 0, 0, .36));
+    }
+    .jar-selection-scene {
+      position: relative;
+      margin: 0 0 18px;
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: 18px;
+      background: #120f0c;
+      box-shadow: var(--shadow-soft);
+    }
+    .jar-selection-scene img {
+      display: block;
+      width: 100%;
+      max-height: 390px;
+      aspect-ratio: 1536 / 834;
+      object-fit: cover;
+      object-position: center;
+    }
+    @media (max-width: 760px), (max-device-width: 760px) {
+      .hero-live-scene {
+        background: #1a1109;
+      }
+      .hero-live-scene__art {
+        top: auto;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 57%;
+        object-fit: cover;
+        object-position: center;
+        opacity: 1;
+      }
+      .hero-live-scene::before {
+        background:
+          linear-gradient(180deg, rgba(9, 7, 5, .94) 0%, rgba(9, 7, 5, .76) 43%, rgba(9, 7, 5, .24) 58%, transparent 78%),
+          linear-gradient(90deg, rgba(9, 7, 5, .18), transparent 72%);
+      }
+      .hero-live-scene__water-glow,
+      .hero-live-scene__atmosphere {
+        display: none;
+      }
+      .jar-selection-scene {
+        margin-bottom: 14px;
+        border-radius: 14px;
+      }
+      .jar-selection-scene img {
+        max-height: none;
+      }
+    }
+  `;
+  document.head.append(style);
+}
+
+function installJarSelectionScene() {
+  const trainingSection = document.getElementById("trainingSection");
+  if (!trainingSection || trainingSection.querySelector(".jar-selection-scene")) return;
+
+  const figure = document.createElement("figure");
+  figure.className = "jar-selection-scene";
+
+  const image = document.createElement("img");
+  image.src = HERO_ART_URL;
+  image.alt = "눈물을 흘리는 두꺼비와 물이 새는 장독대";
+  image.decoding = "async";
+  image.loading = "eager";
+
+  figure.append(image);
+  const heading = trainingSection.querySelector(".section-heading");
+  if (heading) heading.insertAdjacentElement("afterend", figure);
+  else trainingSection.prepend(figure);
+}
 
 function makeParticle(className, delay) {
   const particle = document.createElement("i");
@@ -9,6 +110,9 @@ function makeParticle(className, delay) {
 }
 
 export function installLobbyHeroScene() {
+  installPhotoStyles();
+  installJarSelectionScene();
+
   const hero = document.getElementById("lobbyTop");
   if (!hero || hero.dataset.liveScene === "ready") return;
   hero.dataset.liveScene = "ready";
