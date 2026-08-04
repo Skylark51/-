@@ -1,6 +1,6 @@
 import { preloadSceneAtlas, SCENE_ATLAS_URL } from "./scene-art-loader.js?v=20260804-live1";
 import { GameStorage } from "./storage.js";
-import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical1";
+import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical2";
 import { installRecordsInterface } from "./records-interface.js?v=20260804-records1";
 import { installLobbyHeroScene } from "./lobby-hero-scene.js?v=20260804-home-clean1";
 
