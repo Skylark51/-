@@ -5,7 +5,10 @@ on:
     paths:
       - "assets/js/mobile-keypad.js"
       - "assets/js/quiz-shell-controls.js"
+      - "assets/css/game-mobile-integrated.css"
+      - "assets/css/quiz-reference-mobile.css"
       - "assets/css/mobile-keypad-original.css"
+      - "assets/css/mobile-game-refinement.css"
       - "콩쥐야_줘때써.html"
       - "tests/keypad-regression.mjs"
       - ".github/workflows/keypad-regression.yml"
@@ -13,7 +16,10 @@ on:
     paths:
       - "assets/js/mobile-keypad.js"
       - "assets/js/quiz-shell-controls.js"
+      - "assets/css/game-mobile-integrated.css"
+      - "assets/css/quiz-reference-mobile.css"
       - "assets/css/mobile-keypad-original.css"
+      - "assets/css/mobile-game-refinement.css"
       - "콩쥐야_줘때써.html"
       - "tests/keypad-regression.mjs"
       - ".github/workflows/keypad-regression.yml"
