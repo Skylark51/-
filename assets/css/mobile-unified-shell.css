@@ -63,6 +63,40 @@ html[data-mobile-ui="shadcn"] .mobile-bottom-nav [aria-current="page"]::after {
   width: 20px;
 }
 
+/*
+ * Keep the recommendation detail close to the introduction and place the
+ * two primary jar actions beneath it. This preserves the artwork while
+ * making the reading order match the decision flow.
+ */
+html[data-mobile-ui="shadcn"] .hero-copy {
+  display: flex;
+  flex-direction: column;
+}
+
+html[data-mobile-ui="shadcn"] .hero-copy > .eyebrow {
+  order: 1;
+}
+
+html[data-mobile-ui="shadcn"] .hero-copy > h1 {
+  order: 2;
+}
+
+html[data-mobile-ui="shadcn"] .hero-copy > p:not(.eyebrow, .cta-hint) {
+  order: 3;
+}
+
+html[data-mobile-ui="shadcn"] .hero-copy > .cta-hint {
+  order: 4;
+  min-height: 0;
+  margin: 14px 0 0;
+  line-height: 1.45;
+}
+
+html[data-mobile-ui="shadcn"] .hero-copy > .hero-actions {
+  order: 5;
+  margin-top: 32px;
+}
+
 @media (max-width: 380px) {
   html[data-mobile-ui="shadcn"] {
     --mobile-nav-height: 64px;
@@ -76,5 +110,9 @@ html[data-mobile-ui="shadcn"] .mobile-bottom-nav [aria-current="page"]::after {
   html[data-mobile-ui="shadcn"] .mobile-bottom-nav a {
     min-height: 50px;
     font-size: 8px;
+  }
+
+  html[data-mobile-ui="shadcn"] .hero-copy > .hero-actions {
+    margin-top: 26px;
   }
 }
