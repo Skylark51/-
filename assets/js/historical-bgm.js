@@ -1,488 +1,395 @@
 const BGM_POSITION_KEY = "kongjuiya-historical-bgm-position";
-const BPM = 64;
+const BPM = 62;
 const BEAT = 60 / BPM;
-const LOOP_DURATION = 32 * BEAT;
-const SAMPLE_RATE = 44100;
-const MAX_BACKGROUND_GAIN = 0.24;
+const STEP = BEAT / 2;
+const LOOP_STEPS = 64;
+const MAX_GAIN = 0.42;
+const LOOK_AHEAD_SECONDS = 0.45;
+const SCHEDULER_INTERVAL_MS = 80;
 
 let sharedController = null;
-let renderedBufferPromise = null;
 
-function clamp(value, min = 0, max = 1) {
-  return Math.min(max, Math.max(min, Number(value) || 0));
-}
+const clamp = (value, min = 0, max = 1) =>
+  Math.min(max, Math.max(min, Number.isFinite(Number(value)) ? Number(value) : 0));
 
-function midiFrequency(note) {
-  return 440 * 2 ** ((note - 69) / 12);
-}
+const frequency = midi => 440 * 2 ** ((midi - 69) / 12);
 
-function seededRandom(seed = 20260804) {
-  let state = seed >>> 0;
-  return () => {
-    state = (1664525 * state + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
-}
-
-function connectPanned(context, source, destination, pan = 0, gainValue = 1) {
-  const gain = context.createGain();
-  gain.gain.value = gainValue;
-  source.connect(gain);
-
-  if (typeof context.createStereoPanner === "function") {
-    const panner = context.createStereoPanner();
-    panner.pan.value = clamp(pan, -1, 1);
-    gain.connect(panner);
-    panner.connect(destination);
-  } else {
-    gain.connect(destination);
-  }
-
-  return gain;
-}
-
-function createNoiseBuffer(context, seconds, random) {
-  const length = Math.ceil(seconds * context.sampleRate);
-  const buffer = context.createBuffer(1, length, context.sampleRate);
-  const channel = buffer.getChannelData(0);
-  for (let index = 0; index < length; index += 1) {
-    channel[index] = random() * 2 - 1;
-  }
-  return buffer;
-}
-
-function createReverbImpulse(context, seconds, random) {
-  const length = Math.ceil(seconds * context.sampleRate);
-  const impulse = context.createBuffer(2, length, context.sampleRate);
-  for (let channelIndex = 0; channelIndex < 2; channelIndex += 1) {
-    const channel = impulse.getChannelData(channelIndex);
-    for (let index = 0; index < length; index += 1) {
-      const time = index / context.sampleRate;
-      const decay = Math.exp(-time * 2.45);
-      channel[index] = (random() * 2 - 1) * decay * (0.58 + channelIndex * 0.06);
-    }
-  }
-  return impulse;
-}
-
-function schedulePad(context, destination, start, duration, note, pan, level = 1) {
-  const frequency = midiFrequency(note);
-  const voice = context.createGain();
-  const attack = 1.15;
-  const release = 1.25;
-  voice.gain.setValueAtTime(0.0001, start);
-  voice.gain.exponentialRampToValueAtTime(0.045 * level, start + attack);
-  voice.gain.setValueAtTime(0.045 * level, start + Math.max(attack, duration - release));
-  voice.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-
-  const filter = context.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.frequency.value = 1450;
-  filter.Q.value = 0.7;
-  voice.connect(filter);
-  connectPanned(context, filter, destination, pan, 1);
-
-  [
-    ["sine", 1, 0.72],
-    ["triangle", 2, 0.19],
-    ["sine", 3, 0.09]
-  ].forEach(([type, multiple, amount], index) => {
-    const oscillator = context.createOscillator();
-    const partial = context.createGain();
-    oscillator.type = type;
-    oscillator.frequency.value = frequency * multiple;
-    oscillator.detune.value = index === 0 ? -3 : index === 1 ? 4 : 1;
-    partial.gain.value = amount;
-    oscillator.connect(partial);
-    partial.connect(voice);
-    oscillator.start(start);
-    oscillator.stop(start + duration + 0.05);
-  });
-}
-
-function scheduleGayageum(context, destination, noiseBuffer, start, note, pan, level = 1) {
-  const frequency = midiFrequency(note);
-  const duration = 1.25;
-  const envelope = context.createGain();
-  envelope.gain.setValueAtTime(0.0001, start);
-  envelope.gain.exponentialRampToValueAtTime(0.105 * level, start + 0.006);
-  envelope.gain.exponentialRampToValueAtTime(0.018 * level, start + 0.38);
-  envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-
-  const filter = context.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.frequency.setValueAtTime(Math.min(5600, frequency * 15), start);
-  filter.frequency.exponentialRampToValueAtTime(Math.max(900, frequency * 4.5), start + 0.48);
-  filter.Q.value = 1.6;
-  envelope.connect(filter);
-  connectPanned(context, filter, destination, pan, 1);
-
-  [
-    ["triangle", 1, 0.8],
-    ["sine", 2, 0.36],
-    ["sine", 3, 0.14]
-  ].forEach(([type, multiple, amount]) => {
-    const oscillator = context.createOscillator();
-    const partial = context.createGain();
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency * multiple * 0.992, start);
-    oscillator.frequency.exponentialRampToValueAtTime(frequency * multiple, start + 0.055);
-    partial.gain.value = amount;
-    oscillator.connect(partial);
-    partial.connect(envelope);
-    oscillator.start(start);
-    oscillator.stop(start + duration + 0.03);
-  });
-
-  const pick = context.createBufferSource();
-  const pickFilter = context.createBiquadFilter();
-  const pickGain = context.createGain();
-  pick.buffer = noiseBuffer;
-  pickFilter.type = "bandpass";
-  pickFilter.frequency.value = Math.min(6200, frequency * 12);
-  pickFilter.Q.value = 1.1;
-  pickGain.gain.setValueAtTime(0.055 * level, start);
-  pickGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.045);
-  pick.connect(pickFilter);
-  pickFilter.connect(pickGain);
-  pickGain.connect(envelope);
-  pick.start(start, 0, 0.08);
-}
-
-function scheduleDaegeum(context, destination, noiseBuffer, start, duration, note, pan, level = 1) {
-  const frequency = midiFrequency(note);
-  const release = 0.32;
-  const envelope = context.createGain();
-  envelope.gain.setValueAtTime(0.0001, start);
-  envelope.gain.exponentialRampToValueAtTime(0.085 * level, start + 0.18);
-  envelope.gain.setValueAtTime(0.085 * level, start + Math.max(0.2, duration - release));
-  envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration + release);
-
-  const filter = context.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.frequency.value = 4100;
-  filter.Q.value = 0.65;
-  envelope.connect(filter);
-  connectPanned(context, filter, destination, pan, 1);
-
-  const vibrato = context.createOscillator();
-  const vibratoGain = context.createGain();
-  vibrato.frequency.value = 5.15;
-  vibratoGain.gain.setValueAtTime(0, start);
-  vibratoGain.gain.linearRampToValueAtTime(7.5, start + 0.45);
-  vibrato.connect(vibratoGain);
-
-  [
-    ["sine", 1, 0.88],
-    ["sine", 2, 0.19],
-    ["triangle", 3, 0.055]
-  ].forEach(([type, multiple, amount], index) => {
-    const oscillator = context.createOscillator();
-    const partial = context.createGain();
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency * multiple * (index ? 1 : 0.986), start);
-    oscillator.frequency.exponentialRampToValueAtTime(frequency * multiple, start + 0.12);
-    partial.gain.value = amount;
-    vibratoGain.connect(oscillator.detune);
-    oscillator.connect(partial);
-    partial.connect(envelope);
-    oscillator.start(start);
-    oscillator.stop(start + duration + release + 0.05);
-  });
-
-  vibrato.start(start);
-  vibrato.stop(start + duration + release + 0.05);
-
-  const breath = context.createBufferSource();
-  const breathFilter = context.createBiquadFilter();
-  const breathGain = context.createGain();
-  breath.buffer = noiseBuffer;
-  breath.loop = true;
-  breathFilter.type = "bandpass";
-  breathFilter.frequency.value = 2200;
-  breathFilter.Q.value = 0.6;
-  breathGain.gain.setValueAtTime(0.0001, start);
-  breathGain.gain.exponentialRampToValueAtTime(0.012 * level, start + 0.16);
-  breathGain.gain.setValueAtTime(0.012 * level, start + duration);
-  breathGain.gain.exponentialRampToValueAtTime(0.0001, start + duration + release);
-  breath.connect(breathFilter);
-  breathFilter.connect(breathGain);
-  breathGain.connect(filter);
-  breath.start(start);
-  breath.stop(start + duration + release + 0.05);
-}
-
-function scheduleDrum(context, destination, noiseBuffer, start, strong = false) {
-  const duration = 0.72;
-  const envelope = context.createGain();
-  const peak = strong ? 0.13 : 0.085;
-  envelope.gain.setValueAtTime(peak, start);
-  envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  connectPanned(context, envelope, destination, 0, 1);
-
-  const oscillator = context.createOscillator();
-  oscillator.type = "sine";
-  oscillator.frequency.setValueAtTime(strong ? 122 : 105, start);
-  oscillator.frequency.exponentialRampToValueAtTime(strong ? 52 : 60, start + 0.09);
-  oscillator.connect(envelope);
-  oscillator.start(start);
-  oscillator.stop(start + duration);
-
-  const impact = context.createBufferSource();
-  const impactFilter = context.createBiquadFilter();
-  const impactGain = context.createGain();
-  impact.buffer = noiseBuffer;
-  impactFilter.type = "lowpass";
-  impactFilter.frequency.value = 850;
-  impactGain.gain.setValueAtTime(strong ? 0.055 : 0.035, start);
-  impactGain.gain.exponentialRampToValueAtTime(0.0001, start + 0.08);
-  impact.connect(impactFilter);
-  impactFilter.connect(impactGain);
-  impactGain.connect(envelope);
-  impact.start(start, 0, 0.12);
-}
-
-function scheduleWoodHit(context, destination, noiseBuffer, start, pan = 0.35) {
-  const source = context.createBufferSource();
-  const filter = context.createBiquadFilter();
-  const envelope = context.createGain();
-  source.buffer = noiseBuffer;
-  filter.type = "bandpass";
-  filter.frequency.value = 1450;
-  filter.Q.value = 2.8;
-  envelope.gain.setValueAtTime(0.038, start);
-  envelope.gain.exponentialRampToValueAtTime(0.0001, start + 0.075);
-  source.connect(filter);
-  filter.connect(envelope);
-  connectPanned(context, envelope, destination, pan, 1);
-  source.start(start, 0, 0.12);
-}
-
-function crossfadeLoop(buffer, seconds = 0.82) {
-  const fadeLength = Math.min(
-    Math.floor(seconds * buffer.sampleRate),
-    Math.floor(buffer.length / 5)
-  );
-
-  for (let channelIndex = 0; channelIndex < buffer.numberOfChannels; channelIndex += 1) {
-    const channel = buffer.getChannelData(channelIndex);
-    const start = channel.slice(0, fadeLength);
-    const endOffset = channel.length - fadeLength;
-    for (let index = 0; index < fadeLength; index += 1) {
-      const mix = index / Math.max(1, fadeLength - 1);
-      channel[endOffset + index] = channel[endOffset + index] * (1 - mix) + start[index] * mix;
-    }
-  }
-  return buffer;
-}
-
-async function renderHistoricalLoop() {
-  const frameCount = Math.ceil(LOOP_DURATION * SAMPLE_RATE);
-  const context = new OfflineAudioContext(2, frameCount, SAMPLE_RATE);
-  const random = seededRandom();
-  const noiseBuffer = createNoiseBuffer(context, 2.2, random);
-
-  const dry = context.createGain();
-  const wet = context.createGain();
-  const convolver = context.createConvolver();
-  const compressor = context.createDynamicsCompressor();
-
-  dry.gain.value = 0.92;
-  wet.gain.value = 0.24;
-  convolver.buffer = createReverbImpulse(context, 2.85, random);
-  compressor.threshold.value = -18;
-  compressor.knee.value = 16;
-  compressor.ratio.value = 2.4;
-  compressor.attack.value = 0.018;
-  compressor.release.value = 0.32;
-
-  const musicBus = context.createGain();
-  musicBus.gain.value = 0.9;
-  musicBus.connect(dry);
-  musicBus.connect(convolver);
-  convolver.connect(wet);
-  dry.connect(compressor);
-  wet.connect(compressor);
-  compressor.connect(context.destination);
-
-  const chords = [
-    [45, 52, 57], [43, 50, 55], [41, 48, 53], [40, 47, 52],
-    [45, 52, 57], [43, 50, 55], [41, 48, 53], [45, 52, 57]
-  ];
-  chords.forEach((chord, bar) => {
-    chord.forEach((note, index) => {
-      schedulePad(context, musicBus, bar * 4 * BEAT, 4 * BEAT, note, -0.42 + index * 0.42, index ? 0.8 : 1);
-    });
-  });
-
-  const patterns = [
-    [57, 64, 69, 72, 69, 64, 60, 64],
-    [55, 62, 67, 69, 67, 62, 59, 62],
-    [53, 60, 65, 69, 65, 60, 57, 60],
-    [52, 59, 64, 67, 64, 59, 55, 59],
-    [57, 64, 69, 72, 69, 64, 60, 64],
-    [55, 62, 67, 69, 71, 67, 62, 59],
-    [53, 60, 65, 69, 72, 69, 65, 60],
-    [57, 64, 69, 72, 69, 64, 60, 57]
-  ];
-  patterns.forEach((pattern, bar) => {
-    pattern.forEach((note, index) => {
-      scheduleGayageum(
-        context,
-        musicBus,
-        noiseBuffer,
-        (bar * 4 + index * 0.5) * BEAT,
-        note,
-        -0.3 + ((index % 3) - 1) * 0.06,
-        index === 0 || index === 4 ? 1 : 0.78
-      );
-    });
-  });
-
-  const melody = [
-    [0, 69, 1.8], [1.75, 67, 0.25], [2, 64, 1.75],
-    [4, 62, 1.45], [5.45, 64, 0.45], [6, 67, 0.9], [7, 69, 0.85],
-    [8, 72, 1.9], [10, 69, 0.85], [11, 67, 0.85],
-    [12, 64, 1.8], [14, 62, 0.85], [15, 60, 0.8],
-    [16, 69, 1.35], [17.35, 67, 0.5], [18, 64, 1.8],
-    [20, 62, 0.85], [21, 64, 0.8], [22, 67, 1.8],
-    [24, 69, 0.8], [25, 72, 0.8], [26, 69, 0.8], [27, 67, 0.8],
-    [28, 64, 1.3], [29.35, 62, 0.45], [30, 60, 0.8], [31, 57, 0.85]
-  ];
-  melody.forEach(([startBeat, note, durationBeats], index) => {
-    scheduleDaegeum(
-      context,
-      musicBus,
-      noiseBuffer,
-      startBeat * BEAT,
-      durationBeats * BEAT,
-      note,
-      0.18 + Math.sin(index) * 0.045,
-      note >= 69 ? 1 : 0.9
-    );
-  });
-
-  for (let bar = 0; bar < 8; bar += 1) {
-    const start = bar * 4 * BEAT;
-    scheduleDrum(context, musicBus, noiseBuffer, start, bar === 0 || bar === 4);
-    if (bar % 2 === 1) scheduleWoodHit(context, musicBus, noiseBuffer, start + 2 * BEAT);
-  }
-
-  return crossfadeLoop(await context.startRendering());
-}
-
-function savedPosition() {
+function savedStep() {
   try {
-    const value = JSON.parse(sessionStorage.getItem(BGM_POSITION_KEY) || "null");
-    if (!value || Date.now() - Number(value.savedAt || 0) > 30 * 60 * 1000) return 0;
-    return clamp(Number(value.position || 0), 0, LOOP_DURATION - 0.05);
+    const saved = JSON.parse(sessionStorage.getItem(BGM_POSITION_KEY) || "null");
+    if (!saved || Date.now() - Number(saved.savedAt || 0) > 30 * 60 * 1000) return 0;
+    return Math.floor(((Number(saved.step) || 0) % LOOP_STEPS + LOOP_STEPS) % LOOP_STEPS);
   } catch {
     return 0;
   }
 }
 
-function createController(initialVolume = 0.5) {
+function makeNoiseBuffer(context, seconds = 1.2) {
+  const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * seconds), context.sampleRate);
+  const data = buffer.getChannelData(0);
+  let seed = 20260804;
+  for (let index = 0; index < data.length; index += 1) {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    data[index] = seed / 2147483648 - 1;
+  }
+  return buffer;
+}
+
+function makeImpulse(context, seconds = 2.2) {
+  const buffer = context.createBuffer(2, Math.ceil(context.sampleRate * seconds), context.sampleRate);
+  for (let channel = 0; channel < buffer.numberOfChannels; channel += 1) {
+    const data = buffer.getChannelData(channel);
+    let seed = 81357 + channel * 71;
+    for (let index = 0; index < data.length; index += 1) {
+      seed = (seed * 1103515245 + 12345) >>> 0;
+      const time = index / context.sampleRate;
+      data[index] = (seed / 2147483648 - 1) * Math.exp(-time * 2.65);
+    }
+  }
+  return buffer;
+}
+
+function connectWithPan(context, source, destination, pan = 0) {
+  if (typeof context.createStereoPanner !== "function") {
+    source.connect(destination);
+    return;
+  }
+  const panner = context.createStereoPanner();
+  panner.pan.value = clamp(pan, -1, 1);
+  source.connect(panner);
+  panner.connect(destination);
+}
+
+function schedulePad(context, destination, when, notes) {
+  notes.forEach((midi, index) => {
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const filter = context.createBiquadFilter();
+    oscillator.type = index === 1 ? "triangle" : "sine";
+    oscillator.frequency.value = frequency(midi);
+    oscillator.detune.value = index === 0 ? -4 : index === 2 ? 4 : 0;
+    filter.type = "lowpass";
+    filter.frequency.value = 1150;
+    filter.Q.value = 0.45;
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.042 : 0.03, when + 0.9);
+    gain.gain.setValueAtTime(index === 0 ? 0.042 : 0.03, when + BEAT * 3.1);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + BEAT * 4);
+    oscillator.connect(filter);
+    filter.connect(gain);
+    connectWithPan(context, gain, destination, -0.38 + index * 0.38);
+    oscillator.start(when);
+    oscillator.stop(when + BEAT * 4 + 0.05);
+  });
+}
+
+function scheduleGayageum(context, destination, noise, when, midi, accent = 1, pan = -0.25) {
+  const envelope = context.createGain();
+  const filter = context.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(Math.min(6200, frequency(midi) * 15), when);
+  filter.frequency.exponentialRampToValueAtTime(1100, when + 0.55);
+  filter.Q.value = 1.35;
+  envelope.gain.setValueAtTime(0.0001, when);
+  envelope.gain.exponentialRampToValueAtTime(0.105 * accent, when + 0.008);
+  envelope.gain.exponentialRampToValueAtTime(0.018 * accent, when + 0.32);
+  envelope.gain.exponentialRampToValueAtTime(0.0001, when + 1.05);
+  envelope.connect(filter);
+  connectWithPan(context, filter, destination, pan);
+
+  [["triangle", 1, 0.82], ["sine", 2, 0.34], ["sine", 3, 0.12]].forEach(([type, multiple, level]) => {
+    const oscillator = context.createOscillator();
+    const partial = context.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency(midi) * multiple * 0.985, when);
+    oscillator.frequency.exponentialRampToValueAtTime(frequency(midi) * multiple, when + 0.06);
+    partial.gain.value = level;
+    oscillator.connect(partial);
+    partial.connect(envelope);
+    oscillator.start(when);
+    oscillator.stop(when + 1.08);
+  });
+
+  const pick = context.createBufferSource();
+  const pickFilter = context.createBiquadFilter();
+  const pickGain = context.createGain();
+  pick.buffer = noise;
+  pickFilter.type = "bandpass";
+  pickFilter.frequency.value = Math.min(6500, frequency(midi) * 13);
+  pickFilter.Q.value = 1.1;
+  pickGain.gain.setValueAtTime(0.055 * accent, when);
+  pickGain.gain.exponentialRampToValueAtTime(0.0001, when + 0.045);
+  pick.connect(pickFilter);
+  pickFilter.connect(pickGain);
+  pickGain.connect(envelope);
+  pick.start(when, 0, 0.08);
+}
+
+function scheduleDaegeum(context, destination, noise, when, midi, durationSteps, pan = 0.22) {
+  const duration = Math.max(STEP * 0.8, durationSteps * STEP);
+  const envelope = context.createGain();
+  const filter = context.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 3900;
+  filter.Q.value = 0.65;
+  envelope.gain.setValueAtTime(0.0001, when);
+  envelope.gain.exponentialRampToValueAtTime(0.092, when + 0.15);
+  envelope.gain.setValueAtTime(0.092, when + Math.max(0.2, duration - 0.28));
+  envelope.gain.exponentialRampToValueAtTime(0.0001, when + duration + 0.26);
+  envelope.connect(filter);
+  connectWithPan(context, filter, destination, pan);
+
+  const vibrato = context.createOscillator();
+  const vibratoGain = context.createGain();
+  vibrato.frequency.value = 5.1;
+  vibratoGain.gain.setValueAtTime(0, when);
+  vibratoGain.gain.linearRampToValueAtTime(7, when + 0.42);
+  vibrato.connect(vibratoGain);
+
+  [["sine", 1, 0.9], ["sine", 2, 0.17], ["triangle", 3, 0.045]].forEach(([type, multiple, level], index) => {
+    const oscillator = context.createOscillator();
+    const partial = context.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency(midi) * multiple * (index ? 1 : 0.985), when);
+    oscillator.frequency.exponentialRampToValueAtTime(frequency(midi) * multiple, when + 0.12);
+    partial.gain.value = level;
+    vibratoGain.connect(oscillator.detune);
+    oscillator.connect(partial);
+    partial.connect(envelope);
+    oscillator.start(when);
+    oscillator.stop(when + duration + 0.3);
+  });
+  vibrato.start(when);
+  vibrato.stop(when + duration + 0.3);
+
+  const breath = context.createBufferSource();
+  const breathFilter = context.createBiquadFilter();
+  const breathGain = context.createGain();
+  breath.buffer = noise;
+  breath.loop = true;
+  breathFilter.type = "bandpass";
+  breathFilter.frequency.value = 2100;
+  breathFilter.Q.value = 0.65;
+  breathGain.gain.setValueAtTime(0.0001, when);
+  breathGain.gain.exponentialRampToValueAtTime(0.014, when + 0.16);
+  breathGain.gain.exponentialRampToValueAtTime(0.0001, when + duration + 0.25);
+  breath.connect(breathFilter);
+  breathFilter.connect(breathGain);
+  breathGain.connect(filter);
+  breath.start(when);
+  breath.stop(when + duration + 0.3);
+}
+
+function scheduleDrum(context, destination, noise, when, strong = false) {
+  const envelope = context.createGain();
+  const oscillator = context.createOscillator();
+  const impact = context.createBufferSource();
+  const impactFilter = context.createBiquadFilter();
+  const impactGain = context.createGain();
+  const peak = strong ? 0.16 : 0.105;
+
+  envelope.gain.setValueAtTime(peak, when);
+  envelope.gain.exponentialRampToValueAtTime(0.0001, when + 0.62);
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(strong ? 120 : 102, when);
+  oscillator.frequency.exponentialRampToValueAtTime(52, when + 0.1);
+  oscillator.connect(envelope);
+  envelope.connect(destination);
+  oscillator.start(when);
+  oscillator.stop(when + 0.65);
+
+  impact.buffer = noise;
+  impactFilter.type = "lowpass";
+  impactFilter.frequency.value = 820;
+  impactGain.gain.setValueAtTime(strong ? 0.058 : 0.037, when);
+  impactGain.gain.exponentialRampToValueAtTime(0.0001, when + 0.075);
+  impact.connect(impactFilter);
+  impactFilter.connect(impactGain);
+  impactGain.connect(envelope);
+  impact.start(when, 0, 0.1);
+}
+
+function createController(initialVolume = 0.8) {
   let context = null;
-  let gainNode = null;
-  let source = null;
-  let sourceStartedAt = 0;
-  let sourceOffset = savedPosition();
+  let master = null;
+  let musicBus = null;
+  let noise = null;
+  let timer = 0;
+  let nextStepTime = 0;
+  let stepIndex = savedStep();
   let volume = clamp(initialVolume);
-  let startPromise = null;
+  let starting = null;
   let destroyed = false;
   const removers = [];
 
-  const targetGain = () => MAX_BACKGROUND_GAIN * volume ** 1.65;
+  const gayageum = [
+    57, 64, 69, 72, 69, 64, 60, 64,
+    55, 62, 67, 69, 67, 62, 59, 62,
+    53, 60, 65, 69, 65, 60, 57, 60,
+    52, 59, 64, 67, 64, 59, 55, 59,
+    57, 64, 69, 72, 69, 64, 60, 64,
+    55, 62, 67, 69, 71, 67, 62, 59,
+    53, 60, 65, 69, 72, 69, 65, 60,
+    57, 64, 69, 72, 69, 64, 60, 57
+  ];
+  const chords = [
+    [45, 52, 57], [43, 50, 55], [41, 48, 53], [40, 47, 52],
+    [45, 52, 57], [43, 50, 55], [41, 48, 53], [45, 52, 57]
+  ];
+  const melody = new Map([
+    [0, [69, 4]], [4, [64, 4]], [8, [62, 3]], [11, [64, 1]], [12, [67, 2]], [14, [69, 2]],
+    [16, [72, 4]], [20, [69, 2]], [22, [67, 2]], [24, [64, 4]], [28, [62, 2]], [30, [60, 2]],
+    [32, [69, 3]], [35, [67, 1]], [36, [64, 4]], [40, [62, 2]], [42, [64, 2]], [44, [67, 4]],
+    [48, [69, 2]], [50, [72, 2]], [52, [69, 2]], [54, [67, 2]], [56, [64, 3]], [59, [62, 1]], [60, [60, 2]], [62, [57, 2]]
+  ]);
+
+  const desiredGain = () => Math.max(0.0001, MAX_GAIN * volume ** 1.35);
 
   const savePosition = () => {
-    if (!context || !source) return;
-    const position = (sourceOffset + Math.max(0, context.currentTime - sourceStartedAt)) % LOOP_DURATION;
     try {
-      sessionStorage.setItem(BGM_POSITION_KEY, JSON.stringify({ position, savedAt: Date.now() }));
+      const fractional = context && nextStepTime
+        ? stepIndex - Math.max(0, nextStepTime - context.currentTime) / STEP
+        : stepIndex;
+      sessionStorage.setItem(BGM_POSITION_KEY, JSON.stringify({
+        step: ((fractional % LOOP_STEPS) + LOOP_STEPS) % LOOP_STEPS,
+        savedAt: Date.now()
+      }));
     } catch {
-      // Audio continuity is optional when storage is blocked.
+      // Continuity is optional when session storage is unavailable.
+    }
+  };
+
+  const scheduleStep = (absoluteStep, when) => {
+    const loopStep = absoluteStep % LOOP_STEPS;
+    const bar = Math.floor(loopStep / 8);
+    const withinBar = loopStep % 8;
+
+    scheduleGayageum(
+      context,
+      musicBus,
+      noise,
+      when,
+      gayageum[loopStep],
+      withinBar === 0 || withinBar === 4 ? 1 : 0.74,
+      -0.3 + ((loopStep % 3) - 1) * 0.055
+    );
+
+    if (withinBar === 0) {
+      schedulePad(context, musicBus, when, chords[bar]);
+      scheduleDrum(context, musicBus, noise, when, bar === 0 || bar === 4);
+    } else if (withinBar === 4 && bar % 2 === 1) {
+      scheduleDrum(context, musicBus, noise, when, false);
+    }
+
+    const phrase = melody.get(loopStep);
+    if (phrase) scheduleDaegeum(context, musicBus, noise, when, phrase[0], phrase[1], 0.2);
+  };
+
+  const scheduler = () => {
+    if (!context || context.state === "closed") return;
+    while (nextStepTime < context.currentTime + LOOK_AHEAD_SECONDS) {
+      scheduleStep(stepIndex, nextStepTime);
+      stepIndex = (stepIndex + 1) % LOOP_STEPS;
+      nextStepTime += STEP;
     }
   };
 
   const removeUnlockListeners = () => {
-    while (removers.length) removers.pop()();
+    while (removers.length && removers[removers.length - 1].unlock) {
+      removers.pop().remove();
+    }
   };
 
   const ensureStarted = () => {
     if (destroyed || volume <= 0) return Promise.resolve(false);
-    if (source && context) {
+    if (context && context.state !== "closed") {
       return context.resume().then(() => true).catch(() => false);
     }
-    if (startPromise) return startPromise;
+    if (starting) return starting;
 
-    startPromise = (async () => {
+    starting = (async () => {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextClass) return false;
+      if (!AudioContextClass) throw new Error("Web Audio API is unavailable.");
 
-      context = new AudioContextClass({ latencyHint: "playback" });
-      gainNode = context.createGain();
-      gainNode.gain.setValueAtTime(0.0001, context.currentTime);
-      gainNode.connect(context.destination);
-      await context.resume();
-
-      const rendered = await (renderedBufferPromise ||= renderHistoricalLoop());
-      const playbackBuffer = context.createBuffer(
-        rendered.numberOfChannels,
-        rendered.length,
-        rendered.sampleRate
-      );
-      for (let channelIndex = 0; channelIndex < rendered.numberOfChannels; channelIndex += 1) {
-        playbackBuffer.copyToChannel(rendered.getChannelData(channelIndex), channelIndex);
+      try {
+        context = new AudioContextClass({ latencyHint: "playback" });
+      } catch {
+        context = new AudioContextClass();
       }
 
-      source = context.createBufferSource();
-      source.buffer = playbackBuffer;
-      source.loop = true;
-      source.connect(gainNode);
-      sourceStartedAt = context.currentTime;
-      source.start(0, sourceOffset % playbackBuffer.duration);
-      gainNode.gain.exponentialRampToValueAtTime(
-        Math.max(0.0001, targetGain()),
-        context.currentTime + 1.35
-      );
-      removeUnlockListeners();
+      master = context.createGain();
+      musicBus = context.createGain();
+      noise = makeNoiseBuffer(context);
+      const compressor = context.createDynamicsCompressor();
+      const convolver = context.createConvolver();
+      const wet = context.createGain();
+      const dry = context.createGain();
+
+      convolver.buffer = makeImpulse(context);
+      wet.gain.value = 0.2;
+      dry.gain.value = 0.94;
+      compressor.threshold.value = -16;
+      compressor.knee.value = 18;
+      compressor.ratio.value = 2.2;
+      compressor.attack.value = 0.015;
+      compressor.release.value = 0.28;
+
+      musicBus.connect(dry);
+      musicBus.connect(convolver);
+      convolver.connect(wet);
+      dry.connect(compressor);
+      wet.connect(compressor);
+      compressor.connect(master);
+      master.connect(context.destination);
+      master.gain.setValueAtTime(0.0001, context.currentTime);
+
+      await context.resume();
+      nextStepTime = context.currentTime + 0.035;
+      scheduler();
+      timer = window.setInterval(scheduler, SCHEDULER_INTERVAL_MS);
+      master.gain.exponentialRampToValueAtTime(desiredGain(), context.currentTime + 0.65);
       document.documentElement.dataset.bgm = "playing";
+      removeUnlockListeners();
       return true;
     })().catch(error => {
       console.warn("Historical BGM could not start.", error);
-      startPromise = null;
+      document.documentElement.dataset.bgm = "blocked";
+      if (timer) clearInterval(timer);
+      timer = 0;
+      context?.close().catch(() => {});
+      context = null;
+      starting = null;
       return false;
     });
 
-    return startPromise;
+    return starting;
   };
 
   const setVolume = value => {
     volume = clamp(value);
-    if (gainNode && context) {
-      gainNode.gain.setTargetAtTime(
-        Math.max(0.0001, targetGain()),
-        context.currentTime,
-        0.12
-      );
+    if (master && context) {
+      master.gain.setTargetAtTime(desiredGain(), context.currentTime, 0.1);
     }
-    if (volume > 0 && !source) ensureStarted();
+    if (volume > 0 && !context) ensureStarted();
   };
 
-  const unlock = () => { ensureStarted(); };
-  ["pointerdown", "touchend", "keydown"].forEach(type => {
-    const handler = unlock;
+  const unlockEvents = ["pointerdown", "touchstart", "click", "keydown"];
+  unlockEvents.forEach(type => {
+    const handler = () => { ensureStarted(); };
     document.addEventListener(type, handler, { capture: true, passive: true });
-    removers.push(() => document.removeEventListener(type, handler, { capture: true }));
+    removers.push({
+      unlock: true,
+      remove: () => document.removeEventListener(type, handler, { capture: true })
+    });
   });
 
   const volumeInput = document.getElementById("volumeSetting");
-  const syncSlider = event => setVolume(event.currentTarget.value);
   if (volumeInput) {
-    volumeInput.addEventListener("input", syncSlider);
-    volumeInput.addEventListener("change", syncSlider);
-    removers.push(() => volumeInput.removeEventListener("input", syncSlider));
-    removers.push(() => volumeInput.removeEventListener("change", syncSlider));
+    const syncVolume = event => setVolume(event.currentTarget.value);
+    volumeInput.addEventListener("input", syncVolume);
+    volumeInput.addEventListener("change", syncVolume);
+    removers.unshift({ unlock: false, remove: () => volumeInput.removeEventListener("input", syncVolume) });
+    removers.unshift({ unlock: false, remove: () => volumeInput.removeEventListener("change", syncVolume) });
   }
 
   const handleVisibility = () => {
@@ -490,18 +397,21 @@ function createController(initialVolume = 0.5) {
     if (document.hidden) {
       savePosition();
       context.suspend().catch(() => {});
-    } else if (source && volume > 0) {
-      context.resume().catch(() => {});
+    } else if (volume > 0) {
+      context.resume().then(() => {
+        nextStepTime = Math.max(nextStepTime, context.currentTime + 0.035);
+        scheduler();
+      }).catch(() => {});
     }
   };
   document.addEventListener("visibilitychange", handleVisibility);
-  removers.push(() => document.removeEventListener("visibilitychange", handleVisibility));
+  removers.unshift({ unlock: false, remove: () => document.removeEventListener("visibilitychange", handleVisibility) });
 
   const handlePageHide = () => savePosition();
   window.addEventListener("pagehide", handlePageHide);
-  removers.push(() => window.removeEventListener("pagehide", handlePageHide));
+  removers.unshift({ unlock: false, remove: () => window.removeEventListener("pagehide", handlePageHide) });
 
-  renderedBufferPromise ||= renderHistoricalLoop();
+  document.documentElement.dataset.bgm = "ready";
 
   return {
     ensureStarted,
@@ -511,10 +421,9 @@ function createController(initialVolume = 0.5) {
       if (destroyed) return;
       destroyed = true;
       savePosition();
-      removeUnlockListeners();
-      source?.stop();
+      if (timer) clearInterval(timer);
+      removers.splice(0).forEach(entry => entry.remove());
       context?.close().catch(() => {});
-      source = null;
       context = null;
       document.documentElement.dataset.bgm = "stopped";
       if (sharedController === this) sharedController = null;
@@ -522,7 +431,7 @@ function createController(initialVolume = 0.5) {
   };
 }
 
-export function mountHistoricalBgm({ initialVolume = 0.5 } = {}) {
+export function mountHistoricalBgm({ initialVolume = 0.8 } = {}) {
   if (sharedController) {
     sharedController.setVolume(initialVolume);
     return sharedController;
