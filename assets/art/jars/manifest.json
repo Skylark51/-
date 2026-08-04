@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "cellSize": 96,
+  "spriteOrder": ["onggi", "celadon", "moon-white", "night-lacquer"],
+  "shopThumbnailSprite": "../sprites/jars.png",
+  "lidOpenSprite": "../sprites/jars-lid-open.webp",
+  "variants": {
+    "onggi": {
+      "thumbnailNoToad": "onggi/thumbnail-no-toad.png",
+      "lidOpen": "onggi/lid-open.png"
+    },
+    "celadon": {
+      "thumbnailNoToad": "celadon/thumbnail-no-toad.png",
+      "lidOpen": "celadon/lid-open.png"
+    },
+    "moon-white": {
+      "thumbnailNoToad": "moon-white/thumbnail-no-toad.png",
+      "lidOpen": "moon-white/lid-open.png"
+    },
+    "night-lacquer": {
+      "thumbnailNoToad": "night-lacquer/thumbnail-no-toad.png",
+      "lidOpen": "night-lacquer/lid-open.png"
+    }
+  }
+}
