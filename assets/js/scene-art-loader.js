@@ -1,17 +1,23 @@
-﻿/**
+import photo1 from "./scene-photo/jar-photo-1.js";
+import photo2 from "./scene-photo/jar-photo-2.js";
+import photo3 from "./scene-photo/jar-photo-3.js";
+import photo4 from "./scene-photo/jar-photo-4.js";
+import photo5 from "./scene-photo/jar-photo-5.js";
+import photo6 from "./scene-photo/jar-photo-6.js";
+import photo7 from "./scene-photo/jar-photo-7.js";
+
+/**
  * Shared scene artwork contract.
  *
- * The source artwork is decoded once and reused by lobby and gameplay.
- * GitHub Pages paths are case-sensitive, so the on-disk filename must match.
+ * Gameplay and the lobby now use the same jar-and-toad artwork so the quiz
+ * remains visually consistent with the game's theme and appropriate for an
+ * educational screen.
  */
-export const SCENE_ART_BUILD = "20260804-live1";
+export const SCENE_ART_BUILD = "20260805-safe-jar1";
 export const SCENE_ART_LAYOUT = "single";
 export const SCENE_ATLAS_COLUMNS = 2;
 export const SCENE_ATLAS_ROWS = 2;
-export const SCENE_ATLAS_URL = new URL(
-  `../art/photoreal/Grok.jpg?v=${SCENE_ART_BUILD}`,
-  import.meta.url
-).href;
+export const SCENE_ATLAS_URL = `data:image/jpeg;base64,${photo1}${photo2}${photo3}${photo4}${photo5}${photo6}${photo7}`;
 
 const CELL_ORDER = Object.freeze([
   ["idle", 0, 0],
