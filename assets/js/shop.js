@@ -1,5 +1,5 @@
 import { GameStorage } from "./storage.js";
-import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical1";
+import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical2";
 import { CosmeticSystem, COSMETIC_STORAGE_KEY } from "./cosmetic-system.js";
 import { SHOP_CATEGORIES, SHOP_ITEMS, SHOP_ITEM_MAP } from "../../data/shop-catalog.js";
 import { SCENE_ATLAS_URL, preloadSceneAtlas } from "./scene-art-loader.js";
