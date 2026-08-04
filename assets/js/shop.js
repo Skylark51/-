@@ -1,4 +1,5 @@
 import { GameStorage } from "./storage.js";
+import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical1";
 import { CosmeticSystem, COSMETIC_STORAGE_KEY } from "./cosmetic-system.js";
 import { SHOP_CATEGORIES, SHOP_ITEMS, SHOP_ITEM_MAP } from "../../data/shop-catalog.js";
 import { SCENE_ATLAS_URL, preloadSceneAtlas } from "./scene-art-loader.js";
@@ -48,6 +49,7 @@ const JAR_SPRITE_OFFSETS = Object.freeze({
 
 const gameStorage = new GameStorage();
 const cosmetics = new CosmeticSystem(gameStorage);
+const bgm = mountHistoricalBgm({ initialVolume: gameStorage.data.settings?.volume ?? 0.5 });
 const byId = id => document.getElementById(id);
 const formatNumber = value => Math.max(0, Math.floor(Number(value) || 0)).toLocaleString("ko-KR");
 
@@ -241,6 +243,7 @@ function syncExternalChanges(event) {
   if (event.key !== COSMETIC_STORAGE_KEY && event.key !== "kongjuiya-chem-save") return;
   cosmetics.data = cosmetics.load();
   gameStorage.data = gameStorage.load();
+  bgm.setVolume(gameStorage.data.settings?.volume ?? 0.5);
   updateWalletAndEquipment();
   renderProducts();
   refreshPreview(SHOP_ITEM_MAP[selectedItemId]);
