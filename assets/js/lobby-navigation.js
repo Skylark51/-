@@ -9,7 +9,7 @@ const controls = [...document.querySelectorAll("[data-view-target]")];
 const storage = new GameStorage();
 
 const MOBILE_UI_BREAKPOINT = 760;
-const MOBILE_UI_STYLESHEET = "assets/css/mobile-unified-shell.css?v=20260804-unified2";
+const MOBILE_UI_STYLESHEET = "assets/css/mobile-unified-shell.css?v=20260804-unified3";
 const RECORDS_INTERFACE_STYLESHEET = "assets/css/records-interface.css?v=20260804-records1";
 const HERO_SCENE_STYLESHEET = "assets/css/lobby-hero-scene.css?v=20260804-live1";
 const MOBILE_FIXED_SHELL_STYLESHEET = "assets/css/mobile-fixed-shell.css?v=20260804-fixed-shell3";
