@@ -33,11 +33,13 @@
   .lobby-page .lobby-topbar {
     position: fixed !important;
     z-index: 110;
-    top: max(5px, env(safe-area-inset-top)) !important;
+    top: 0 !important;
     right: 7px;
     left: 7px;
     width: auto;
     margin: 0 !important;
+    padding-top: max(7px, env(safe-area-inset-top)) !important;
+    border-radius: 0 0 15px 15px !important;
   }
 
   .lobby-page .mobile-bottom-nav {
@@ -79,11 +81,13 @@ html[data-device-layout="mobile"] .lobby-page .lobby-app::-webkit-scrollbar {
 html[data-device-layout="mobile"] .lobby-page .lobby-topbar {
   position: fixed !important;
   z-index: 110;
-  top: max(5px, env(safe-area-inset-top)) !important;
+  top: 0 !important;
   right: 7px;
   left: 7px;
   width: auto;
   margin: 0 !important;
+  padding-top: max(7px, env(safe-area-inset-top)) !important;
+  border-radius: 0 0 15px 15px !important;
 }
 
 html[data-device-layout="mobile"] .lobby-page .mobile-bottom-nav {
