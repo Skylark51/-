@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" data-page="shop" data-ui-version="20260803-refactor1">
+<html lang="ko" data-page="shop" data-ui-version="20260804-navfix1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -7,7 +7,135 @@
   <meta name="description" content="콩쥐야 줘때써 - 화학편 콩 상점: 콩쥐의 도구와 옷, 두꺼비와 장독대 외형을 구매하고 장착하세요.">
   <meta property="og:title" content="콩 상점 | 콩쥐야 줘때써 - 화학편">
   <title>콩 상점 | 콩쥐야 줘때써 - 화학편</title>
-  <link rel="stylesheet" href="assets/css/shop.css?v=20260803-jars-image1">
+  <link rel="stylesheet" href="assets/css/shop.css?v=20260804-navfix1">
+  <style id="shopNavigationStability">
+    .shop-wallet {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 9px;
+      min-height: 44px;
+    }
+    .shop-wallet-icon {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #f0cf7f, #b77a22);
+      color: #34200b;
+      font-size: 16px;
+      line-height: 1;
+      filter: saturate(0.92);
+    }
+    .shop-wallet-copy { display: grid; min-width: 0; }
+    .shop-wallet-copy small,
+    .shop-wallet-copy strong { display: block; }
+
+    .shop-settings-dialog {
+      width: min(420px, calc(100% - 28px));
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid var(--shop-line-strong);
+      border-radius: 20px;
+      background: linear-gradient(155deg, #2a2119, #17120e);
+      color: var(--shop-ink);
+      box-shadow: 0 26px 80px rgba(0, 0, 0, 0.58);
+    }
+    .shop-settings-dialog::backdrop {
+      background: rgba(4, 3, 2, 0.72);
+      backdrop-filter: blur(7px);
+    }
+    .shop-settings-dialog form { position: relative; display: grid; gap: 13px; padding: 22px; }
+    .shop-settings-dialog h2 { margin: 0; font-family: "Noto Serif KR", serif; font-size: 24px; }
+    .shop-settings-dialog label { display: grid; gap: 7px; color: var(--shop-muted); font-size: 11px; font-weight: 800; }
+    .shop-settings-dialog input[type="range"],
+    .shop-settings-dialog select { width: 100%; }
+    .shop-settings-dialog select {
+      min-height: 42px;
+      padding: 0 10px;
+      border: 1px solid var(--shop-line);
+      border-radius: 11px;
+      background: #15110d;
+      color: var(--shop-ink);
+    }
+    .shop-settings-dialog .toggle-row { display: flex; align-items: center; gap: 8px; }
+    .shop-settings-dialog .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--shop-line);
+      border-radius: 10px;
+      background: #211a14;
+      color: var(--shop-ink);
+      font-size: 20px;
+    }
+    .shop-settings-dialog .dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 3px; }
+    .shop-settings-dialog .dialog-actions button {
+      min-height: 44px;
+      border-radius: 12px;
+      font-weight: 900;
+    }
+    .shop-settings-dialog .dialog-actions .secondary-button {
+      border: 1px solid var(--shop-line-strong);
+      background: #241b14;
+      color: var(--shop-ink);
+    }
+    .shop-settings-dialog .dialog-actions .primary-button {
+      border: 1px solid #a97824;
+      background: linear-gradient(145deg, #d5a03e, #a86c1d);
+      color: #fff8e7;
+    }
+
+    @media (max-width: 700px) {
+      .shop-wallet { min-width: 82px; padding: 6px 9px; }
+      .shop-wallet-icon { width: 25px; height: 25px; font-size: 14px; }
+      .shop-wallet-copy small { display: none; }
+      .shop-wallet-copy strong { font-size: 14px; }
+
+      .shop-mobile-nav {
+        left: 7px;
+        right: 7px;
+        bottom: max(7px, env(safe-area-inset-bottom));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 4px;
+        padding: 6px;
+        border-radius: 17px;
+        background: rgba(17, 13, 10, 0.94);
+        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.48);
+        backdrop-filter: blur(18px);
+      }
+      .shop-mobile-nav a,
+      .shop-mobile-nav button {
+        display: grid;
+        place-items: center;
+        gap: 2px;
+        min-width: 0;
+        min-height: 51px;
+        padding: 4px;
+        border: 0;
+        border-radius: 11px;
+        background: transparent;
+        color: #8f806b;
+        font-size: 8px;
+        font-weight: 900;
+        line-height: normal;
+        text-decoration: none;
+      }
+      .shop-mobile-nav a span,
+      .shop-mobile-nav button span {
+        font-family: "Noto Serif KR", serif;
+        font-size: 16px;
+      }
+      .shop-mobile-nav [aria-current="page"] {
+        background: #2c2118;
+        color: var(--shop-gold-light);
+      }
+    }
+  </style>
 </head>
 <body class="shop-page">
   <a class="skip-link" href="#shopGrid">상품 목록으로 바로가기</a>
@@ -20,7 +148,8 @@
         <span><small>Group Resolution: 과학 훈련의 새로운 패러다임</small><strong>콩 상점</strong></span>
       </a>
       <a class="shop-wallet" href="#shopGrid" aria-label="현재 보유 콩">
-        <small>보유 콩</small><strong id="shopBeans">0</strong>
+        <span class="shop-wallet-icon" aria-hidden="true">🫘</span>
+        <span class="shop-wallet-copy"><small>보유 콩</small><strong id="shopBeans">0</strong></span>
       </a>
     </header>
 
@@ -71,14 +200,63 @@
     </section>
   </main>
 
-  <nav class="shop-mobile-nav" aria-label="상점 하단 메뉴">
+  <nav class="shop-mobile-nav" aria-label="주요 메뉴">
     <a href="index.html?view=home"><span aria-hidden="true">⌂</span>홈</a>
     <a href="index.html?view=jars"><span aria-hidden="true">甕</span>장독대</a>
     <a href="index.html?view=records"><span aria-hidden="true">冊</span>기록</a>
     <a class="is-active" href="shop.html" aria-current="page"><span aria-hidden="true">豆</span>상점</a>
+    <button id="shopSettingsButton" type="button" aria-label="설정 열기"><span aria-hidden="true">⚙</span>설정</button>
   </nav>
 
+  <dialog id="shopSettingsDialog" class="shop-settings-dialog" aria-labelledby="shopSettingsTitle">
+    <form method="dialog">
+      <button class="modal-close" value="cancel" aria-label="설정 닫기">×</button>
+      <p class="eyebrow">SETTINGS</p>
+      <h2 id="shopSettingsTitle">콩쥐야 줘때써 - 화학편 설정</h2>
+      <label>음량 <input id="shopVolumeSetting" type="range" min="0" max="1" step="0.1"></label>
+      <label>기본 난도
+        <select id="shopDifficultySetting">
+          <option value="easy">쉬움</option>
+          <option value="normal">보통</option>
+          <option value="hard">어려움</option>
+        </select>
+      </label>
+      <label class="toggle-row"><input id="shopMotionSetting" type="checkbox"> 애니메이션 사용</label>
+      <div class="dialog-actions">
+        <button class="secondary-button" value="cancel">취소</button>
+        <button class="primary-button" value="save">저장</button>
+      </div>
+    </form>
+  </dialog>
+
   <div id="shopStatus" class="shop-status" role="status" aria-live="polite"></div>
-  <script type="module" src="assets/js/shop.js?v=20260803-jars-image1"></script>
+  <script type="module" src="assets/js/shop.js?v=20260804-navfix1"></script>
+  <script type="module">
+    import { GameStorage } from "./assets/js/storage.js";
+
+    const storage = new GameStorage();
+    const dialog = document.getElementById("shopSettingsDialog");
+    const openButton = document.getElementById("shopSettingsButton");
+    const volume = document.getElementById("shopVolumeSetting");
+    const difficulty = document.getElementById("shopDifficultySetting");
+    const motion = document.getElementById("shopMotionSetting");
+
+    openButton?.addEventListener("click", () => {
+      volume.value = storage.data.settings.volume ?? 0.7;
+      difficulty.value = storage.data.settings.difficulty || "normal";
+      motion.checked = storage.data.settings.animations !== false;
+      if (!dialog.open) dialog.showModal();
+    });
+
+    dialog?.addEventListener("close", () => {
+      if (dialog.returnValue !== "save") return;
+      storage.updateSettings({
+        volume: Number(volume.value),
+        difficulty: difficulty.value,
+        animations: motion.checked
+      });
+      document.documentElement.classList.toggle("reduce-motion", !motion.checked);
+    });
+  </script>
 </body>
 </html>
