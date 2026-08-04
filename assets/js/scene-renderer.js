@@ -1,5 +1,5 @@
 import { SceneStateMachine } from "./scene-state-machine.js";
-import { preloadSceneFrames } from "./scene-art-loader.js?v=20260803-contain1";
+import { preloadSceneFrames } from "./scene-art-loader.js?v=20260805-safe-jar1";
 
 const DEFAULT_VISUALS = Object.freeze({
   tool: "wood",
@@ -40,15 +40,16 @@ function listen(target, type, handler) {
   return () => target.removeEventListener(type, handler);
 }
 
-function configureContainedImage(image) {
+function configureSceneImage(image) {
   image.alt = "";
   image.draggable = false;
   image.decoding = "async";
   image.style.width = "100%";
   image.style.height = "100%";
-  image.style.objectFit = "contain";
-  image.style.objectPosition = "center";
-  image.style.background = "transparent";
+  image.style.objectFit = "cover";
+  image.style.objectPosition = "center 60%";
+  image.style.background = "#120e0a";
+  image.style.filter = "brightness(.78) saturate(.92) contrast(1.04)";
 }
 
 export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
@@ -66,8 +67,8 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
     throw new Error("SceneRenderer 필수 이미지 DOM이 없습니다.");
   }
 
-  configureContainedImage(frameA);
-  configureContainedImage(frameB);
+  configureSceneImage(frameA);
+  configureSceneImage(frameB);
 
   let frontFrame = frameA;
   let backFrame = frameB;
@@ -117,12 +118,10 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
       .map(([category]) => category);
 
     root.dataset.sceneCosmetics = pendingCategories.length ? "pending" : "default-ready";
-    if (!notice) return;
-
-    notice.hidden = pendingCategories.length === 0;
-    notice.textContent = pendingCategories.length
-      ? `장착 스킨 ${pendingCategories.length}종의 장면 원화 준비 중 · 기본 장면 표시`
-      : "";
+    if (notice) {
+      notice.hidden = true;
+      notice.textContent = "";
+    }
   }
 
   const machine = new SceneStateMachine({ onChange: renderState });
@@ -147,7 +146,7 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
   const waterObserver = waterText ? new MutationObserver(readWater) : null;
   waterObserver?.observe(waterText, { childList: true, characterData: true, subtree: true });
 
-  root.dataset.sceneRenderer = "contained-image-renderer";
+  root.dataset.sceneRenderer = "cover-image-renderer";
   root.dataset.sceneAuthoredFrames = "4";
   root.dataset.sceneAssets = "loading";
   readWater();
@@ -180,7 +179,7 @@ export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
       return machine.enter(state, detail, { schedule: false });
     },
     resize() {
-      // <img object-fit="contain"> follows its container automatically.
+      // The cover image follows its container automatically.
     },
     destroy() {
       if (destroyed) return;
