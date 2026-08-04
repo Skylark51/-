@@ -1,4 +1,6 @@
 ﻿import { getInputDescriptor } from "./question-engine.js";
+
+const REFERENCE_DIGITS = ["7", "8", "9", "4", "5", "6", "1", "2", "3"];
 const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 const CHOICE_MODES = new Set(["choice", "binary_choice", "multiple_choice"]);
 const NUMERIC_MODES = new Set([
@@ -112,7 +114,7 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
 
   const showValue = () => {
     display.value = input.value;
-    display.textContent = input.value || "정답을 입력하세요";
+    display.textContent = input.value;
   };
 
   const emitInput = () => input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -183,11 +185,13 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
     panel.style.display = "grid";
     panel.style.gridTemplateRows = mode === "choice"
       ? "minmax(0, 1fr)"
-      : "auto minmax(0, 1fr) auto";
+      : mode === "numeric"
+        ? "auto minmax(0, 1fr)"
+        : "auto minmax(0, 1fr) auto";
     panel.style.overflow = "hidden";
 
     displayRow.hidden = mode === "choice";
-    actions.hidden = mode === "choice";
+    actions.hidden = mode !== "formula";
 
     keys.style.minHeight = "0";
     keys.style.overflow = "hidden";
@@ -281,14 +285,14 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
     keys.style.gridTemplateColumns = "repeat(3, minmax(0, 1fr))";
     keys.style.gridTemplateRows = "repeat(4, minmax(0, 1fr))";
 
-    for (const digit of DIGITS) {
+    for (const digit of REFERENCE_DIGITS) {
       keys.append(createButton(digit, () => edit(digit), { ariaLabel: `숫자 ${digit}` }));
     }
     keys.append(
-      createButton("⌫", () => edit("backspace"), { className: "keypad-backspace", ariaLabel: "한 글자 지우기" }),
-      createButton("전체", () => edit("clear"), { className: "keypad-clear", ariaLabel: "입력 전체 지우기" })
+      createButton("C", () => edit("clear"), { className: "keypad-clear", ariaLabel: "입력 전체 지우기" }),
+      createButton("0", () => edit("0"), { ariaLabel: "숫자 0" }),
+      createButton("OK", () => submit(), { className: "keypad-submit keypad-ok", ariaLabel: "입력한 정답 확인" })
     );
-    renderConfirmAction();
 
     if (decimal) modifiers.append(createButton(".", () => edit("."), { className: "keypad-modifier", ariaLabel: "소수점" }));
     if (signed) {
