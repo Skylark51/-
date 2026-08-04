@@ -1,0 +1,363 @@
+/*
+ * Mobile quiz reference layer.
+ * Adapts the gameplay question area to a focused dark quiz panel with a
+ * large prompt, answer display, and calculator-style keypad.
+ */
+
+@media (max-width: 900px), (pointer: coarse) {
+  :root {
+    --quiz-reference-bg: #070b0f;
+    --quiz-reference-panel: #080c10;
+    --quiz-reference-line: #131b23;
+    --quiz-reference-text: #dce5ef;
+    --quiz-reference-muted: #7f8b98;
+  }
+
+  .jar-game-page {
+    background: #0b1117;
+  }
+
+  .jar-game-header {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    gap: 6px;
+    border-bottom: 4px solid var(--quiz-reference-line);
+    background: var(--quiz-reference-bg);
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .header-home,
+  .header-focus,
+  .header-fullscreen,
+  #ui-pauseButton {
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    box-shadow: none;
+    color: var(--quiz-reference-text);
+  }
+
+  .header-home {
+    font-size: 31px;
+    font-weight: 300;
+  }
+
+  .header-title {
+    visibility: hidden;
+  }
+
+  .difficulty-badge {
+    display: none;
+  }
+
+  .header-status {
+    gap: 2px;
+  }
+
+  .header-focus {
+    position: relative;
+    font-size: 0;
+  }
+
+  .header-focus::before,
+  .header-focus::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    width: 13px;
+    height: 13px;
+    border-top: 4px solid currentColor;
+    border-left: 4px solid currentColor;
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .header-focus::before { top: 11px; }
+  .header-focus::after { top: 19px; }
+
+  .header-focus[data-state="expanded"] {
+    transform: rotate(180deg);
+  }
+
+  .header-fullscreen {
+    font-size: 25px;
+    line-height: 1;
+  }
+
+  #ui-pauseButton {
+    font-size: 18px;
+  }
+
+  .jar-game-layout {
+    background: #0b1117;
+  }
+
+  .question-panel {
+    gap: 0;
+    border: 1px solid var(--quiz-reference-line);
+    border-radius: 4px;
+    background: var(--quiz-reference-bg);
+  }
+
+  .fever-panel {
+    border: 0;
+    border-bottom: 1px solid var(--quiz-reference-line);
+    border-radius: 0;
+    background: var(--quiz-reference-panel);
+  }
+
+  .question-card {
+    grid-template-rows: auto auto minmax(58px, 0.9fr) 3px auto minmax(0, 1.7fr);
+    gap: 5px;
+    padding: 7px 0 0;
+    border: 0;
+    border-radius: 0;
+    background: var(--quiz-reference-panel);
+    box-shadow: none;
+  }
+
+  .question-progress-line,
+  .question-meta,
+  .question-card h1,
+  .timer-track,
+  .feedback {
+    margin-inline: 10px;
+  }
+
+  .question-progress-line {
+    color: var(--quiz-reference-muted);
+  }
+
+  .question-meta p,
+  .question-type {
+    color: var(--quiz-reference-muted);
+  }
+
+  .question-type {
+    border-color: var(--quiz-reference-line);
+    background: transparent;
+  }
+
+  .question-card h1 {
+    display: grid;
+    place-items: center;
+    max-height: none;
+    overflow: hidden;
+    color: var(--quiz-reference-text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: clamp(29px, 9vw, 54px);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.055em;
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .jar-game-shell[data-question-length="medium"] .question-card h1 {
+    font-size: clamp(23px, 6.7vw, 40px);
+  }
+
+  .jar-game-shell[data-question-length="long"] .question-card h1 {
+    font-size: clamp(17px, 5vw, 29px);
+    line-height: 1.18;
+  }
+
+  .feedback {
+    min-height: 22px;
+    padding: 2px 8px;
+    border: 1px solid var(--quiz-reference-line);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--quiz-reference-muted);
+    line-height: 16px;
+    text-align: center;
+  }
+
+  .feedback.correct {
+    border-color: rgba(105, 206, 145, 0.35);
+    background: rgba(105, 206, 145, 0.08);
+    color: #9be8b8;
+  }
+
+  .feedback.wrong {
+    border-color: rgba(238, 118, 102, 0.38);
+    background: rgba(238, 118, 102, 0.08);
+    color: #ffaaa0;
+  }
+
+  .mobile-input-dock:not([hidden]) {
+    border-top: 1px solid var(--quiz-reference-line);
+  }
+
+  .mobile-keypad {
+    gap: 4px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: var(--quiz-reference-bg);
+  }
+
+  .keypad-display-row {
+    height: clamp(48px, 7.2dvh, 68px);
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--quiz-reference-line);
+    background: var(--quiz-reference-panel);
+  }
+
+  .keypad-display {
+    justify-content: center;
+    height: 100%;
+    padding: 0 10px;
+    border: 4px solid var(--quiz-reference-line);
+    border-radius: 4px;
+    background: #070b0f;
+    color: var(--quiz-reference-text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: clamp(22px, 6vw, 38px);
+    letter-spacing: 0.04em;
+    text-align: center;
+  }
+
+  .keypad-display:empty::before {
+    content: "";
+  }
+
+  .keypad-modifiers {
+    gap: 4px;
+  }
+
+  .keypad-modifier {
+    min-width: 40px;
+    border-radius: 4px !important;
+    background: #10171e !important;
+    color: var(--quiz-reference-text) !important;
+  }
+
+  .keypad-keys {
+    gap: 4px;
+    background: var(--quiz-reference-line);
+  }
+
+  .keypad-keys.is-numeric {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-rows: repeat(4, minmax(0, 1fr)) !important;
+    padding: 0;
+  }
+
+  .mobile-keypad button,
+  .keypad-actions button {
+    border: 0;
+    border-radius: 0;
+    background: var(--quiz-reference-bg);
+    color: var(--quiz-reference-text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: clamp(28px, 8.5vw, 48px);
+    font-weight: 800;
+    box-shadow: none;
+  }
+
+  .mobile-keypad button:active {
+    background: #111a23;
+    filter: none;
+    transform: scale(0.985);
+  }
+
+  .keypad-clear,
+  .keypad-submit {
+    border: 0 !important;
+    background: var(--quiz-reference-bg) !important;
+    color: var(--quiz-reference-text) !important;
+  }
+
+  .keypad-clear {
+    font-size: clamp(26px, 7.5vw, 44px) !important;
+  }
+
+  .keypad-ok {
+    font-size: clamp(22px, 6.5vw, 38px) !important;
+  }
+
+  .keypad-choice {
+    padding: 10px 12px !important;
+    border-bottom: 1px solid var(--quiz-reference-line) !important;
+    font-family: Pretendard, "Noto Sans KR", system-ui, sans-serif !important;
+    font-size: clamp(16px, 4.5vw, 24px) !important;
+    line-height: 1.25 !important;
+    text-align: left;
+  }
+
+  .keypad-formula {
+    border: 1px solid var(--quiz-reference-line) !important;
+    font-size: clamp(16px, 4.7vw, 24px) !important;
+  }
+
+  .keypad-actions {
+    height: 42px;
+    background: var(--quiz-reference-line);
+  }
+
+  .keypad-confirm {
+    font-family: Pretendard, "Noto Sans KR", system-ui, sans-serif !important;
+    font-size: 16px !important;
+  }
+
+  .jar-game-shell.is-quiz-focus .jar-game-layout {
+    grid-template-rows: 0 0 minmax(0, 1fr);
+    gap: 0;
+    padding: 4px 5px max(4px, env(safe-area-inset-bottom));
+  }
+
+  .jar-game-shell.is-quiz-focus .game-hud,
+  .jar-game-shell.is-quiz-focus .scene-panel {
+    visibility: hidden;
+    min-height: 0;
+    height: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .jar-game-shell.is-quiz-focus .question-panel {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .jar-game-shell.is-quiz-focus .question-card {
+    grid-template-rows: auto auto minmax(84px, 1.05fr) 3px auto minmax(0, 1.95fr);
+  }
+
+  .jar-game-shell.is-quiz-focus .question-card h1 {
+    font-size: clamp(38px, 11vw, 72px);
+  }
+
+  .jar-game-shell.is-quiz-focus[data-question-length="medium"] .question-card h1 {
+    font-size: clamp(28px, 8vw, 50px);
+  }
+
+  .jar-game-shell.is-quiz-focus[data-question-length="long"] .question-card h1 {
+    font-size: clamp(20px, 5.8vw, 35px);
+  }
+}
+
+@media (max-width: 900px) and (max-height: 700px),
+       (pointer: coarse) and (max-height: 700px) {
+  .question-card {
+    grid-template-rows: auto minmax(46px, 0.82fr) 3px auto minmax(0, 1.68fr);
+  }
+
+  .question-meta {
+    display: none;
+  }
+
+  .keypad-display-row {
+    height: 44px;
+    padding-block: 5px;
+  }
+
+  .mobile-keypad button,
+  .keypad-actions button {
+    font-size: clamp(22px, 7vw, 36px);
+  }
+
+  .keypad-ok {
+    font-size: clamp(19px, 5.7vw, 30px) !important;
+  }
+}
