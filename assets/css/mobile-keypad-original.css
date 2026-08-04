@@ -1,4 +1,8 @@
-/* Original brown-and-gold keypad appearance. Structure remains owned by mobile-keypad.js. */
+/*
+ * Brown-and-gold mobile keypad skin.
+ * Structural order is owned only by assets/js/mobile-keypad.js.
+ * Do not reposition keypad buttons with nth-child selectors or DOM observers.
+ */
 @media (max-width: 900px), (pointer: coarse) {
   .mobile-input-dock:not([hidden]) {
     border-top: 0;
@@ -11,6 +15,10 @@
     border-radius: 14px;
     background: linear-gradient(160deg, rgba(37, 29, 21, 0.99), rgba(18, 15, 11, 0.99));
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+  }
+
+  .mobile-keypad [hidden] {
+    display: none !important;
   }
 
   .keypad-display-row {
@@ -61,6 +69,12 @@
   .keypad-keys.is-numeric {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     grid-template-rows: repeat(4, minmax(0, 1fr)) !important;
+    grid-auto-flow: row;
+  }
+
+  .keypad-keys.is-numeric > button {
+    grid-column: auto !important;
+    grid-row: auto !important;
   }
 
   .mobile-keypad button,
