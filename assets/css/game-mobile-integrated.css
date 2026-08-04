@@ -87,7 +87,15 @@
     min-height: 0;
     grid-template-rows: auto !important;
     grid-auto-rows: auto;
+    gap: 7px;
+    margin-top: 4px;
+    padding: 10px 0 0;
     overflow: visible !important;
+    border: 0;
+    border-top: 1px solid rgba(79, 57, 34, 0.18);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .keypad-display-row {
@@ -204,7 +212,9 @@ html[data-viewport-class="short"] .question-card {
 
 html[data-viewport-class="short"] .mobile-keypad {
   height: auto !important;
+  padding: 8px 0 0;
   overflow: visible !important;
+  border-radius: 0;
 }
 
 html[data-viewport-class="short"] .keypad-keys {
