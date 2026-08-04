@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" data-page="shop" data-ui-version="20260804-shop-unified1">
+<html lang="ko" data-page="shop" data-ui-version="20260804-shop-fixed-shell1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -22,9 +22,10 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="assets/css/shop.css?v=20260804-shop-unified1">
+  <link rel="stylesheet" href="assets/css/shop.css?v=20260804-shop-fixed-shell1">
   <link rel="stylesheet" href="assets/css/lobby-scene.css?v=20260803-cohesive1">
   <link rel="stylesheet" href="assets/css/mobile-unified-shell.css?v=20260804-unified2">
+  <link rel="stylesheet" href="assets/css/mobile-fixed-shell.css?v=20260804-fixed-shell2">
   <link rel="stylesheet" href="assets/css/mobile-settings-dialog.css?v=20260804-settings1">
   <style id="shopUnifiedShell">
     .shop-page .shop-shell {
@@ -95,10 +96,10 @@
     }
   </style>
 </head>
-<body class="shop-page">
+<body class="shop-page lobby-page">
   <a class="skip-link" href="#shopGrid">상품 목록으로 바로가기</a>
 
-  <main class="shop-shell">
+  <main class="shop-shell lobby-app">
     <header class="lobby-topbar">
       <a class="app-brand" href="index.html?view=home" aria-label="홈으로 이동">
         <span class="brand-seal" aria-hidden="true">甕</span>
@@ -189,7 +190,7 @@
   </dialog>
 
   <div id="shopStatus" class="shop-status" role="status" aria-live="polite"></div>
-  <script type="module" src="assets/js/shop.js?v=20260804-shop-unified1"></script>
+  <script type="module" src="assets/js/shop.js?v=20260804-shop-fixed-shell1"></script>
   <script type="module">
     import { GameStorage } from "./assets/js/storage.js";
     import { applyDeviceMode, getDeviceMode, mountDeviceControls } from "./assets/js/device-entry.js";
