@@ -1,0 +1,80 @@
+@import url("./mobile-shadcn.css?v=20260804-shadcn1");
+
+/*
+ * Mobile shell unification.
+ * The bottom navigation is part of the site surface rather than a floating card.
+ */
+
+html[data-mobile-ui="shadcn"] {
+  --mobile-nav-height: 68px;
+  scroll-padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 12px);
+}
+
+html[data-mobile-ui="shadcn"] body {
+  padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom));
+}
+
+html[data-mobile-ui="shadcn"] .lobby-app {
+  padding-bottom: 18px;
+}
+
+html[data-mobile-ui="shadcn"] .mobile-bottom-nav {
+  position: fixed;
+  z-index: 120;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom));
+  gap: 2px;
+  padding: 5px 8px calc(5px + env(safe-area-inset-bottom));
+  border: 0;
+  border-top: 1px solid rgba(226, 190, 126, 0.18);
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(20, 16, 12, 0.97), rgba(13, 11, 9, 0.995));
+  box-shadow: 0 -8px 22px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(22px) saturate(1.12);
+}
+
+html[data-mobile-ui="shadcn"] .mobile-bottom-nav::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -10px;
+  height: 10px;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(13, 11, 9, 0.48));
+}
+
+html[data-mobile-ui="shadcn"] .mobile-bottom-nav button,
+html[data-mobile-ui="shadcn"] .mobile-bottom-nav a {
+  min-height: 54px;
+  padding: 4px 2px;
+  border-radius: 12px;
+}
+
+html[data-mobile-ui="shadcn"] .mobile-bottom-nav [aria-current="page"] {
+  background: rgba(213, 160, 62, 0.12);
+}
+
+html[data-mobile-ui="shadcn"] .mobile-bottom-nav [aria-current="page"]::after {
+  top: 2px;
+  width: 20px;
+}
+
+@media (max-width: 380px) {
+  html[data-mobile-ui="shadcn"] {
+    --mobile-nav-height: 64px;
+  }
+
+  html[data-mobile-ui="shadcn"] .mobile-bottom-nav {
+    padding-inline: 5px;
+  }
+
+  html[data-mobile-ui="shadcn"] .mobile-bottom-nav button,
+  html[data-mobile-ui="shadcn"] .mobile-bottom-nav a {
+    min-height: 50px;
+    font-size: 8px;
+  }
+}

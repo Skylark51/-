@@ -7,7 +7,7 @@ const controls = [...document.querySelectorAll("[data-view-target]")];
 const storage = new GameStorage();
 
 const MOBILE_UI_BREAKPOINT = 760;
-const MOBILE_UI_STYLESHEET = "assets/css/mobile-shadcn.css?v=20260804-shadcn1";
+const MOBILE_UI_STYLESHEET = "assets/css/mobile-unified-shell.css?v=20260804-unified2";
 const MOBILE_NAV_ICONS = [
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9 20v-7h6v7"/></svg>',
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5c0-1.7 2.2-3 5-3s5 1.3 5 3"/><path d="M6 6h12l-1 14H7L6 6Z"/><path d="M8 9h8"/><path d="M15 15c1.2.4 2 1.3 2 2.4"/></svg>',
