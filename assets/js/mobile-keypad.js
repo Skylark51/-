@@ -183,11 +183,13 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
     panel.style.display = "grid";
     panel.style.gridTemplateRows = mode === "choice"
       ? "minmax(0, 1fr)"
-      : "auto minmax(0, 1fr) auto";
+      : mode === "numeric"
+        ? "auto minmax(0, 1fr)"
+        : "auto minmax(0, 1fr) auto";
     panel.style.overflow = "hidden";
 
     displayRow.hidden = mode === "choice";
-    actions.hidden = mode === "choice";
+    actions.hidden = mode !== "formula";
 
     keys.style.minHeight = "0";
     keys.style.overflow = "hidden";
@@ -281,14 +283,14 @@ export function mountMobileKeypad({ api, form, input, dock } = {}) {
     keys.style.gridTemplateColumns = "repeat(3, minmax(0, 1fr))";
     keys.style.gridTemplateRows = "repeat(4, minmax(0, 1fr))";
 
-    for (const digit of DIGITS) {
+    for (const digit of DIGITS.slice(0, 9)) {
       keys.append(createButton(digit, () => edit(digit), { ariaLabel: `숫자 ${digit}` }));
     }
     keys.append(
-      createButton("⌫", () => edit("backspace"), { className: "keypad-backspace", ariaLabel: "한 글자 지우기" }),
-      createButton("전체", () => edit("clear"), { className: "keypad-clear", ariaLabel: "입력 전체 지우기" })
+      createButton("전체", () => edit("clear"), { className: "keypad-clear", ariaLabel: "입력 전체 지우기" }),
+      createButton("0", () => edit("0"), { ariaLabel: "숫자 0" }),
+      createButton("확인", () => submit(), { className: "keypad-submit keypad-confirm", ariaLabel: "입력한 정답 확인" })
     );
-    renderConfirmAction();
 
     if (decimal) modifiers.append(createButton(".", () => edit("."), { className: "keypad-modifier", ariaLabel: "소수점" }));
     if (signed) {
