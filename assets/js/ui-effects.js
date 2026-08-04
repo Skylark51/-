@@ -2,11 +2,13 @@
 import { GameStorage } from "./storage.js";
 import { applyDeviceMode, getDeviceMode, syncViewport } from "./device-entry.js";
 import { GAME_TITLE, displayJarName } from "./theme-system.js";
+import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical1";
 import { mountMobileKeypad } from "./mobile-keypad.js?v=20260804-quiz-reference1";
 import { mountGameScene } from "./game-cosmetics-entry.js?v=20260803-contain1";
 
 const SELECTION_KEY = "kongjuiya-training-selection";
 const storage = new GameStorage();
+mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ?? 0.5 });
 const byId = id => document.getElementById(id);
 const formatNumber = value => Math.round(Number(value) || 0).toLocaleString("ko-KR");
 const DIFFICULTY_NAMES = Object.freeze({ easy: "쉬움", normal: "보통", hard: "어려움" });
