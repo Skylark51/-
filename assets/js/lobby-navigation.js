@@ -1,7 +1,7 @@
 import { preloadSceneAtlas, SCENE_ATLAS_URL } from "./scene-art-loader.js?v=20260804-live1";
 import { GameStorage } from "./storage.js";
 import { installRecordsInterface } from "./records-interface.js?v=20260804-records1";
-import { installLobbyHeroScene } from "./lobby-hero-scene.js?v=20260804-live1";
+import { installLobbyHeroScene } from "./lobby-hero-scene.js?v=20260804-home-clean1";
 
 const VALID_VIEWS = new Set(["home", "jars", "records"]);
 const viewNodes = [...document.querySelectorAll("[data-app-view]")];
