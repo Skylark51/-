@@ -1,16 +1,15 @@
 ﻿/**
  * Shared scene artwork contract.
  *
- * The source PNG is decoded once, split into four independent key-pose
- * images in memory, and then rendered with <img object-fit="contain">.
- * Runtime presentation never uses CSS background cropping.
+ * The source artwork is decoded once and reused by lobby and gameplay.
+ * GitHub Pages paths are case-sensitive, so the on-disk filename must match.
  */
-export const SCENE_ART_BUILD = "20260803-grok-fit1";
+export const SCENE_ART_BUILD = "20260804-live1";
 export const SCENE_ART_LAYOUT = "single";
 export const SCENE_ATLAS_COLUMNS = 2;
 export const SCENE_ATLAS_ROWS = 2;
 export const SCENE_ATLAS_URL = new URL(
-  `../art/photoreal/grok.jpg?v=${SCENE_ART_BUILD}`,
+  `../art/photoreal/Grok.jpg?v=${SCENE_ART_BUILD}`,
   import.meta.url
 ).href;
 
