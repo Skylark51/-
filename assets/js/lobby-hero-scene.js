@@ -7,7 +7,7 @@ import photo6 from "./scene-photo/jar-photo-6.js";
 import photo7 from "./scene-photo/jar-photo-7.js";
 
 const HERO_ART_URL = `data:image/jpeg;base64,${photo1}${photo2}${photo3}${photo4}${photo5}${photo6}${photo7}`;
-const PHOTO_STYLE_ID = "uploaded-jar-scene-style-v2";
+const PHOTO_STYLE_ID = "uploaded-jar-scene-style-v3";
 
 function installPhotoStyles() {
   if (document.getElementById(PHOTO_STYLE_ID)) return;
@@ -49,7 +49,66 @@ function installPhotoStyles() {
     @media (max-width: 760px), (max-device-width: 760px) {
       .lobby-hero {
         min-height: 0 !important;
-        aspect-ratio: 1 / 1;
+        aspect-ratio: auto !important;
+      }
+      #lobbyTitle[tabindex="-1"]:focus {
+        outline: none !important;
+      }
+      html[data-lobby-view="home"] #lobbyTop .hero-copy {
+        width: 100%;
+        padding: clamp(14px, 2.2vh, 18px) 14px 78px;
+      }
+      html[data-lobby-view="home"] #lobbyTop .hero-copy h1 {
+        max-width: 100%;
+        font-size: clamp(28px, 8.6vw, 36px);
+        line-height: 1.08;
+        letter-spacing: -.055em;
+        text-wrap: balance;
+      }
+      html[data-lobby-view="home"] #lobbyTop .hero-copy > p:not(.eyebrow, .cta-hint) {
+        max-width: 33rem;
+        margin-top: 8px;
+        font-size: 11px;
+        line-height: 1.42;
+      }
+      html[data-lobby-view="home"] #lobbyTop .hero-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+        gap: 7px;
+        margin-top: 13px;
+      }
+      html[data-lobby-view="home"] #lobbyTop .hero-actions > * {
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        padding: 8px 7px;
+        font-size: 10px;
+        white-space: nowrap;
+      }
+      html[data-lobby-view="home"] #lobbyTop .cta-hint {
+        min-height: 0;
+        margin-top: 6px;
+        font-size: 8px;
+        line-height: 1.35;
+      }
+      html[data-lobby-view="home"] #lobbyTop .hero-badges {
+        right: 11px;
+        bottom: 9px;
+        left: 11px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+      html[data-lobby-view="home"] #lobbyTop .hero-badges span {
+        min-width: 0;
+        min-height: 38px;
+        padding: 6px 8px;
+        border-radius: 13px;
+        font-size: 8px;
+        line-height: 1.3;
+      }
+      html[data-lobby-view="home"] #lobbyTop .hero-badges span:nth-child(3) {
+        display: none;
       }
       .hero-live-scene {
         background: #1a1109;
@@ -59,14 +118,14 @@ function installPhotoStyles() {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        object-position: 48% 58%;
+        object-position: 49% 59%;
         opacity: 1;
-        filter: saturate(1.05) contrast(1.04) brightness(.94);
+        filter: saturate(1.08) contrast(1.04) brightness(1.07);
       }
       .hero-live-scene::before {
         background:
-          linear-gradient(180deg, rgba(9, 7, 5, .93) 0%, rgba(9, 7, 5, .72) 39%, rgba(9, 7, 5, .20) 63%, rgba(9, 7, 5, .08) 79%, rgba(9, 7, 5, .32) 100%),
-          linear-gradient(90deg, rgba(9, 7, 5, .42), transparent 76%);
+          linear-gradient(180deg, rgba(9, 7, 5, .84) 0%, rgba(9, 7, 5, .60) 34%, rgba(9, 7, 5, .18) 57%, rgba(9, 7, 5, .04) 76%, rgba(9, 7, 5, .24) 100%),
+          linear-gradient(90deg, rgba(9, 7, 5, .24), transparent 74%);
       }
       .hero-live-scene__water-glow,
       .hero-live-scene__atmosphere {
