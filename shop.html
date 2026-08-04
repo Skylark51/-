@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" data-page="shop" data-ui-version="20260804-navfix1">
+<html lang="ko" data-page="shop" data-ui-version="20260804-beanchar1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -7,7 +7,7 @@
   <meta name="description" content="콩쥐야 줘때써 - 화학편 콩 상점: 콩쥐의 도구와 옷, 두꺼비와 장독대 외형을 구매하고 장착하세요.">
   <meta property="og:title" content="콩 상점 | 콩쥐야 줘때써 - 화학편">
   <title>콩 상점 | 콩쥐야 줘때써 - 화학편</title>
-  <link rel="stylesheet" href="assets/css/shop.css?v=20260804-navfix1">
+  <link rel="stylesheet" href="assets/css/shop.css?v=20260804-beanchar1">
   <style id="shopNavigationStability">
     .shop-wallet {
       display: flex;
@@ -25,9 +25,10 @@
       border-radius: 50%;
       background: linear-gradient(145deg, #f0cf7f, #b77a22);
       color: #34200b;
+      font-family: "Noto Serif KR", serif;
       font-size: 16px;
+      font-weight: 900;
       line-height: 1;
-      filter: saturate(0.92);
     }
     .shop-wallet-copy { display: grid; min-width: 0; }
     .shop-wallet-copy small,
@@ -148,7 +149,7 @@
         <span><small>Group Resolution: 과학 훈련의 새로운 패러다임</small><strong>콩 상점</strong></span>
       </a>
       <a class="shop-wallet" href="#shopGrid" aria-label="현재 보유 콩">
-        <span class="shop-wallet-icon" aria-hidden="true">🫘</span>
+        <span class="shop-wallet-icon" aria-hidden="true">豆</span>
         <span class="shop-wallet-copy"><small>보유 콩</small><strong id="shopBeans">0</strong></span>
       </a>
     </header>
@@ -230,7 +231,7 @@
   </dialog>
 
   <div id="shopStatus" class="shop-status" role="status" aria-live="polite"></div>
-  <script type="module" src="assets/js/shop.js?v=20260804-navfix1"></script>
+  <script type="module" src="assets/js/shop.js?v=20260804-beanchar1"></script>
   <script type="module">
     import { GameStorage } from "./assets/js/storage.js";
 
