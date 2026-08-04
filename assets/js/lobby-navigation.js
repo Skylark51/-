@@ -1,6 +1,7 @@
-import { preloadSceneAtlas, SCENE_ATLAS_URL } from "./scene-art-loader.js?v=20260803-entry-hotfix1";
+import { preloadSceneAtlas, SCENE_ATLAS_URL } from "./scene-art-loader.js?v=20260804-live1";
 import { GameStorage } from "./storage.js";
 import { installRecordsInterface } from "./records-interface.js?v=20260804-records1";
+import { installLobbyHeroScene } from "./lobby-hero-scene.js?v=20260804-live1";
 
 const VALID_VIEWS = new Set(["home", "jars", "records"]);
 const viewNodes = [...document.querySelectorAll("[data-app-view]")];
@@ -10,6 +11,7 @@ const storage = new GameStorage();
 const MOBILE_UI_BREAKPOINT = 760;
 const MOBILE_UI_STYLESHEET = "assets/css/mobile-unified-shell.css?v=20260804-unified2";
 const RECORDS_INTERFACE_STYLESHEET = "assets/css/records-interface.css?v=20260804-records1";
+const HERO_SCENE_STYLESHEET = "assets/css/lobby-hero-scene.css?v=20260804-live1";
 const MOBILE_NAV_ICONS = [
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9 20v-7h6v7"/></svg>',
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5c0-1.7 2.2-3 5-3s5 1.3 5 3"/><path d="M6 6h12l-1 14H7L6 6Z"/><path d="M8 9h8"/><path d="M15 15c1.2.4 2 1.3 2 2.4"/></svg>',
@@ -30,6 +32,7 @@ function appendStylesheet(href) {
 function installMobileUi() {
   appendStylesheet(MOBILE_UI_STYLESHEET);
   appendStylesheet(RECORDS_INTERFACE_STYLESHEET);
+  appendStylesheet(HERO_SCENE_STYLESHEET);
 
   const media = matchMedia(`(max-width: ${MOBILE_UI_BREAKPOINT}px)`);
   const syncMobileFlag = () => {
@@ -102,6 +105,7 @@ function showView(nextView, { historyMode = "push", focus = true } = {}) {
 }
 
 installMobileUi();
+installLobbyHeroScene();
 installRecordsInterface();
 
 for (const control of controls) {
