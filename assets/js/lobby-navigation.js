@@ -1,5 +1,6 @@
 import { preloadSceneAtlas, SCENE_ATLAS_URL } from "./scene-art-loader.js?v=20260804-live1";
 import { GameStorage } from "./storage.js";
+import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical1";
 import { installRecordsInterface } from "./records-interface.js?v=20260804-records1";
 import { installLobbyHeroScene } from "./lobby-hero-scene.js?v=20260804-home-clean1";
 
@@ -7,6 +8,7 @@ const VALID_VIEWS = new Set(["home", "jars", "records"]);
 const viewNodes = [...document.querySelectorAll("[data-app-view]")];
 const controls = [...document.querySelectorAll("[data-view-target]")];
 const storage = new GameStorage();
+const bgm = mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ?? 0.5 });
 
 const MOBILE_UI_BREAKPOINT = 760;
 const MOBILE_UI_STYLESHEET = "assets/css/mobile-unified-shell.css?v=20260804-unified3";
@@ -128,6 +130,7 @@ addEventListener("popstate", event => {
 addEventListener("storage", event => {
   if (!event.key || event.key.includes("kongjuiya")) {
     storage.data = storage.load();
+    bgm.setVolume(storage.data.settings?.volume ?? 0.5);
     syncBeans();
   }
 });
