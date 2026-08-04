@@ -1,0 +1,190 @@
+/* Animated lobby artwork: Kongjwi, the leaking jar, and the toad remain visible instead of a black hero panel. */
+.lobby-hero {
+  background:
+    radial-gradient(circle at 78% 18%, rgba(246, 205, 113, .24), transparent 31%),
+    linear-gradient(145deg, #382819 0%, #193b3d 54%, #0e1716 100%);
+}
+
+.hero-live-scene {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 77% 30%, rgba(255, 222, 139, .28), transparent 34%),
+    radial-gradient(circle at 88% 82%, rgba(75, 202, 215, .24), transparent 28%),
+    linear-gradient(120deg, #3b2b1c 0%, #263b35 48%, #102726 100%);
+}
+
+.hero-live-scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(14, 10, 7, .91) 0%, rgba(14, 10, 7, .68) 37%, rgba(14, 10, 7, .08) 65%, transparent 100%),
+    linear-gradient(180deg, rgba(8, 7, 5, .08), transparent 56%, rgba(8, 7, 5, .42));
+}
+
+.hero-live-scene__art {
+  position: absolute;
+  right: -1.5%;
+  top: 50%;
+  width: min(61%, 690px);
+  height: 112%;
+  object-fit: cover;
+  object-position: 50% 46%;
+  transform: translateY(-50%) scale(1.035);
+  filter: saturate(1.08) contrast(1.03) brightness(1.06) drop-shadow(0 26px 34px rgba(0, 0, 0, .38));
+  animation: heroSceneBreathe 7.5s ease-in-out infinite alternate;
+}
+
+.hero-live-scene__water-glow {
+  position: absolute;
+  z-index: 2;
+  right: 7%;
+  bottom: 2%;
+  width: 38%;
+  height: 24%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(103, 224, 239, .34), rgba(35, 132, 151, .11) 47%, transparent 72%);
+  filter: blur(14px);
+  mix-blend-mode: screen;
+  animation: heroWaterPulse 2.8s ease-in-out infinite;
+}
+
+.hero-live-scene__atmosphere {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+}
+
+.hero-live-scene__firefly,
+.hero-live-scene__drop {
+  position: absolute;
+  display: block;
+  animation-delay: var(--particle-delay);
+}
+
+.hero-live-scene__firefly {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffe39a;
+  box-shadow: 0 0 7px #ffe39a, 0 0 17px rgba(255, 207, 91, .78);
+  opacity: 0;
+  animation: heroFirefly 4.2s ease-in-out infinite;
+}
+
+.firefly-a { right: 42%; top: 21%; }
+.firefly-b { right: 15%; top: 35%; }
+.firefly-c { right: 31%; top: 64%; }
+
+.hero-live-scene__drop {
+  right: 16%;
+  top: 49%;
+  width: 8px;
+  height: 13px;
+  border-radius: 65% 35% 60% 40%;
+  background: linear-gradient(180deg, #ddfbff, #58d7ea 58%, #168aa8);
+  box-shadow: 0 0 9px rgba(91, 215, 234, .56);
+  opacity: 0;
+  transform: rotate(35deg);
+  animation: heroWaterDrop 1.75s linear infinite;
+}
+
+.drop-b { right: 13.5%; top: 51%; }
+.drop-c { right: 18%; top: 47%; }
+
+.lobby-hero.has-live-scene .hero-shade {
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(10, 8, 6, .91) 0%, rgba(10, 8, 6, .70) 37%, rgba(10, 8, 6, .07) 67%, rgba(10, 8, 6, .03)),
+    linear-gradient(180deg, rgba(0, 0, 0, .05), transparent 57%, rgba(0, 0, 0, .36));
+}
+
+.lobby-hero.has-live-scene .hero-copy,
+.lobby-hero.has-live-scene .hero-badges {
+  position: relative;
+  z-index: 4;
+}
+
+@keyframes heroSceneBreathe {
+  0% { transform: translateY(-50%) translate3d(0, 0, 0) scale(1.035); }
+  45% { transform: translateY(-50%) translate3d(-7px, -4px, 0) scale(1.055); }
+  100% { transform: translateY(-50%) translate3d(4px, 3px, 0) scale(1.045); }
+}
+
+@keyframes heroWaterPulse {
+  0%, 100% { opacity: .46; transform: scale(.94); }
+  50% { opacity: .88; transform: scale(1.08); }
+}
+
+@keyframes heroFirefly {
+  0%, 100% { opacity: 0; transform: translate3d(0, 12px, 0) scale(.6); }
+  25% { opacity: .9; }
+  52% { opacity: .45; transform: translate3d(-15px, -9px, 0) scale(1); }
+  76% { opacity: 1; transform: translate3d(8px, -21px, 0) scale(.75); }
+}
+
+@keyframes heroWaterDrop {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(35deg) scale(.7); }
+  12% { opacity: .95; }
+  78% { opacity: .86; transform: translate3d(22px, 56px, 0) rotate(35deg) scale(1); }
+  100% { opacity: 0; transform: translate3d(29px, 72px, 0) rotate(35deg) scale(.72); }
+}
+
+@media (max-width: 980px) {
+  .hero-live-scene__art {
+    right: -9%;
+    width: 72%;
+    height: 108%;
+    object-position: 51% 46%;
+  }
+}
+
+@media (max-width: 760px), (max-device-width: 760px) {
+  .hero-live-scene::before {
+    background:
+      linear-gradient(180deg, rgba(9, 7, 5, .70) 0%, rgba(9, 7, 5, .39) 43%, rgba(9, 7, 5, .12) 68%, rgba(9, 7, 5, .47) 100%),
+      linear-gradient(90deg, rgba(9, 7, 5, .54), transparent 75%);
+  }
+
+  .hero-live-scene__art {
+    right: -18%;
+    top: 54%;
+    width: 112%;
+    height: 106%;
+    object-position: 58% 48%;
+    opacity: .94;
+    filter: saturate(1.06) contrast(1.02) brightness(1.08) drop-shadow(0 18px 25px rgba(0, 0, 0, .34));
+  }
+
+  .hero-live-scene__water-glow {
+    right: 0;
+    bottom: 4%;
+    width: 62%;
+    height: 21%;
+  }
+
+  .firefly-a { right: 64%; top: 49%; }
+  .firefly-b { right: 17%; top: 38%; }
+  .firefly-c { right: 42%; top: 72%; }
+
+  .hero-live-scene__drop {
+    right: 19%;
+    top: 55%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-live-scene__art,
+  .hero-live-scene__water-glow,
+  .hero-live-scene__firefly,
+  .hero-live-scene__drop {
+    animation: none !important;
+  }
+
+  .hero-live-scene__firefly { opacity: .55; }
+}
