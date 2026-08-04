@@ -1,0 +1,212 @@
+/*
+ * Mobile gameplay integration layer.
+ * Keeps the keypad inside the question card and lets the page grow vertically
+ * instead of forcing every control into a fixed-height viewport grid.
+ */
+
+@media (max-width: 900px), (pointer: coarse) {
+  html,
+  body {
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+
+  .jar-game-page {
+    min-height: 100dvh;
+  }
+
+  .jar-game-shell {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .jar-game-header {
+    position: sticky;
+    top: 0;
+    z-index: 80;
+    min-height: var(--game-header-height);
+    padding-top: max(5px, env(safe-area-inset-top));
+    backdrop-filter: blur(18px);
+  }
+
+  .jar-game-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto clamp(156px, 27vh, 238px) auto;
+    grid-template-areas:
+      "hud"
+      "scene"
+      "question";
+    min-height: 0;
+    overflow: visible;
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+
+  .question-panel {
+    display: block;
+    min-width: 0;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .fever-panel {
+    margin-bottom: 6px;
+  }
+
+  .question-card {
+    display: grid;
+    grid-template-rows: auto auto minmax(54px, auto) 4px auto auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .question-card h1 {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .mobile-input-dock:not([hidden]) {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    margin-top: 2px;
+    overflow: visible;
+  }
+
+  .mobile-keypad {
+    width: 100%;
+    height: auto !important;
+    min-height: 0;
+    grid-template-rows: auto !important;
+    grid-auto-rows: auto;
+    overflow: visible !important;
+  }
+
+  .keypad-display-row {
+    min-height: 44px;
+  }
+
+  .keypad-display {
+    min-height: 44px;
+  }
+
+  .keypad-modifiers {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .keypad-keys {
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  .keypad-keys.is-numeric {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-rows: repeat(4, minmax(48px, auto)) !important;
+    grid-auto-rows: minmax(48px, auto);
+  }
+
+  .keypad-keys.is-choice {
+    grid-auto-rows: minmax(54px, auto);
+  }
+
+  .keypad-keys.is-formula {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: minmax(48px, auto);
+    overflow: visible !important;
+  }
+
+  .keypad-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .mobile-keypad button,
+  .keypad-actions button {
+    position: relative;
+    min-height: 48px !important;
+  }
+
+  .keypad-submit {
+    width: 100%;
+  }
+
+  .training-progress {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+  html,
+  body {
+    overflow-y: auto;
+  }
+
+  .jar-game-shell {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .jar-game-layout {
+    grid-template-columns: minmax(0, 1.05fr) minmax(300px, .95fr);
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "scene hud"
+      "scene question";
+    align-items: start;
+  }
+
+  .mobile-keypad {
+    grid-template-rows: auto !important;
+  }
+
+  .keypad-keys.is-numeric {
+    grid-template-rows: repeat(4, minmax(40px, auto)) !important;
+    grid-auto-rows: minmax(40px, auto);
+  }
+
+  .mobile-keypad button,
+  .keypad-actions button {
+    min-height: 40px !important;
+  }
+}
+
+html[data-viewport-class="short"] .jar-game-shell {
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+}
+
+html[data-viewport-class="short"] .jar-game-layout {
+  grid-template-rows: auto 104px auto;
+  overflow: visible;
+}
+
+html[data-viewport-class="short"] .question-panel {
+  display: block;
+  overflow: visible;
+}
+
+html[data-viewport-class="short"] .question-card {
+  grid-template-rows: auto auto minmax(42px, auto) 3px auto auto;
+  overflow: visible;
+}
+
+html[data-viewport-class="short"] .mobile-keypad {
+  height: auto !important;
+  overflow: visible !important;
+}
+
+html[data-viewport-class="short"] .keypad-keys {
+  overflow: visible !important;
+}
