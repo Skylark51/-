@@ -1,5 +1,5 @@
-﻿<!doctype html>
-<html lang="ko" data-page="game" data-ui-version="20260803-confirm1">
+<!doctype html>
+<html lang="ko" data-page="game" data-ui-version="20260804-integrated-keypad1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
@@ -10,6 +10,7 @@
   <link rel="icon" href="data:,">
   <title>콩쥐야 줘때써 - 화학편</title>
   <link rel="stylesheet" href="assets/css/game.css?v=20260803-contain1">
+  <link rel="stylesheet" href="assets/css/game-mobile-integrated.css?v=20260804-integrated-keypad1">
 </head>
 <body class="jar-game-page">
   <a class="skip-link" href="#questionText">문제로 바로가기</a>
@@ -72,9 +73,9 @@
           <div class="track timer-track" aria-hidden="true"><div id="timeBar" class="fill"></div></div>
           <form id="ui-answerForm" class="answer-form" novalidate><label class="sr-only" for="answerInput">정답 입력</label><div class="answer-row"><input id="answerInput" type="text" autocomplete="off" inputmode="text" placeholder="정답을 입력하세요" aria-describedby="feedback"><button id="submitButton" class="submit-button" type="submit">물 붓기</button></div></form>
           <div id="feedback" class="feedback" role="status" aria-live="polite">정답을 맞히면 장독대에 물을 채웁니다.</div>
+          <section id="ui-mobileInputDock" class="mobile-input-dock" aria-label="모바일 정답 입력 도구" hidden></section>
         </section>
 
-        <section id="ui-mobileInputDock" class="mobile-input-dock" aria-label="모바일 정답 입력 도구" hidden></section>
         <section class="training-progress" aria-label="현재 장독대 진행 기록">
           <div><span id="ui-progressTraining">원자 번호 장독대 채우기</span><strong>현재 진행</strong></div>
           <dl><div><dt>정답</dt><dd id="ui-correctCount">0</dd></div><div><dt>오답</dt><dd id="ui-wrongCount">0</dd></div><div><dt>완료</dt><dd><span id="correctInStage">0</span>/10</dd></div><div><dt>목표 점수</dt><dd id="ui-targetScore">3,000</dd></div></dl>
