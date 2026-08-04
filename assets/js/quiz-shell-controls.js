@@ -1,6 +1,102 @@
 const app = document.getElementById("ui-gameApp");
 const focusButton = document.getElementById("ui-focusButton");
 const fullscreenButton = document.getElementById("ui-fullscreenButton");
+const keypadDock = document.getElementById("ui-mobileInputDock");
+
+const KEYPAD_COMFORT_STYLE_ID = "ui-keypad-comfort-style";
+
+function installKeypadComfortStyles() {
+  if (document.getElementById(KEYPAD_COMFORT_STYLE_ID)) return;
+
+  const style = document.createElement("style");
+  style.id = KEYPAD_COMFORT_STYLE_ID;
+  style.textContent = `
+    @media (max-width: 900px), (pointer: coarse) {
+      .mobile-keypad .keypad-actions:empty {
+        display: none !important;
+        height: 0 !important;
+      }
+
+      .mobile-keypad[data-input-mode="integer_keypad"],
+      .mobile-keypad[data-input-mode="numeric_keypad"],
+      .mobile-keypad[data-input-mode="signed_numeric_keypad"],
+      .mobile-keypad[data-input-mode="coefficient_keypad"] {
+        grid-template-rows: 38px minmax(0, 1fr) !important;
+      }
+
+      .keypad-keys.is-numeric .keypad-clear {
+        grid-column: 1 !important;
+        grid-row: 4 !important;
+      }
+
+      .keypad-keys.is-numeric > button:nth-child(11) {
+        grid-column: 2 !important;
+        grid-row: 4 !important;
+      }
+
+      .keypad-keys.is-numeric .keypad-confirm {
+        grid-column: 3 !important;
+        grid-row: 4 !important;
+        width: 100% !important;
+      }
+
+      .keypad-keys.is-numeric .keypad-confirm,
+      .keypad-keys.is-numeric .keypad-clear {
+        font-size: 15px !important;
+      }
+    }
+
+    @media (max-width: 900px) and (min-height: 701px),
+           (pointer: coarse) and (min-height: 701px) {
+      .jar-game-shell:not(.is-quiz-focus) .question-card {
+        grid-template-rows: auto auto minmax(52px, 0.76fr) 3px auto minmax(0, 2.04fr) !important;
+      }
+
+      .keypad-keys.is-numeric button {
+        font-size: clamp(16px, 4.4vw, 20px) !important;
+      }
+
+      .keypad-keys.is-numeric .keypad-clear,
+      .keypad-keys.is-numeric .keypad-confirm {
+        font-size: 16px !important;
+      }
+    }
+  `;
+  document.head.append(style);
+}
+
+function normalizeNumericKeypad() {
+  const panel = document.getElementById("ui-mobileKeypad");
+  const keys = panel?.querySelector(".keypad-keys.is-numeric");
+  const confirm = panel?.querySelector(".keypad-confirm");
+  if (!panel || !keys || !confirm) return;
+
+  if (confirm.parentElement !== keys) keys.append(confirm);
+
+  const clear = keys.querySelector(".keypad-clear");
+  const zero = [...keys.children].find(button => button.textContent.trim() === "0");
+
+  if (clear) {
+    clear.style.gridColumn = "1";
+    clear.style.gridRow = "4";
+  }
+  if (zero) {
+    zero.style.gridColumn = "2";
+    zero.style.gridRow = "4";
+  }
+  confirm.style.gridColumn = "3";
+  confirm.style.gridRow = "4";
+  confirm.style.width = "100%";
+
+  const actions = panel.querySelector(".keypad-actions");
+  if (actions && !actions.childElementCount) actions.hidden = true;
+}
+
+let keypadRepairFrame = 0;
+function scheduleNumericKeypadRepair() {
+  cancelAnimationFrame(keypadRepairFrame);
+  keypadRepairFrame = requestAnimationFrame(normalizeNumericKeypad);
+}
 
 function updateFocusButton() {
   if (!app || !focusButton) return;
@@ -62,4 +158,16 @@ if (fullscreenButton) {
     document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
     updateFullscreenButton();
   }
+}
+
+installKeypadComfortStyles();
+
+if (keypadDock) {
+  const observer = new MutationObserver(scheduleNumericKeypadRepair);
+  observer.observe(keypadDock, { childList: true, subtree: true });
+
+  window.addEventListener("question:changed", scheduleNumericKeypadRepair);
+  window.addEventListener("ui:device-mode", scheduleNumericKeypadRepair);
+  window.addEventListener("resize", scheduleNumericKeypadRepair);
+  scheduleNumericKeypadRepair();
 }
