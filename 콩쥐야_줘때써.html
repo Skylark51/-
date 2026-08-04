@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" data-page="game" data-ui-version="20260804-keypad-stable1">
+<html lang="ko" data-page="game" data-ui-version="20260805-scene-question1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="assets/css/quiz-reference-mobile.css?v=20260804-quiz-reference1">
   <link rel="stylesheet" href="assets/css/mobile-keypad-original.css?v=20260804-keypad-stable1">
   <link rel="stylesheet" href="assets/css/mobile-game-refinement.css?v=20260804-mobile-refine1">
+  <link rel="stylesheet" href="assets/css/scene-question-merge.css?v=20260805-scene-question1">
 </head>
 <body class="jar-game-page">
   <a class="skip-link" href="#questionText">문제로 바로가기</a>
@@ -43,13 +44,23 @@
         <div class="hud-card hud-time"><small>남은 시간</small><strong id="timerBadge">15초</strong></div>
       </section>
 
-      <section class="scene-panel" aria-label="콩쥐와 두꺼비의 장독대 장면">
-        <div id="visualStage" class="game-stage" role="img" aria-label="콩쥐가 바가지로 장독대에 물을 붓고 두꺼비가 구멍을 막는 장면">
+      <section class="scene-panel" aria-label="콩쥐와 두꺼비의 장독대 장면 및 현재 문제">
+        <div id="visualStage" class="game-stage" role="group" aria-label="콩쥐가 바가지로 장독대에 물을 붓고 두꺼비가 구멍을 막는 장면">
           <div class="scene-frame-stack" aria-hidden="true">
             <img id="sceneFrameA" class="scene-frame is-visible" alt="" draggable="false">
             <img id="sceneFrameB" class="scene-frame" alt="" draggable="false">
           </div>
           <div class="scene-cinematic-shade" aria-hidden="true"></div>
+
+          <section class="scene-question-bubble" aria-label="현재 화학 문제">
+            <div class="scene-question-topline">
+              <div class="question-progress-line"><span>문제 <b id="ui-questionCount">1</b> / 10</span><div class="track"><div id="stageProgress" class="fill"></div></div><strong class="desktop-timer" aria-hidden="true"><span id="timeText">15.0초</span></strong></div>
+              <div class="question-meta"><p id="categoryLabel">원자 구조 · 원자 번호 장독대 채우기</p><span id="ui-questionType" class="question-type">직접 입력</span></div>
+            </div>
+            <h1 id="questionText" tabindex="-1">문제를 준비하고 있습니다.</h1>
+            <div class="track timer-track" aria-hidden="true"><div id="timeBar" class="fill"></div></div>
+          </section>
+
           <div class="scene-water-meter" aria-label="장독대 물 수위"><span>물</span><div class="scene-water-track"><div id="waterVisual" class="scene-water-fill"></div></div></div>
           <div class="scene-status-card"><span class="status-dot" aria-hidden="true"></span><div><small>현재 상태</small><strong id="statusBadge">물 채우기 준비</strong></div></div>
           <div class="scene-leak-card"><small>누수</small><strong id="leakRateText">초당 1.5%</strong></div>
@@ -64,18 +75,14 @@
         </div>
       </section>
 
-      <aside class="question-panel" aria-label="화학 문제">
+      <aside class="question-panel" aria-label="정답 입력">
         <section class="fever-panel" aria-label="피버 게이지">
           <div class="fever-copy"><span id="feverLabel">FEVER 준비</span><strong id="feverMultiplier">×1</strong></div>
           <div id="feverGauge" class="fever-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="feverFill"></i></div>
           <small id="feverTimer" aria-live="polite">연속 정답으로 피버를 충전하세요.</small>
         </section>
 
-        <section class="question-card">
-          <div class="question-progress-line"><span>문제 <b id="ui-questionCount">1</b> / 10</span><div class="track"><div id="stageProgress" class="fill"></div></div><strong class="desktop-timer" aria-hidden="true"><span id="timeText">15.0초</span></strong></div>
-          <div class="question-meta"><p id="categoryLabel">원자 구조 · 원자 번호 장독대 채우기</p><span id="ui-questionType" class="question-type">직접 입력</span></div>
-          <h1 id="questionText" tabindex="-1">문제를 준비하고 있습니다.</h1>
-          <div class="track timer-track" aria-hidden="true"><div id="timeBar" class="fill"></div></div>
+        <section class="question-card question-answer-card">
           <form id="ui-answerForm" class="answer-form" novalidate><label class="sr-only" for="answerInput">정답 입력</label><div class="answer-row"><input id="answerInput" type="text" autocomplete="off" inputmode="text" placeholder="정답을 입력하세요" aria-describedby="feedback"><button id="submitButton" class="submit-button" type="submit">물 붓기</button></div></form>
           <div id="feedback" class="feedback" role="status" aria-live="polite">정답을 맞히면 장독대에 물을 채웁니다.</div>
           <section id="ui-mobileInputDock" class="mobile-input-dock" aria-label="모바일 정답 입력 도구" hidden></section>
