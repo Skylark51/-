@@ -1,0 +1,49 @@
+name: Integrate gameplay reaction assets
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "assets/js/game-asset-animation.js"
+      - "assets/css/game-asset-animation.css"
+      - ".github/workflows/integrate-game-animation.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Connect animation to quiz shell
+        shell: python
+        run: |
+          from pathlib import Path
+
+          version = "20260805-gameplay-reactions1"
+          controls = Path("assets/js/quiz-shell-controls.js")
+          control_text = controls.read_text(encoding="utf-8-sig")
+          hook = f'import "./game-asset-animation.js?v={version}";\n'
+          if hook not in control_text:
+              control_text = hook + control_text
+          controls.write_text(control_text, encoding="utf-8")
+
+          page = Path("콩쥐야_줘때써.html")
+          html = page.read_text(encoding="utf-8-sig")
+          html = html.replace('data-ui-version="20260805-safe-jar1"', f'data-ui-version="{version}"')
+          old = 'assets/js/quiz-shell-controls.js?v=20260804-shell-clean1'
+          html = html.replace(old, f'assets/js/quiz-shell-controls.js?v={version}')
+          page.write_text(html, encoding="utf-8")
+
+      - name: Commit quiz integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/js/quiz-shell-controls.js "콩쥐야_줘때써.html"
+          git commit -m "feat: connect jar and toad reactions to quiz [skip ci]" || exit 0
+          git push
