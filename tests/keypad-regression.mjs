@@ -5,7 +5,13 @@ const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8"
 
 const keypadSource = read("assets/js/mobile-keypad.js");
 const shellControls = read("assets/js/quiz-shell-controls.js");
-const keypadCss = read("assets/css/mobile-keypad-original.css");
+const keypadSkin = read("assets/css/mobile-keypad-original.css");
+const loadedKeypadCss = [
+  read("assets/css/game-mobile-integrated.css"),
+  read("assets/css/quiz-reference-mobile.css"),
+  keypadSkin,
+  read("assets/css/mobile-game-refinement.css")
+].join("\n");
 const gameHtml = read("콩쥐야_줘때써.html");
 
 assert.equal(
@@ -19,12 +25,17 @@ assert.equal(
   "numeric keypad repair code must remain in mobile-keypad.js only"
 );
 assert.equal(
-  keypadCss.includes("nth-child"),
+  /\.keypad-keys\.is-numeric\s*>\s*button:(?:nth-child|nth-of-type)/.test(loadedKeypadCss),
   false,
-  "numeric keypad layout must not depend on fragile nth-child selectors"
+  "numeric keypad layout must not depend on button position selectors"
+);
+assert.equal(
+  /\.(?:keypad-clear|keypad-confirm)[^{]*\{[^}]*(?:grid-column|grid-row)\s*:/s.test(loadedKeypadCss),
+  false,
+  "clear and confirm buttons must follow source order instead of fixed grid coordinates"
 );
 assert.match(
-  keypadCss,
+  keypadSkin,
   /\.keypad-keys\.is-numeric\s*>\s*button\s*\{[^}]*grid-column:\s*auto\s*!important;[^}]*grid-row:\s*auto\s*!important;/s,
   "numeric keys must ignore stale per-button grid coordinates"
 );
