@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" data-page="shop" data-ui-version="20260804-beanchar1">
+<html lang="ko" data-page="shop" data-ui-version="20260804-shop-unified1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -7,133 +7,90 @@
   <meta name="description" content="콩쥐야 줘때써 - 화학편 콩 상점: 콩쥐의 도구와 옷, 두꺼비와 장독대 외형을 구매하고 장착하세요.">
   <meta property="og:title" content="콩 상점 | 콩쥐야 줘때써 - 화학편">
   <title>콩 상점 | 콩쥐야 줘때써 - 화학편</title>
-  <link rel="stylesheet" href="assets/css/shop.css?v=20260804-beanchar1">
-  <style id="shopNavigationStability">
-    .shop-wallet {
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("kongjuiya-device-mode") || "auto";
+        const coarse = matchMedia("(pointer: coarse)").matches;
+        const detected = innerWidth <= 820 || (coarse && innerWidth < 1100) ? "mobile" : "desktop";
+        const resolved = stored === "mobile" || stored === "desktop" ? stored : detected;
+        document.documentElement.dataset.deviceMode = stored;
+        document.documentElement.dataset.deviceLayout = resolved;
+        if (innerWidth <= 760 || resolved === "mobile") document.documentElement.dataset.mobileUi = "shadcn";
+      } catch {
+        if (innerWidth <= 760) document.documentElement.dataset.mobileUi = "shadcn";
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="assets/css/shop.css?v=20260804-shop-unified1">
+  <link rel="stylesheet" href="assets/css/lobby-scene.css?v=20260803-cohesive1">
+  <link rel="stylesheet" href="assets/css/mobile-unified-shell.css?v=20260804-unified2">
+  <link rel="stylesheet" href="assets/css/mobile-settings-dialog.css?v=20260804-settings1">
+  <style id="shopUnifiedShell">
+    .shop-page .shop-shell {
+      width: min(1320px, 100%);
+      padding-top: 14px;
+    }
+    .shop-page .lobby-topbar {
+      margin-bottom: 16px;
+    }
+    .shop-page .desktop-tabs [aria-current="page"] {
+      background: #2c2118;
+      color: var(--gold-2);
+    }
+    .shop-page .bean-wallet {
+      font-variant-numeric: tabular-nums;
+    }
+    .shop-page .modal-card .device-mode-field {
+      min-width: 0;
+      margin: 17px 0;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+    }
+    .shop-page .modal-card .device-mode-field legend {
+      padding: 0 5px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+    }
+    .shop-page .modal-card .device-mode-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+    .shop-page .modal-card .device-mode-options label {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
-      gap: 9px;
-      min-height: 44px;
-    }
-    .shop-wallet-icon {
-      display: grid;
-      place-items: center;
-      width: 28px;
-      height: 28px;
-      flex: 0 0 auto;
-      border-radius: 50%;
-      background: linear-gradient(145deg, #f0cf7f, #b77a22);
-      color: #34200b;
-      font-family: "Noto Serif KR", serif;
-      font-size: 16px;
-      font-weight: 900;
-      line-height: 1;
-    }
-    .shop-wallet-copy { display: grid; min-width: 0; }
-    .shop-wallet-copy small,
-    .shop-wallet-copy strong { display: block; }
-
-    .shop-settings-dialog {
-      width: min(420px, calc(100% - 28px));
-      padding: 0;
-      overflow: hidden;
-      border: 1px solid var(--shop-line-strong);
-      border-radius: 20px;
-      background: linear-gradient(155deg, #2a2119, #17120e);
-      color: var(--shop-ink);
-      box-shadow: 0 26px 80px rgba(0, 0, 0, 0.58);
-    }
-    .shop-settings-dialog::backdrop {
-      background: rgba(4, 3, 2, 0.72);
-      backdrop-filter: blur(7px);
-    }
-    .shop-settings-dialog form { position: relative; display: grid; gap: 13px; padding: 22px; }
-    .shop-settings-dialog h2 { margin: 0; font-family: "Noto Serif KR", serif; font-size: 24px; }
-    .shop-settings-dialog label { display: grid; gap: 7px; color: var(--shop-muted); font-size: 11px; font-weight: 800; }
-    .shop-settings-dialog input[type="range"],
-    .shop-settings-dialog select { width: 100%; }
-    .shop-settings-dialog select {
-      min-height: 42px;
-      padding: 0 10px;
-      border: 1px solid var(--shop-line);
-      border-radius: 11px;
-      background: #15110d;
-      color: var(--shop-ink);
-    }
-    .shop-settings-dialog .toggle-row { display: flex; align-items: center; gap: 8px; }
-    .shop-settings-dialog .modal-close {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 34px;
-      height: 34px;
-      border: 1px solid var(--shop-line);
+      justify-content: center;
+      gap: 5px;
+      min-width: 0;
+      min-height: 40px;
+      margin: 0;
+      padding: 6px;
+      border: 1px solid var(--line);
       border-radius: 10px;
-      background: #211a14;
-      color: var(--shop-ink);
-      font-size: 20px;
+      background: #15110d;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 850;
+      text-align: center;
     }
-    .shop-settings-dialog .dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 3px; }
-    .shop-settings-dialog .dialog-actions button {
-      min-height: 44px;
-      border-radius: 12px;
-      font-weight: 900;
+    .shop-page .modal-card .device-mode-options label:has(input:checked) {
+      border-color: rgba(213, 160, 62, .56);
+      background: rgba(213, 160, 62, .14);
+      color: var(--gold-2);
     }
-    .shop-settings-dialog .dialog-actions .secondary-button {
-      border: 1px solid var(--shop-line-strong);
-      background: #241b14;
-      color: var(--shop-ink);
+    .shop-page .modal-card .device-mode-options input {
+      margin: 0;
+      accent-color: var(--gold);
     }
-    .shop-settings-dialog .dialog-actions .primary-button {
-      border: 1px solid #a97824;
-      background: linear-gradient(145deg, #d5a03e, #a86c1d);
-      color: #fff8e7;
-    }
-
     @media (max-width: 700px) {
-      .shop-wallet { min-width: 82px; padding: 6px 9px; }
-      .shop-wallet-icon { width: 25px; height: 25px; font-size: 14px; }
-      .shop-wallet-copy small { display: none; }
-      .shop-wallet-copy strong { font-size: 14px; }
-
-      .shop-mobile-nav {
-        left: 7px;
-        right: 7px;
-        bottom: max(7px, env(safe-area-inset-bottom));
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 4px;
-        padding: 6px;
-        border-radius: 17px;
-        background: rgba(17, 13, 10, 0.94);
-        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.48);
-        backdrop-filter: blur(18px);
+      .shop-page .shop-shell {
+        padding: 8px 9px 24px;
       }
-      .shop-mobile-nav a,
-      .shop-mobile-nav button {
-        display: grid;
-        place-items: center;
-        gap: 2px;
-        min-width: 0;
-        min-height: 51px;
-        padding: 4px;
-        border: 0;
-        border-radius: 11px;
-        background: transparent;
-        color: #8f806b;
-        font-size: 8px;
-        font-weight: 900;
-        line-height: normal;
-        text-decoration: none;
-      }
-      .shop-mobile-nav a span,
-      .shop-mobile-nav button span {
-        font-family: "Noto Serif KR", serif;
-        font-size: 16px;
-      }
-      .shop-mobile-nav [aria-current="page"] {
-        background: #2c2118;
-        color: var(--shop-gold-light);
+      .shop-page .lobby-topbar {
+        margin-bottom: 9px;
       }
     }
   </style>
@@ -142,16 +99,26 @@
   <a class="skip-link" href="#shopGrid">상품 목록으로 바로가기</a>
 
   <main class="shop-shell">
-    <header class="shop-topbar">
-      <a class="shop-back" href="index.html" aria-label="메인 화면으로 돌아가기">‹</a>
-      <a class="shop-brand" href="index.html" aria-label="콩쥐야 줘때써 - 화학편 홈">
+    <header class="lobby-topbar">
+      <a class="app-brand" href="index.html?view=home" aria-label="홈으로 이동">
         <span class="brand-seal" aria-hidden="true">甕</span>
-        <span><small>Group Resolution: 과학 훈련의 새로운 패러다임</small><strong>콩 상점</strong></span>
+        <span>
+          <strong>콩쥐야 줘때써 - 화학편</strong>
+          <small>Group Resolution: 과학 훈련의 새로운 패러다임</small>
+        </span>
       </a>
-      <a class="shop-wallet" href="#shopGrid" aria-label="현재 보유 콩">
-        <span class="shop-wallet-icon" aria-hidden="true">豆</span>
-        <span class="shop-wallet-copy"><small>보유 콩</small><strong id="shopBeans">0</strong></span>
-      </a>
+
+      <nav class="desktop-tabs" aria-label="주요 화면">
+        <a href="index.html?view=home">홈</a>
+        <a href="index.html?view=jars">장독대</a>
+        <a href="index.html?view=records">기록</a>
+        <a href="shop.html" aria-current="page">콩 상점</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <a class="bean-wallet" href="#shopGrid" aria-label="현재 보유 콩"><small>보유 콩</small><strong id="shopBeans">0</strong></a>
+        <button id="settingsButton" class="topbar-icon" type="button" aria-label="설정 열기">⚙</button>
+      </div>
     </header>
 
     <section class="shop-layout">
@@ -201,62 +168,78 @@
     </section>
   </main>
 
-  <nav class="shop-mobile-nav" aria-label="주요 메뉴">
-    <a href="index.html?view=home"><span aria-hidden="true">⌂</span>홈</a>
-    <a href="index.html?view=jars"><span aria-hidden="true">甕</span>장독대</a>
-    <a href="index.html?view=records"><span aria-hidden="true">冊</span>기록</a>
-    <a class="is-active" href="shop.html" aria-current="page"><span aria-hidden="true">豆</span>상점</a>
-    <button id="shopSettingsButton" type="button" aria-label="설정 열기"><span aria-hidden="true">⚙</span>설정</button>
+  <nav class="mobile-bottom-nav" aria-label="주요 메뉴">
+    <a href="index.html?view=home"><span class="mobile-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9 20v-7h6v7"/></svg></span>홈</a>
+    <a href="index.html?view=jars"><span class="mobile-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 5c0-1.7 2.2-3 5-3s5 1.3 5 3"/><path d="M6 6h12l-1 14H7L6 6Z"/><path d="M8 9h8"/><path d="M15 15c1.2.4 2 1.3 2 2.4"/></svg></span>장독대</a>
+    <a href="index.html?view=records"><span class="mobile-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19V3"/><path d="M2 19h20"/></svg></span>기록</a>
+    <a href="shop.html" aria-current="page"><span class="mobile-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 13h6"/></svg></span>상점</a>
+    <button id="bottomSettingsButton" type="button" aria-label="설정 열기"><span class="mobile-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.1A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.09.37.3.72.6 1 .3.28.69.42 1.1.4h.1v4h-.1c-.41-.02-.8.12-1.1.4-.3.28-.51.63-.6 1Z"/></svg></span>설정</button>
   </nav>
 
-  <dialog id="shopSettingsDialog" class="shop-settings-dialog" aria-labelledby="shopSettingsTitle">
+  <dialog id="settingsDialog" class="modal-card" aria-labelledby="settingsTitle">
     <form method="dialog">
       <button class="modal-close" value="cancel" aria-label="설정 닫기">×</button>
       <p class="eyebrow">SETTINGS</p>
-      <h2 id="shopSettingsTitle">콩쥐야 줘때써 - 화학편 설정</h2>
-      <label>음량 <input id="shopVolumeSetting" type="range" min="0" max="1" step="0.1"></label>
-      <label>기본 난도
-        <select id="shopDifficultySetting">
-          <option value="easy">쉬움</option>
-          <option value="normal">보통</option>
-          <option value="hard">어려움</option>
-        </select>
-      </label>
-      <label class="toggle-row"><input id="shopMotionSetting" type="checkbox"> 애니메이션 사용</label>
-      <div class="dialog-actions">
-        <button class="secondary-button" value="cancel">취소</button>
-        <button class="primary-button" value="save">저장</button>
-      </div>
+      <h2 id="settingsTitle">콩쥐야 줘때써 - 화학편 설정</h2>
+      <label>음량 <input id="volumeSetting" type="range" min="0" max="1" step="0.1"></label>
+      <label>기본 난도<select id="difficultySetting"><option value="easy">쉬움</option><option value="normal">보통</option><option value="hard">어려움</option></select></label>
+      <label class="toggle-row"><input id="motionSetting" type="checkbox"> 애니메이션 사용</label>
+      <div class="dialog-actions"><button class="secondary-button" value="cancel">취소</button><button class="primary-button" value="save">저장</button></div>
     </form>
   </dialog>
 
   <div id="shopStatus" class="shop-status" role="status" aria-live="polite"></div>
-  <script type="module" src="assets/js/shop.js?v=20260804-beanchar1"></script>
+  <script type="module" src="assets/js/shop.js?v=20260804-shop-unified1"></script>
   <script type="module">
     import { GameStorage } from "./assets/js/storage.js";
+    import { applyDeviceMode, getDeviceMode, mountDeviceControls } from "./assets/js/device-entry.js";
 
     const storage = new GameStorage();
-    const dialog = document.getElementById("shopSettingsDialog");
-    const openButton = document.getElementById("shopSettingsButton");
-    const volume = document.getElementById("shopVolumeSetting");
-    const difficulty = document.getElementById("shopDifficultySetting");
-    const motion = document.getElementById("shopMotionSetting");
+    const dialog = document.getElementById("settingsDialog");
+    const form = dialog?.querySelector("form");
+    const volume = document.getElementById("volumeSetting");
+    const difficulty = document.getElementById("difficultySetting");
+    const motion = document.getElementById("motionSetting");
+    const media = matchMedia("(max-width: 760px)");
+    let deviceControlsMounted = false;
 
-    openButton?.addEventListener("click", () => {
+    const syncMobileUi = () => {
+      const forcedMobile = document.documentElement.dataset.deviceLayout === "mobile";
+      if (media.matches || forcedMobile) document.documentElement.dataset.mobileUi = "shadcn";
+      else delete document.documentElement.dataset.mobileUi;
+    };
+
+    const openSettings = () => {
       volume.value = storage.data.settings.volume ?? 0.7;
       difficulty.value = storage.data.settings.difficulty || "normal";
       motion.checked = storage.data.settings.animations !== false;
-      if (!dialog.open) dialog.showModal();
-    });
+      if (!deviceControlsMounted && form) {
+        mountDeviceControls({ settingsForm: form, before: form.querySelector(".dialog-actions"), requireChoice: false });
+        deviceControlsMounted = true;
+      }
+      if (dialog && !dialog.open) dialog.showModal();
+    };
+
+    applyDeviceMode(getDeviceMode() || "auto", { force: true });
+    syncMobileUi();
+    document.documentElement.classList.toggle("reduce-motion", storage.data.settings.animations === false);
+
+    document.getElementById("settingsButton")?.addEventListener("click", openSettings);
+    document.getElementById("bottomSettingsButton")?.addEventListener("click", openSettings);
+    media.addEventListener?.("change", syncMobileUi);
+    addEventListener("ui:device-mode", syncMobileUi);
 
     dialog?.addEventListener("close", () => {
       if (dialog.returnValue !== "save") return;
       storage.updateSettings({
         volume: Number(volume.value),
         difficulty: difficulty.value,
-        animations: motion.checked
+        animations: motion.checked,
+        deviceMode: getDeviceMode() || "auto"
       });
       document.documentElement.classList.toggle("reduce-motion", !motion.checked);
+      applyDeviceMode(getDeviceMode() || "auto", { force: true });
+      syncMobileUi();
     });
   </script>
 </body>
