@@ -1,4 +1,4 @@
-import "./game-asset-animation.js?v=20260805-gameplay-reactions1";
+import "./game-asset-animation.js?v=20260805-gameplay-reactions2";
 const app = document.getElementById("ui-gameApp");
 const focusButton = document.getElementById("ui-focusButton");
 const fullscreenButton = document.getElementById("ui-fullscreenButton");
