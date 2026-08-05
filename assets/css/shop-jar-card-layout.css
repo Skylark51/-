@@ -3,7 +3,7 @@
   position: relative;
   box-sizing: border-box;
   overflow: hidden !important;
-  padding: 4px 6px 10px;
+  padding: 4px 7px 10px;
 }
 
 .shop-page .shop-grid[data-category="jar"] .shop-asset-jar.is-authored-jar {
@@ -35,15 +35,15 @@
 
 :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] {
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  grid-template-rows: repeat(2, 252px) !important;
-  grid-auto-rows: 252px !important;
+  grid-template-rows: repeat(2, 268px) !important;
+  grid-auto-rows: 268px !important;
   align-content: start !important;
   align-items: stretch !important;
   gap: 10px !important;
   width: 100% !important;
   height: 100% !important;
   min-height: 0 !important;
-  padding: 0 1px 8px;
+  padding: 0 1px 10px;
   overflow-x: hidden !important;
   overflow-y: auto !important;
   overscroll-behavior: contain;
@@ -56,13 +56,13 @@
 
 :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-item {
   display: grid !important;
-  grid-template-rows: 145px auto 36px !important;
+  grid-template-rows: 158px minmax(50px, auto) 36px !important;
   row-gap: 4px !important;
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
-  min-height: 252px !important;
-  height: 252px !important;
+  min-height: 268px !important;
+  height: 268px !important;
   margin: 0 !important;
   padding: 8px 8px 7px !important;
   overflow: hidden !important;
@@ -70,17 +70,31 @@
 
 :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-item-visual.shop-jar-visual {
   width: 100% !important;
-  height: 145px !important;
-  min-height: 145px !important;
-  max-height: 145px !important;
-  padding: 2px 4px 6px;
+  height: 158px !important;
+  min-height: 158px !important;
+  max-height: 158px !important;
+  padding: 3px 5px 7px;
   overflow: hidden !important;
 }
 
 :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-item-copy {
-  align-self: start;
+  align-self: stretch;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  align-content: start;
   min-width: 0;
-  padding: 0 1px 2px !important;
+  min-height: 50px;
+  padding: 2px 1px 3px !important;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-item h3 {
+  line-height: 1.28;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-item-meta {
+  align-self: end;
+  min-height: 20px;
+  margin-top: 5px !important;
 }
 
 :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-item-actions {
@@ -94,23 +108,24 @@
   margin: 0 !important;
 }
 
-@media (max-width: 370px), (max-height: 720px) {
+/* Narrow phones need a compact version, but normal-height phones must keep the larger cards. */
+@media (max-width: 370px) {
   :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] {
-    grid-template-rows: repeat(2, 236px) !important;
-    grid-auto-rows: 236px !important;
+    grid-template-rows: repeat(2, 248px) !important;
+    grid-auto-rows: 248px !important;
     gap: 8px !important;
   }
 
   :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-item {
-    grid-template-rows: 130px auto 36px !important;
-    min-height: 236px !important;
-    height: 236px !important;
+    grid-template-rows: 140px minmax(48px, auto) 36px !important;
+    min-height: 248px !important;
+    height: 248px !important;
     padding: 7px 7px 6px !important;
   }
 
   :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-item-visual.shop-jar-visual {
-    height: 130px !important;
-    min-height: 130px !important;
-    max-height: 130px !important;
+    height: 140px !important;
+    min-height: 140px !important;
+    max-height: 140px !important;
   }
 }
