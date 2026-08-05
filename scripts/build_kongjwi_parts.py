@@ -185,14 +185,17 @@ def main() -> None:
 
     # These boundaries are in the authored source canvas.  They are deliberately
     # broad: the alpha mask, not a repaint, determines the visible silhouette.
+    face_shape = shape_mask(
+        (width, height),
+        polygon=[(252, 184), (302, 142), (474, 142), (532, 192), (531, 359), (478, 431), (302, 431), (248, 354)],
+    )
+    head_shape = shape_mask((width, height), rectangle=(0, 0, width - 1, 474))
     shapes = {
         "standing-neutral": shape_mask((width, height), rectangle=(0, 0, width - 1, height - 1)),
         "body-base": shape_mask((width, height), rectangle=(0, 392, width - 1, height - 1)),
-        "head-neutral": shape_mask((width, height), rectangle=(0, 0, width - 1, 474)),
-        "face-neutral": shape_mask(
-            (width, height),
-            polygon=[(252, 184), (302, 142), (474, 142), (532, 192), (531, 359), (478, 431), (302, 431), (248, 354)],
-        ),
+        "head-neutral": head_shape,
+        "head-hair-neck": ImageChops.subtract(head_shape, face_shape),
+        "face-neutral": face_shape,
         "torso": shape_mask(
             (width, height),
             polygon=[(191, 405), (590, 405), (664, 834), (609, 895), (176, 895), (118, 825)],
@@ -245,19 +248,20 @@ def main() -> None:
         "poses": {
             "standing-neutral": {
                 "body": "body-base",
-                "head": "head-neutral",
-                "expression": "neutral",
+                "head": "head-hair-neck",
+                "face": "face-neutral",
+                "expression": "face-neutral",
                 "toolAnchor": [0.78, 0.51],
                 "transformPolicy": "move layers; do not repaint source pixels",
             }
         },
         "expressions": {
-            "neutral": {"part": "head-neutral", "status": "authored"},
-            "focused": {"part": "head-neutral", "status": "pose-only slot"},
-            "correct": {"part": "head-neutral", "status": "pose-only slot"},
-            "wrong": {"part": "head-neutral", "status": "pose-only slot"},
-            "timeout": {"part": "head-neutral", "status": "pose-only slot"},
-            "celebrate": {"part": "head-neutral", "status": "pose-only slot"},
+            "neutral": {"part": "face-neutral", "status": "authored"},
+            "focused": {"part": "face-neutral", "status": "pose-only slot"},
+            "correct": {"part": "face-neutral", "status": "pose-only slot"},
+            "wrong": {"part": "face-neutral", "status": "pose-only slot"},
+            "timeout": {"part": "face-neutral", "status": "pose-only slot"},
+            "celebrate": {"part": "face-neutral", "status": "pose-only slot"},
         },
     }
     (OUT_DIR / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -265,7 +269,7 @@ def main() -> None:
     # A compact QA sheet makes it possible to review the decomposition without
     # opening every transparent PNG separately.
     sheet = Image.new("RGBA", (width * 2, height * 2), (24, 20, 17, 255))
-    for index, name in enumerate(("standing-neutral", "body-base", "head-neutral", "face-neutral")):
+    for index, name in enumerate(("standing-neutral", "body-base", "head-hair-neck", "face-neutral")):
         part = Image.open(OUT_DIR / f"{name}.png").convert("RGBA")
         part.thumbnail((width, height), Image.Resampling.LANCZOS)
         x = (index % 2) * width

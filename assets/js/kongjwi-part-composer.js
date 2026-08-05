@@ -14,6 +14,7 @@ export const KONGJWI_PARTS = Object.freeze({
   armLeft: "arm-left.png",
   armRight: "arm-right.png",
   head: "head-neutral.png",
+  hairNeck: "head-hair-neck.png",
   bodyBase: "body-base.png",
   face: "face-neutral.png"
 });
@@ -30,7 +31,8 @@ const PART_ORDER = Object.freeze([
   ["lower-body", KONGJWI_PARTS.lowerBody],
   ["arm-left", KONGJWI_PARTS.armLeft],
   ["arm-right", KONGJWI_PARTS.armRight],
-  ["head", KONGJWI_PARTS.head]
+  ["head-hair-neck", KONGJWI_PARTS.hairNeck],
+  ["face", KONGJWI_PARTS.face]
 ]);
 
 const POSES = Object.freeze({
@@ -40,7 +42,8 @@ const POSES = Object.freeze({
     lowerBody: "translate3d(0, 0, 0) rotate(0deg)",
     armLeft: "translate3d(0, 0, 0) rotate(0deg)",
     armRight: "translate3d(0, 0, 0) rotate(0deg)",
-    head: "translate3d(0, 0, 0) rotate(0deg)",
+    hairNeck: "translate3d(0, 0, 0) rotate(0deg)",
+    face: "translate3d(0, 0, 0) rotate(0deg)",
     tool: "translate3d(0, 0, 0) rotate(0deg)"
   }),
   pour: Object.freeze({
@@ -49,7 +52,8 @@ const POSES = Object.freeze({
     lowerBody: "translate3d(0, 0, 0) rotate(0deg)",
     armLeft: "translate3d(-1.5%, -2.4%, 0) rotate(-13deg)",
     armRight: "translate3d(1.4%, -1.2%, 0) rotate(7deg)",
-    head: "translate3d(-1%, -1.2%, 0) rotate(-4deg)",
+    hairNeck: "translate3d(-1%, -1.2%, 0) rotate(-4deg)",
+    face: "translate3d(-1%, -1.2%, 0) rotate(-4deg)",
     tool: "translate3d(4%, -4%, 0) rotate(-20deg)"
   }),
   wrong: Object.freeze({
@@ -58,7 +62,8 @@ const POSES = Object.freeze({
     lowerBody: "translate3d(0, 0, 0) rotate(1deg)",
     armLeft: "translate3d(-2%, 1%, 0) rotate(8deg)",
     armRight: "translate3d(2%, 1%, 0) rotate(-9deg)",
-    head: "translate3d(1.5%, 0, 0) rotate(7deg)",
+    hairNeck: "translate3d(1.5%, 0, 0) rotate(7deg)",
+    face: "translate3d(1.5%, 0, 0) rotate(7deg)",
     tool: "translate3d(1%, 2%, 0) rotate(14deg)"
   }),
   timeout: Object.freeze({
@@ -67,7 +72,8 @@ const POSES = Object.freeze({
     lowerBody: "translate3d(0, 1%, 0) rotate(1deg)",
     armLeft: "translate3d(-1%, 2%, 0) rotate(6deg)",
     armRight: "translate3d(1%, 2%, 0) rotate(-5deg)",
-    head: "translate3d(0, 2%, 0) rotate(5deg)",
+    hairNeck: "translate3d(0, 2%, 0) rotate(5deg)",
+    face: "translate3d(0, 2%, 0) rotate(5deg)",
     tool: "translate3d(0, 3%, 0) rotate(10deg)"
   }),
   celebrate: Object.freeze({
@@ -76,7 +82,8 @@ const POSES = Object.freeze({
     lowerBody: "translate3d(0, 0, 0) rotate(0deg)",
     armLeft: "translate3d(-2%, -3%, 0) rotate(-18deg)",
     armRight: "translate3d(2%, -3%, 0) rotate(18deg)",
-    head: "translate3d(0, -2%, 0) rotate(-2deg)",
+    hairNeck: "translate3d(0, -2%, 0) rotate(-2deg)",
+    face: "translate3d(0, -2%, 0) rotate(-2deg)",
     tool: "translate3d(2%, -5%, 0) rotate(-24deg)"
   })
 });
@@ -115,6 +122,19 @@ function createTool() {
   return tool;
 }
 
+function createImpactLayer() {
+  const layer = document.createElement("span");
+  layer.className = "kongjwi-impact-layer";
+  layer.setAttribute("aria-hidden", "true");
+  for (const name of ["one", "two", "three"]) {
+    const stone = document.createElement("i");
+    stone.className = "kongjwi-stone";
+    stone.dataset.stone = name;
+    layer.append(stone);
+  }
+  return layer;
+}
+
 export function mountKongjwiComposer(host, { root = document.documentElement, dashboard = false } = {}) {
   if (!host) return null;
   if (host.__kongjwiPartComposer) return host.__kongjwiPartComposer;
@@ -135,12 +155,14 @@ export function mountKongjwiComposer(host, { root = document.documentElement, da
     layers.set(name, layer);
   }
   const tool = createTool();
-  canvas.append(tool);
+  const impact = createImpactLayer();
+  canvas.append(tool, impact);
   host.replaceChildren(canvas);
 
   let pose = "standing";
   let expression = "neutral";
   let resetTimer = 0;
+  let hitTimer = 0;
   let destroyed = false;
   const removers = [];
 
@@ -162,12 +184,15 @@ export function mountKongjwiComposer(host, { root = document.documentElement, da
     pose = next;
     const plan = POSES[next];
     canvas.dataset.pose = next;
+    canvas.dataset.pouring = next === "pour" ? "true" : "false";
+    root?.setAttribute?.("data-kongjwi-pouring", canvas.dataset.pouring);
     setStyle(canvas, "--kongjwi-canvas-transform", plan.canvas);
     setStyle(layers.get("torso"), "--kongjwi-part-transform", plan.torso);
     setStyle(layers.get("lower-body"), "--kongjwi-part-transform", plan.lowerBody);
     setStyle(layers.get("arm-left"), "--kongjwi-part-transform", plan.armLeft);
     setStyle(layers.get("arm-right"), "--kongjwi-part-transform", plan.armRight);
-    setStyle(layers.get("head"), "--kongjwi-part-transform", plan.head);
+    setStyle(layers.get("head-hair-neck"), "--kongjwi-part-transform", plan.hairNeck);
+    setStyle(layers.get("face"), "--kongjwi-part-transform", plan.face);
     setStyle(tool, "--kongjwi-part-transform", plan.tool);
     if (retrigger) {
       canvas.classList.remove("is-moving");
@@ -179,6 +204,24 @@ export function mountKongjwiComposer(host, { root = document.documentElement, da
   function clearResetTimer() {
     globalThis.clearTimeout(resetTimer);
     resetTimer = 0;
+  }
+
+  function clearHitTimer() {
+    globalThis.clearTimeout(hitTimer);
+    hitTimer = 0;
+  }
+
+  function triggerHit() {
+    if (destroyed) return;
+    clearHitTimer();
+    canvas.dataset.hit = "true";
+    canvas.classList.remove("is-hit");
+    void canvas.offsetWidth;
+    canvas.classList.add("is-hit");
+    hitTimer = globalThis.setTimeout(() => {
+      canvas.classList.remove("is-hit");
+      canvas.dataset.hit = "false";
+    }, 760);
   }
 
   function setExpression(nextExpression = "neutral", { duration = 1120, persistent = false } = {}) {
@@ -209,10 +252,19 @@ export function mountKongjwiComposer(host, { root = document.documentElement, da
     const combo = Number(event?.detail?.combo) || 0;
     setExpression(combo >= 3 ? "celebrate" : "correct", { duration: combo >= 3 ? 1320 : 1120 });
   });
-  listen("answer:wrong", () => setExpression("wrong", { duration: 1180 }));
-  listen("answer:timeout", () => setExpression("timeout", { duration: 1350 }));
+  listen("answer:wrong", () => {
+    setExpression("wrong", { duration: 1180 });
+    triggerHit();
+  });
+  listen("answer:timeout", () => {
+    setExpression("timeout", { duration: 1350 });
+    triggerHit();
+  });
   listen("game:clear", () => setExpression("celebrate", { persistent: true }));
-  listen("game:over", () => setExpression("wrong", { persistent: true }));
+  listen("game:over", () => {
+    setExpression("wrong", { persistent: true });
+    triggerHit();
+  });
   listen("game:pause", () => setPose("standing", { retrigger: false }));
   listen("game:resume", () => setExpression("neutral"));
 
@@ -226,16 +278,20 @@ export function mountKongjwiComposer(host, { root = document.documentElement, da
     canvas,
     layers,
     tool,
+    impact,
     get pose() { return pose; },
     get expression() { return expression; },
     setPose,
     setExpression,
     setTool,
     syncCosmetics,
+    triggerHit,
     destroy() {
       if (destroyed) return;
       destroyed = true;
       clearResetTimer();
+      clearHitTimer();
+      canvas.classList.remove("is-hit");
       observer?.disconnect();
       removers.splice(0).forEach(remove => remove());
       host.__kongjwiPartComposer = null;

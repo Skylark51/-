@@ -82,6 +82,28 @@
       },
       "note": "same source pixels with transparent masking; no repainting"
     },
+    "head-hair-neck": {
+      "file": "head-hair-neck.png",
+      "canvas": [
+        784,
+        1168
+      ],
+      "sourceRect": [
+        0,
+        0,
+        784,
+        1168
+      ],
+      "anchors": {
+        "neckCutY": 424,
+        "headCenter": [
+          392,
+          238
+        ],
+        "feetBaseline": 1166
+      },
+      "note": "same source pixels with transparent masking; no repainting"
+    },
     "face-neutral": {
       "file": "face-neutral.png",
       "canvas": [
@@ -205,8 +227,9 @@
   "poses": {
     "standing-neutral": {
       "body": "body-base",
-      "head": "head-neutral",
-      "expression": "neutral",
+      "head": "head-hair-neck",
+      "face": "face-neutral",
+      "expression": "face-neutral",
       "toolAnchor": [
         0.78,
         0.51
@@ -216,27 +239,27 @@
   },
   "expressions": {
     "neutral": {
-      "part": "head-neutral",
+      "part": "face-neutral",
       "status": "authored"
     },
     "focused": {
-      "part": "head-neutral",
+      "part": "face-neutral",
       "status": "pose-only slot"
     },
     "correct": {
-      "part": "head-neutral",
+      "part": "face-neutral",
       "status": "pose-only slot"
     },
     "wrong": {
-      "part": "head-neutral",
+      "part": "face-neutral",
       "status": "pose-only slot"
     },
     "timeout": {
-      "part": "head-neutral",
+      "part": "face-neutral",
       "status": "pose-only slot"
     },
     "celebrate": {
-      "part": "head-neutral",
+      "part": "face-neutral",
       "status": "pose-only slot"
     }
   }
