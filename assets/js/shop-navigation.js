@@ -29,68 +29,18 @@ const SWATCHES = Object.freeze({
 });
 
 const OUTFIT_ART = Object.freeze({
-  "classic-red": "assets/art/kongjwi/kongjwi-classic-red.webp",
-  "blue-scholar": "assets/art/kongjwi/kongjwi-blue-scholar.webp",
-  "field-green": "assets/art/kongjwi/kongjwi-field-work.webp",
-  "royal-night": "assets/art/kongjwi/kongjwi-night-court.webp"
+  "classic-red": "assets/art/kongjwi/kongjwi-classic-red.webp?v=20260805-outfit4",
+  "blue-scholar": "assets/art/kongjwi/kongjwi-blue-scholar.webp?v=20260805-outfit4",
+  "field-green": "assets/art/kongjwi/kongjwi-field-work.webp?v=20260805-outfit4",
+  "royal-night": "assets/art/kongjwi/kongjwi-night-court.webp?v=20260805-outfit4"
 });
 
-const OUTFIT_STYLE_ID = "shop-authored-kongjwi-style";
-
-function ensureOutfitStyles() {
-  if (document.getElementById(OUTFIT_STYLE_ID)) return;
-
-  const style = document.createElement("style");
-  style.id = OUTFIT_STYLE_ID;
-  style.textContent = `
-    .shop-page .shop-asset-outfit.is-authored-kongjwi {
-      display: grid !important;
-      place-items: center !important;
-      width: 100% !important;
-      height: 100% !important;
-      min-width: 0 !important;
-      min-height: 0 !important;
-      aspect-ratio: auto !important;
-      overflow: visible !important;
-      background: none !important;
-      background-image: none !important;
-      background-size: auto !important;
-      background-position: center !important;
-      filter: none !important;
-    }
-
-    .shop-page .shop-kongjwi-image {
-      display: block !important;
-      width: min(90%, 190px) !important;
-      height: 94% !important;
-      max-width: 100% !important;
-      max-height: 100% !important;
-      object-fit: contain !important;
-      object-position: center bottom !important;
-      filter: drop-shadow(0 10px 10px rgba(0, 0, 0, .38));
-      user-select: none;
-      -webkit-user-drag: none;
-    }
-
-    :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"])
-      .shop-page .shop-grid {
-      align-items: stretch !important;
-      align-content: stretch !important;
-    }
-
-    :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"])
-      .shop-page .shop-item {
-      height: 100% !important;
-    }
-
-    :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"])
-      .shop-page .shop-kongjwi-image {
-      width: 92% !important;
-      height: 94% !important;
-    }
-  `;
-  document.head.append(style);
-}
+const OUTFIT_LAYOUT = Object.freeze({
+  "classic-red": Object.freeze({ scale: 0.96, x: 50, y: 100 }),
+  "blue-scholar": Object.freeze({ scale: 0.96, x: 50, y: 100 }),
+  "field-green": Object.freeze({ scale: 0.96, x: 50, y: 100 }),
+  "royal-night": Object.freeze({ scale: 0.96, x: 50, y: 100 })
+});
 
 const storage = new GameStorage();
 const cosmetics = new CosmeticSystem(storage);
@@ -112,11 +62,18 @@ function applySwatch(node, item) {
   node.style.setProperty("--swatch-b", second);
 }
 
-function createOutfitImage(item, assetNode) {
+function createOutfitAsset(item) {
   const source = OUTFIT_ART[item.visualKey];
-  if (!source) return false;
+  if (!source) throw new Error(`Missing Kongjwi outfit mapping: ${item.visualKey}`);
 
-  assetNode.classList.add("is-authored-kongjwi");
+  const layout = OUTFIT_LAYOUT[item.visualKey] || OUTFIT_LAYOUT["classic-red"];
+  const asset = document.createElement("span");
+  asset.className = "shop-asset shop-asset-outfit is-authored-kongjwi";
+  asset.dataset.visualKey = item.visualKey;
+  asset.setAttribute("aria-hidden", "true");
+  asset.style.setProperty("--outfit-scale", String(layout.scale));
+  asset.style.setProperty("--outfit-x", `${layout.x}%`);
+  asset.style.setProperty("--outfit-y", `${layout.y}%`);
 
   const image = new Image();
   image.className = "shop-kongjwi-image";
@@ -124,42 +81,59 @@ function createOutfitImage(item, assetNode) {
   image.alt = "";
   image.draggable = false;
   image.decoding = "async";
+  image.loading = "eager";
 
-  image.addEventListener("error", () => {
-    assetNode.classList.remove("is-authored-kongjwi");
-    assetNode.style.setProperty("--sprite-y", "0%");
-    image.remove();
+  image.addEventListener("load", () => {
+    asset.dataset.assetState = "ready";
   }, { once: true });
 
-  assetNode.append(image);
-  return true;
+  image.addEventListener("error", () => {
+    asset.dataset.assetState = "error";
+    console.error(`[콩 상점] 의상 이미지를 불러오지 못했습니다: ${source}`);
+    image.remove();
+
+    const error = document.createElement("span");
+    error.className = "shop-asset-error";
+    error.textContent = "이미지 로드 실패";
+    asset.append(error);
+  }, { once: true });
+
+  asset.append(image);
+  return asset;
+}
+
+function createJarAsset(item, itemIndex) {
+  const asset = document.createElement("span");
+  asset.className = "shop-asset shop-asset-jar";
+  asset.dataset.visualKey = item.visualKey;
+  asset.setAttribute("aria-hidden", "true");
+  asset.style.setProperty("--jar-index", itemIndex);
+
+  const image = new Image();
+  image.src = "assets/art/sprites/jars.png";
+  image.alt = "";
+  image.draggable = false;
+  image.decoding = "async";
+  asset.append(image);
+  return asset;
+}
+
+function createSpriteAsset(item, itemIndex) {
+  const asset = document.createElement("span");
+  asset.className = `shop-asset shop-asset-${item.category}`;
+  asset.dataset.visualKey = item.visualKey;
+  asset.setAttribute("aria-hidden", "true");
+  asset.style.setProperty("--sprite-y", `${itemIndex * 100 / 3}%`);
+  return asset;
 }
 
 function createAsset(item) {
-  const assetNode = document.createElement("span");
+  if (item.category === "outfit") return createOutfitAsset(item);
+
   const categoryItems = itemsFor(item.category);
   const itemIndex = Math.max(0, categoryItems.findIndex(entry => entry.id === item.id));
-
-  assetNode.className = `shop-asset shop-asset-${item.category}`;
-  assetNode.setAttribute("aria-hidden", "true");
-
-  if (item.category === "outfit" && createOutfitImage(item, assetNode)) {
-    return assetNode;
-  }
-
-  assetNode.style.setProperty("--sprite-y", `${itemIndex * 100 / 3}%`);
-
-  if (item.category === "jar") {
-    assetNode.style.setProperty("--jar-index", itemIndex);
-    const image = new Image();
-    image.src = "assets/art/sprites/jars.png";
-    image.alt = "";
-    image.draggable = false;
-    image.decoding = "async";
-    assetNode.append(image);
-  }
-
-  return assetNode;
+  if (item.category === "jar") return createJarAsset(item, itemIndex);
+  return createSpriteAsset(item, itemIndex);
 }
 
 function showStatus(message, kind = "normal") {
@@ -209,6 +183,7 @@ function createCategoryCard(category) {
 
   const visual = document.createElement("span");
   visual.className = "shop-category-visual";
+  visual.dataset.category = category.id;
   visual.append(createAsset(equipped));
 
   const bottom = document.createElement("span");
@@ -237,12 +212,15 @@ function createProductCard(item) {
   const card = document.createElement("article");
 
   card.className = "shop-item";
+  card.dataset.category = item.category;
+  card.dataset.itemId = item.id;
   card.classList.toggle("is-equipped", cardData.equipped);
   card.title = item.description;
   applySwatch(card, item);
 
   const visual = document.createElement("div");
   visual.className = "shop-item-visual";
+  visual.dataset.category = item.category;
   visual.append(createAsset(item));
 
   const copy = document.createElement("div");
@@ -274,17 +252,21 @@ function renderProducts() {
 
   const categoryItems = itemsFor(category.id);
   const [eyebrow, description] = META[category.id];
+  const grid = byId("shopGrid");
+
   byId("categoryEyebrow").textContent = eyebrow;
   byId("categoryTitle").textContent = category.label;
   byId("categoryDescription").textContent = description;
   byId("categoryOwnedCount").textContent = `${ownedCount(category.id)} / ${categoryItems.length}`;
-  byId("shopGrid").replaceChildren(...categoryItems.map(createProductCard));
+  grid.dataset.category = category.id;
+  grid.replaceChildren(...categoryItems.map(createProductCard));
 }
 
 function showHome() {
   activeCategory = null;
   byId("shopHomeView").hidden = false;
   byId("shopCategoryView").hidden = true;
+  byId("shopGrid").removeAttribute("data-category");
   renderHub();
 }
 
@@ -345,7 +327,6 @@ function syncExternalChanges(event) {
 }
 
 function init() {
-  ensureOutfitStyles();
   const initialCategory = decodeURIComponent(location.hash.slice(1));
   byId("shopBackButton").addEventListener("click", () => history.back());
   addEventListener("popstate", route);
