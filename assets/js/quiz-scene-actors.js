@@ -23,27 +23,26 @@ const JAR_ASSETS = Object.freeze({
 });
 
 /*
- * The hole is anchored to the transparent square used by every jar asset.
- * Keeping these values separate from the responsive stage layout prevents the
- * toad from drifting when the actor is resized. The four assets currently use
- * the same hole artwork, but each skin keeps an independent calibration entry.
+ * Every jar uses its jar-only asset and the toad uses its own transparent
+ * expression sheet. The coordinates below recreate the physical sealed pose:
+ * the hole is fixed to the jar while the complete toad body sits outside it.
  */
 const JAR_LAYOUTS = Object.freeze({
   onggi: Object.freeze({
     hole: Object.freeze({ x: 61.8, y: 66.8, width: 27.4, height: 22.8, rotate: -6 }),
-    toad: Object.freeze({ scale: 1.06, offsetX: -1.5, offsetY: -2 })
+    seal: Object.freeze({ width: 170, shiftX: -31, shiftY: -52, rotate: 3, contactX: 31, contactY: 59 })
   }),
   celadon: Object.freeze({
     hole: Object.freeze({ x: 61.9, y: 66.9, width: 27.4, height: 22.8, rotate: -5.5 }),
-    toad: Object.freeze({ scale: 1.06, offsetX: -1.5, offsetY: -2 })
+    seal: Object.freeze({ width: 169, shiftX: -31, shiftY: -52, rotate: 2.5, contactX: 31, contactY: 59 })
   }),
   "moon-white": Object.freeze({
     hole: Object.freeze({ x: 61.8, y: 67.1, width: 27.8, height: 23.1, rotate: -5.5 }),
-    toad: Object.freeze({ scale: 1.07, offsetX: -1.5, offsetY: -2 })
+    seal: Object.freeze({ width: 168, shiftX: -31.5, shiftY: -52, rotate: 2.5, contactX: 32, contactY: 59 })
   }),
   "night-lacquer": Object.freeze({
     hole: Object.freeze({ x: 61.8, y: 66.8, width: 27.4, height: 22.8, rotate: -6 }),
-    toad: Object.freeze({ scale: 1.06, offsetX: -1.5, offsetY: -2 })
+    seal: Object.freeze({ width: 170, shiftX: -31, shiftY: -52, rotate: 3, contactX: 31, contactY: 59 })
   })
 });
 
@@ -84,16 +83,19 @@ function applyJarLayout(jarSkin = selectedJarSkin()) {
   if (!actor) return;
 
   const layout = JAR_LAYOUTS[jarSkin] || JAR_LAYOUTS.onggi;
-  const { hole, toad } = layout;
+  const { hole, seal } = layout;
 
   actor.style.setProperty("--hole-x", `${hole.x}%`);
   actor.style.setProperty("--hole-y", `${hole.y}%`);
   actor.style.setProperty("--hole-w", `${hole.width}%`);
   actor.style.setProperty("--hole-h", `${hole.height}%`);
   actor.style.setProperty("--hole-rotate", `${hole.rotate}deg`);
-  actor.style.setProperty("--toad-scale", String(toad.scale));
-  actor.style.setProperty("--toad-offset-x", `${toad.offsetX}%`);
-  actor.style.setProperty("--toad-offset-y", `${toad.offsetY}%`);
+  actor.style.setProperty("--seal-toad-width", `${seal.width}%`);
+  actor.style.setProperty("--seal-toad-shift-x", `${seal.shiftX}%`);
+  actor.style.setProperty("--seal-toad-shift-y", `${seal.shiftY}%`);
+  actor.style.setProperty("--seal-toad-rotate", `${seal.rotate}deg`);
+  actor.style.setProperty("--seal-contact-x", `${seal.contactX}%`);
+  actor.style.setProperty("--seal-contact-y", `${seal.contactY}%`);
 }
 
 function syncCosmetics() {
@@ -110,6 +112,7 @@ function syncCosmetics() {
 
   actor.dataset.jarSkin = jarSkin;
   actor.dataset.toadSkin = toadSkin;
+  actor.dataset.sealMode = "external";
   applyJarLayout(jarSkin);
 }
 
