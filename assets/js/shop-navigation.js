@@ -29,17 +29,10 @@ const SWATCHES = Object.freeze({
 });
 
 const OUTFIT_ART = Object.freeze({
-  "classic-red": "assets/art/kongjwi/kongjwi-classic-red.webp?v=20260805-outfit4",
-  "blue-scholar": "assets/art/kongjwi/kongjwi-blue-scholar.webp?v=20260805-outfit4",
-  "field-green": "assets/art/kongjwi/kongjwi-field-work.webp?v=20260805-outfit4",
-  "royal-night": "assets/art/kongjwi/kongjwi-night-court.webp?v=20260805-outfit4"
-});
-
-const OUTFIT_LAYOUT = Object.freeze({
-  "classic-red": Object.freeze({ scale: 0.96, x: 50, y: 100 }),
-  "blue-scholar": Object.freeze({ scale: 0.96, x: 50, y: 100 }),
-  "field-green": Object.freeze({ scale: 0.96, x: 50, y: 100 }),
-  "royal-night": Object.freeze({ scale: 0.96, x: 50, y: 100 })
+  "classic-red": "assets/art/kongjwi/kongjwi-classic-red.webp?v=20260805-outfit5",
+  "blue-scholar": "assets/art/kongjwi/kongjwi-blue-scholar.webp?v=20260805-outfit5",
+  "field-green": "assets/art/kongjwi/kongjwi-field-work.webp?v=20260805-outfit5",
+  "royal-night": "assets/art/kongjwi/kongjwi-night-court.webp?v=20260805-outfit5"
 });
 
 const storage = new GameStorage();
@@ -63,41 +56,47 @@ function applySwatch(node, item) {
 }
 
 function createOutfitAsset(item) {
-  const source = OUTFIT_ART[item.visualKey];
-  if (!source) throw new Error(`Missing Kongjwi outfit mapping: ${item.visualKey}`);
+  const versionedSource = OUTFIT_ART[item.visualKey];
+  if (!versionedSource) throw new Error(`Missing Kongjwi outfit mapping: ${item.visualKey}`);
 
-  const layout = OUTFIT_LAYOUT[item.visualKey] || OUTFIT_LAYOUT["classic-red"];
+  const sourceCandidates = [...new Set([versionedSource, versionedSource.split("?")[0]])];
   const asset = document.createElement("span");
   asset.className = "shop-asset shop-asset-outfit is-authored-kongjwi";
   asset.dataset.visualKey = item.visualKey;
+  asset.dataset.assetState = "loading";
   asset.setAttribute("aria-hidden", "true");
-  asset.style.setProperty("--outfit-scale", String(layout.scale));
-  asset.style.setProperty("--outfit-x", `${layout.x}%`);
-  asset.style.setProperty("--outfit-y", `${layout.y}%`);
 
   const image = new Image();
   image.className = "shop-kongjwi-image";
-  image.src = source;
   image.alt = "";
   image.draggable = false;
   image.decoding = "async";
   image.loading = "eager";
+  image.fetchPriority = "high";
 
+  let candidateIndex = 0;
   image.addEventListener("load", () => {
     asset.dataset.assetState = "ready";
-  }, { once: true });
+  });
 
   image.addEventListener("error", () => {
+    candidateIndex += 1;
+    if (candidateIndex < sourceCandidates.length) {
+      image.src = sourceCandidates[candidateIndex];
+      return;
+    }
+
     asset.dataset.assetState = "error";
-    console.error(`[콩 상점] 의상 이미지를 불러오지 못했습니다: ${source}`);
+    console.error(`[콩 상점] 의상 이미지를 불러오지 못했습니다: ${sourceCandidates.join(", ")}`);
     image.remove();
 
     const error = document.createElement("span");
     error.className = "shop-asset-error";
-    error.textContent = "이미지 로드 실패";
+    error.textContent = `${item.title} 이미지 로드 실패`;
     asset.append(error);
-  }, { once: true });
+  });
 
+  image.src = sourceCandidates[candidateIndex];
   asset.append(image);
   return asset;
 }
@@ -211,7 +210,7 @@ function createProductCard(item) {
   const [label, disabled, isOwned] = actionFor(item);
   const card = document.createElement("article");
 
-  card.className = "shop-item";
+  card.className = `shop-item shop-item-${item.category}`;
   card.dataset.category = item.category;
   card.dataset.itemId = item.id;
   card.classList.toggle("is-equipped", cardData.equipped);
