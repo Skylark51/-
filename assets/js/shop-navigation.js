@@ -28,14 +28,14 @@ const SWATCHES = Object.freeze({
   "night-lacquer": ["#0d0d13", "#4e315c"]
 });
 
-const ASSET_VERSION = "20260805-outfit6";
+const ASSET_VERSION = "20260805-outfit7";
 const OUTFIT_ART = Object.freeze({
   "classic-red": `assets/art/kongjwi/kongjwi-classic-red-cutout.png?v=${ASSET_VERSION}`,
   "blue-scholar": `assets/art/kongjwi/kongjwi-blue-scholar-cutout.png?v=${ASSET_VERSION}`,
   "field-green": `assets/art/kongjwi/kongjwi-field-work-cutout.png?v=${ASSET_VERSION}`,
   "royal-night": `assets/art/kongjwi/kongjwi-night-court-cutout.png?v=${ASSET_VERSION}`
 });
-const UNDERLAYER_ART = `assets/art/kongjwi/kongjwi-underlayer.webp?v=${ASSET_VERSION}`;
+const UNDERLAYER_ART = `assets/art/kongjwi/kongjwi-underlayer-cutout.png?v=${ASSET_VERSION}`;
 
 const JAR_ART = Object.freeze({
   onggi: "assets/art/jars/onggi/thumbnail-no-toad.png?v=20260805-jar-thumbnails1",
