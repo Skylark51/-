@@ -1,6 +1,5 @@
 import { GameStorage } from "./storage.js";
 import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical2";
-import { installRecordsInterface } from "./records-interface.js?v=20260804-records1";
 import { installLobbyHeroScene } from "./lobby-hero-scene.js?v=20260805-home-square4";
 
 const VALID_VIEWS = new Set(["home", "jars", "records"]);
@@ -11,7 +10,6 @@ const bgm = mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ??
 
 const MOBILE_UI_BREAKPOINT = 760;
 const MOBILE_UI_STYLESHEET = "assets/css/mobile-unified-shell.css?v=20260805-unified4";
-const RECORDS_INTERFACE_STYLESHEET = "assets/css/records-interface.css?v=20260804-records1";
 const MOBILE_FIXED_SHELL_STYLESHEET = "assets/css/mobile-fixed-shell.css?v=20260805-fixed-shell5";
 const MOBILE_SETTINGS_STYLESHEET = "assets/css/mobile-settings-dialog.css?v=20260804-settings1";
 const MOBILE_NAV_ICONS = [
@@ -33,7 +31,6 @@ function appendStylesheet(href) {
 
 function installMobileUi() {
   appendStylesheet(MOBILE_UI_STYLESHEET);
-  appendStylesheet(RECORDS_INTERFACE_STYLESHEET);
   appendStylesheet(MOBILE_FIXED_SHELL_STYLESHEET);
   appendStylesheet(MOBILE_SETTINGS_STYLESHEET);
 
@@ -109,7 +106,6 @@ function showView(nextView, { historyMode = "push", focus = true } = {}) {
 
 installMobileUi();
 installLobbyHeroScene();
-installRecordsInterface();
 
 for (const control of controls) {
   control.addEventListener("click", event => {
