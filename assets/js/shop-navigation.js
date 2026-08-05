@@ -35,6 +35,13 @@ const OUTFIT_ART = Object.freeze({
   "royal-night": "assets/art/kongjwi/kongjwi-night-court.webp?v=20260805-outfit5"
 });
 
+const JAR_ART = Object.freeze({
+  onggi: "assets/art/jars/onggi/thumbnail-no-toad.png?v=20260805-jar-thumbnails1",
+  celadon: "assets/art/jars/celadon/thumbnail-no-toad.png?v=20260805-jar-thumbnails1",
+  "moon-white": "assets/art/jars/moon-white/thumbnail-no-toad.png?v=20260805-jar-thumbnails1",
+  "night-lacquer": "assets/art/jars/night-lacquer/thumbnail-no-toad.png?v=20260805-jar-thumbnails1"
+});
+
 const storage = new GameStorage();
 const cosmetics = new CosmeticSystem(storage);
 const bgm = mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ?? 0.5 });
@@ -101,18 +108,53 @@ function createOutfitAsset(item) {
   return asset;
 }
 
-function createJarAsset(item, itemIndex) {
+function createJarAsset(item) {
+  const versionedSource = JAR_ART[item.visualKey];
+  if (!versionedSource) throw new Error(`Missing jar thumbnail mapping: ${item.visualKey}`);
+
+  const sourceCandidates = [...new Set([versionedSource, versionedSource.split("?")[0]])];
   const asset = document.createElement("span");
-  asset.className = "shop-asset shop-asset-jar";
+  asset.className = "shop-asset shop-asset-jar is-authored-jar";
   asset.dataset.visualKey = item.visualKey;
+  asset.dataset.assetState = "loading";
   asset.setAttribute("aria-hidden", "true");
-  asset.style.setProperty("--jar-index", itemIndex);
+  asset.style.width = "100%";
+  asset.style.height = "100%";
+  asset.style.aspectRatio = "auto";
+  asset.style.overflow = "visible";
 
   const image = new Image();
-  image.src = "assets/art/sprites/jars.png";
+  image.className = "shop-jar-image";
   image.alt = "";
   image.draggable = false;
   image.decoding = "async";
+  image.loading = "eager";
+  image.style.position = "static";
+  image.style.display = "block";
+  image.style.width = "100%";
+  image.style.maxWidth = "100%";
+  image.style.height = "100%";
+  image.style.objectFit = "contain";
+  image.style.objectPosition = "center";
+
+  let candidateIndex = 0;
+  image.addEventListener("load", () => {
+    asset.dataset.assetState = "ready";
+  });
+
+  image.addEventListener("error", () => {
+    candidateIndex += 1;
+    if (candidateIndex < sourceCandidates.length) {
+      image.src = sourceCandidates[candidateIndex];
+      return;
+    }
+
+    asset.dataset.assetState = "error";
+    console.error(`[콩 상점] 장독대 이미지를 불러오지 못했습니다: ${sourceCandidates.join(", ")}`);
+    image.remove();
+  });
+
+  image.src = sourceCandidates[candidateIndex];
   asset.append(image);
   return asset;
 }
@@ -131,7 +173,7 @@ function createAsset(item) {
 
   const categoryItems = itemsFor(item.category);
   const itemIndex = Math.max(0, categoryItems.findIndex(entry => entry.id === item.id));
-  if (item.category === "jar") return createJarAsset(item, itemIndex);
+  if (item.category === "jar") return createJarAsset(item);
   return createSpriteAsset(item, itemIndex);
 }
 
@@ -183,6 +225,10 @@ function createCategoryCard(category) {
   const visual = document.createElement("span");
   visual.className = "shop-category-visual";
   visual.dataset.category = category.id;
+  if (category.id === "jar") {
+    visual.style.background = "transparent";
+    visual.style.borderColor = "rgba(255, 255, 255, 0.07)";
+  }
   visual.append(createAsset(equipped));
 
   const bottom = document.createElement("span");
@@ -220,6 +266,10 @@ function createProductCard(item) {
   const visual = document.createElement("div");
   visual.className = "shop-item-visual";
   visual.dataset.category = item.category;
+  if (item.category === "jar") {
+    visual.style.background = "transparent";
+    visual.style.borderColor = "rgba(255, 255, 255, 0.07)";
+  }
   visual.append(createAsset(item));
 
   const copy = document.createElement("div");
