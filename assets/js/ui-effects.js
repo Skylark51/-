@@ -11,7 +11,7 @@ const storage = new GameStorage();
 mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ?? 0.5 });
 const byId = id => document.getElementById(id);
 const formatNumber = value => Math.round(Number(value) || 0).toLocaleString("ko-KR");
-const DIFFICULTY_NAMES = Object.freeze({ easy: "쉬움", normal: "보통", hard: "톴려움" });
+const DIFFICULTY_NAMES = Object.freeze({ easy: "쉬움", normal: "보통", hard: "어려움" });
 
 function setOfficialTitle() {
   document.title = GAME_TITLE;
