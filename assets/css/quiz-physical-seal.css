@@ -1,196 +1,206 @@
 /*
- * Physical jar seal layer.
- * The hole remains fixed to the jar, but the complete toad frame is rendered
- * outside the opening so its belly visibly presses over and blocks the leak.
+ * Fitted jar-hole seal.
+ * The jar-only artwork stays fixed. The separate toad frame is enlarged inside
+ * the opening and clipped by the hole, so the whole body reads as a tight plug
+ * rather than a face peeking through or a toad standing beside the jar.
  */
 
-.scene-jar-actor[data-seal-mode="external"] .scene-hole-anchor {
+.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-anchor {
   overflow: visible !important;
   isolation: isolate;
 }
 
-/* The actual dark cavity remains behind the toad instead of becoming its mask. */
-.scene-jar-actor[data-seal-mode="external"] .scene-hole-anchor::before {
+/* Dark cavity behind the independent toad layer. */
+.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-anchor::before {
   content: "";
   position: absolute;
   z-index: 0;
-  inset: 5% 3% 6%;
-  border-radius: 49% 46% 52% 48%;
-  clip-path: ellipse(47% 44% at 50% 52%);
+  inset: 3% 2% 4%;
+  border-radius: 50% 46% 52% 48%;
+  clip-path: ellipse(48% 46% at 50% 52%);
   background:
-    radial-gradient(ellipse at 41% 54%, rgba(93, 55, 24, 0.28), transparent 52%),
-    rgba(5, 4, 3, 0.96);
+    radial-gradient(ellipse at 46% 55%, rgba(102, 60, 26, .22), transparent 54%),
+    rgba(4, 3, 2, .98);
   box-shadow:
-    inset 0 7px 13px rgba(0, 0, 0, 0.8),
-    inset 0 -3px 5px rgba(153, 91, 37, 0.12),
-    0 0 3px rgba(0, 0, 0, 0.5);
+    inset 0 8px 13px rgba(0, 0, 0, .82),
+    inset 0 -3px 5px rgba(153, 91, 37, .12),
+    0 0 3px rgba(0, 0, 0, .55);
 }
 
 /*
- * The former viewport is now only a positioning layer. Clipping it produced
- * the previous "eye inside the jar" result, so all clipping is removed here.
+ * This is the actual opening. The oversized toad is clipped here; its body
+ * reaches every edge of the hole and cannot look detached from the jar.
  */
-.scene-jar-actor[data-seal-mode="external"] .scene-hole-mask {
+.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-mask {
+  position: absolute !important;
   z-index: 2 !important;
-  inset: 0 !important;
-  overflow: visible !important;
-  border-radius: 0 !important;
-  clip-path: none !important;
-  background: none !important;
-  box-shadow: none !important;
-  transform: none !important;
+  inset: 2.5% 2% 3.5% !important;
+  display: block !important;
+  overflow: hidden !important;
+  border-radius: 50% 46% 52% 48% !important;
+  clip-path: ellipse(48% 46% at 50% 52%) !important;
+  background: transparent !important;
+  box-shadow:
+    inset 8px 0 8px rgba(0, 0, 0, .32),
+    inset -7px 0 8px rgba(0, 0, 0, .28),
+    inset 0 7px 8px rgba(0, 0, 0, .34) !important;
 }
 
-.scene-jar-actor[data-seal-mode="external"] .scene-toad-positioner {
+.scene-jar-actor[data-seal-mode="fitted"] .scene-toad-positioner {
   position: absolute !important;
   left: 50% !important;
-  top: 50% !important;
+  top: 52% !important;
   right: auto !important;
   bottom: auto !important;
-  width: var(--seal-toad-width, 170%) !important;
+  width: var(--seal-toad-width, 136%) !important;
   height: auto !important;
   aspect-ratio: 64 / 43;
   transform:
-    translate(var(--seal-toad-shift-x, -31%), var(--seal-toad-shift-y, -52%))
-    rotate(var(--seal-toad-rotate, 3deg)) !important;
-  transform-origin: var(--seal-contact-x, 31%) var(--seal-contact-y, 59%) !important;
-  filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.44));
+    translate(var(--seal-toad-shift-x, -50%), var(--seal-toad-shift-y, -50%))
+    rotate(var(--seal-toad-rotate, 0deg))
+    scale(var(--seal-toad-scale-x, 1.04), var(--seal-toad-scale-y, 1.1)) !important;
+  transform-origin: var(--seal-contact-x, 50%) var(--seal-contact-y, 58%) !important;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .48));
   will-change: transform;
 }
 
-/* Use the complete transparent toad frame, not a cropped facial viewport. */
-.scene-jar-actor[data-seal-mode="external"] .scene-toad-sprite {
+.scene-jar-actor[data-seal-mode="fitted"] .scene-toad-sprite {
   position: absolute !important;
   z-index: 2 !important;
   inset: 0 !important;
+  display: block !important;
   width: 100% !important;
   height: 100% !important;
   background-image: url("../images/toad-expressions/toad-expression-sprite.webp") !important;
   background-repeat: no-repeat !important;
   background-size: 200% 500% !important;
-  filter: brightness(1.08) contrast(1.07) saturate(1.08) !important;
+  filter: brightness(1.12) contrast(1.08) saturate(1.1) !important;
+  animation: fitted-seal-breathe 1.9s ease-in-out infinite alternate !important;
+  transform-origin: 50% 64% !important;
 }
 
 .jar-game-shell[data-toad-skin="gold-worker"]
-  .scene-jar-actor[data-seal-mode="external"] .scene-toad-sprite {
-  filter: sepia(.68) saturate(1.75) hue-rotate(356deg) brightness(1.14) !important;
+  .scene-jar-actor[data-seal-mode="fitted"] .scene-toad-sprite {
+  filter: sepia(.68) saturate(1.75) hue-rotate(356deg) brightness(1.17) !important;
 }
 
 .jar-game-shell[data-toad-skin="jade-guard"]
-  .scene-jar-actor[data-seal-mode="external"] .scene-toad-sprite {
-  filter: hue-rotate(76deg) saturate(1.18) brightness(1.08) !important;
+  .scene-jar-actor[data-seal-mode="fitted"] .scene-toad-sprite {
+  filter: hue-rotate(76deg) saturate(1.18) brightness(1.11) !important;
 }
 
 .jar-game-shell[data-toad-skin="star-night"]
-  .scene-jar-actor[data-seal-mode="external"] .scene-toad-sprite {
-  filter: hue-rotate(176deg) saturate(1.35) brightness(.98) contrast(1.1) !important;
+  .scene-jar-actor[data-seal-mode="fitted"] .scene-toad-sprite {
+  filter: hue-rotate(176deg) saturate(1.35) brightness(1.01) contrast(1.1) !important;
 }
 
-/*
- * This foreground edge is deliberately above the toad. The lower crescent
- * hides part of its belly and creates the visual contact needed for a plug.
- */
-.scene-jar-actor[data-seal-mode="external"] .scene-hole-rim {
-  z-index: 4 !important;
-  inset: 0 !important;
-  overflow: visible;
-  border: clamp(1.5px, .55vw, 2.5px) solid rgba(48, 27, 13, 0.95) !important;
-  border-radius: 49% 46% 52% 48% !important;
-  clip-path: ellipse(49% 47% at 50% 52%) !important;
-  background: transparent !important;
-  box-shadow:
-    inset 0 5px 8px rgba(0, 0, 0, 0.36),
-    inset 0 -3px 4px rgba(222, 159, 77, 0.13),
-    0 0 0 1px rgba(0, 0, 0, 0.18) !important;
-}
-
-.scene-jar-actor[data-seal-mode="external"] .scene-hole-rim::before {
-  content: "";
-  position: absolute;
-  left: 8%;
-  right: 7%;
-  top: 8%;
-  bottom: 8%;
-  border-radius: 50%;
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.46);
-  opacity: .72;
-}
-
-.scene-jar-actor[data-seal-mode="external"] .scene-hole-rim::after {
-  content: "";
-  position: absolute;
-  z-index: 2;
-  left: 5%;
-  right: 4%;
-  bottom: -3%;
-  height: 28%;
-  border-radius: 0 0 54% 48%;
-  clip-path: polygon(0 20%, 100% 0, 94% 100%, 7% 100%);
-  background:
-    linear-gradient(180deg, rgba(86, 49, 22, 0.25), rgba(28, 16, 9, 0.92));
-  box-shadow: 0 -2px 3px rgba(0, 0, 0, 0.46);
-  opacity: .94;
-}
-
-/* A small compressed contact patch reinforces that the belly bears pressure. */
-.scene-jar-actor[data-seal-mode="external"] .scene-hole-mask::after {
+/* Side pressure shadows make the body look compressed into the opening. */
+.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-mask::before,
+.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-mask::after {
   content: "";
   position: absolute;
   z-index: 3;
-  left: 3%;
-  top: 38%;
-  width: 36%;
-  height: 35%;
+  top: 8%;
+  bottom: 7%;
+  width: 14%;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(17, 10, 6, 0.58), transparent 70%);
-  filter: blur(.6px);
-  transform: rotate(-8deg);
   pointer-events: none;
+  opacity: .78;
 }
 
-/* Reactions deform the toad body around a stable contact point, not the hole. */
-.scene-jar-actor[data-seal-mode="external"].is-reacting[data-toad-expression="correct"]
+.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-mask::before {
+  left: -3%;
+  background: linear-gradient(90deg, rgba(8, 5, 3, .78), transparent);
+}
+
+.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-mask::after {
+  right: -3%;
+  background: linear-gradient(270deg, rgba(8, 5, 3, .72), transparent);
+}
+
+/* Foreground ceramic lip: the belly is visibly wedged behind the jar wall. */
+.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-rim {
+  position: absolute !important;
+  z-index: 4 !important;
+  inset: 0 !important;
+  display: block !important;
+  overflow: visible !important;
+  border: clamp(1.5px, .55vw, 2.6px) solid rgba(48, 27, 13, .96) !important;
+  border-radius: 50% 46% 52% 48% !important;
+  clip-path: ellipse(49% 47% at 50% 52%) !important;
+  background: transparent !important;
+  box-shadow:
+    inset 0 6px 8px rgba(0, 0, 0, .38),
+    inset 0 -3px 4px rgba(222, 159, 77, .14),
+    0 0 0 1px rgba(0, 0, 0, .2) !important;
+}
+
+.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-rim::after {
+  content: "";
+  position: absolute;
+  z-index: 5;
+  left: 4%;
+  right: 3%;
+  bottom: -3%;
+  height: 25%;
+  border-radius: 0 0 55% 49%;
+  clip-path: polygon(0 18%, 100% 0, 95% 100%, 6% 100%);
+  background: linear-gradient(180deg, rgba(89, 51, 23, .28), rgba(27, 15, 8, .94));
+  box-shadow: 0 -2px 3px rgba(0, 0, 0, .5);
+}
+
+/* Reactions keep the seal engaged; only the compression changes. */
+.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="correct"]
   .scene-toad-positioner,
-.scene-jar-actor[data-seal-mode="external"].is-reacting[data-toad-expression="combo"]
+.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="combo"]
   .scene-toad-positioner {
-  animation: physical-seal-press 580ms cubic-bezier(.18, .78, .24, 1);
+  animation: fitted-seal-press 580ms cubic-bezier(.18, .78, .24, 1);
 }
 
-.scene-jar-actor[data-seal-mode="external"].is-reacting[data-toad-expression="wrong"]
+.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="wrong"]
   .scene-toad-positioner,
-.scene-jar-actor[data-seal-mode="external"].is-reacting[data-toad-expression="timeout"]
+.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="timeout"]
   .scene-toad-positioner {
-  animation: physical-seal-slip 620ms cubic-bezier(.25, .7, .28, 1);
+  animation: fitted-seal-shake 620ms cubic-bezier(.25, .7, .28, 1);
 }
 
-@keyframes physical-seal-press {
+@keyframes fitted-seal-breathe {
+  from { transform: translate3d(0, .5%, 0) scale(1.005, .998); }
+  to { transform: translate3d(0, -.5%, 0) scale(1.012, 1.004); }
+}
+
+@keyframes fitted-seal-press {
   0%, 100% {
     transform: translate(var(--seal-toad-shift-x), var(--seal-toad-shift-y))
-      rotate(var(--seal-toad-rotate)) scale(1);
+      rotate(var(--seal-toad-rotate))
+      scale(var(--seal-toad-scale-x), var(--seal-toad-scale-y));
   }
   42% {
-    transform: translate(calc(var(--seal-toad-shift-x) - 3%), var(--seal-toad-shift-y))
-      rotate(var(--seal-toad-rotate)) scale(1.045, .94);
+    transform: translate(var(--seal-toad-shift-x), calc(var(--seal-toad-shift-y) + 1.5%))
+      rotate(var(--seal-toad-rotate))
+      scale(calc(var(--seal-toad-scale-x) + .045), calc(var(--seal-toad-scale-y) - .035));
   }
 }
 
-@keyframes physical-seal-slip {
+@keyframes fitted-seal-shake {
   0%, 100% {
     transform: translate(var(--seal-toad-shift-x), var(--seal-toad-shift-y))
-      rotate(var(--seal-toad-rotate)) scale(1);
+      rotate(var(--seal-toad-rotate))
+      scale(var(--seal-toad-scale-x), var(--seal-toad-scale-y));
   }
-  45% {
-    transform: translate(calc(var(--seal-toad-shift-x) + 7%), calc(var(--seal-toad-shift-y) + 2%))
-      rotate(calc(var(--seal-toad-rotate) + 4deg)) scale(.97, 1.02);
+  30% {
+    transform: translate(calc(var(--seal-toad-shift-x) - 1.8%), var(--seal-toad-shift-y))
+      rotate(calc(var(--seal-toad-rotate) - 1.5deg))
+      scale(var(--seal-toad-scale-x), var(--seal-toad-scale-y));
+  }
+  62% {
+    transform: translate(calc(var(--seal-toad-shift-x) + 1.8%), var(--seal-toad-shift-y))
+      rotate(calc(var(--seal-toad-rotate) + 1.5deg))
+      scale(var(--seal-toad-scale-x), var(--seal-toad-scale-y));
   }
 }
 
-@media (max-width: 430px) {
-  .scene-jar-actor[data-seal-mode="external"] .scene-toad-positioner {
-    width: calc(var(--seal-toad-width, 170%) * .96) !important;
-  }
-}
-
-.reduce-motion .scene-jar-actor[data-seal-mode="external"] .scene-toad-positioner {
+.reduce-motion .scene-jar-actor[data-seal-mode="fitted"] .scene-toad-positioner,
+.reduce-motion .scene-jar-actor[data-seal-mode="fitted"] .scene-toad-sprite {
   animation: none !important;
 }
