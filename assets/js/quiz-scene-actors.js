@@ -2,6 +2,7 @@ const root = document.getElementById("ui-gameApp");
 const stage = document.getElementById("visualStage");
 const actor = document.getElementById("sceneJarActor");
 const jarImage = document.getElementById("sceneJarImage");
+const sealAnchor = document.getElementById("sceneHoleAnchor");
 
 const JAR_ASSETS = Object.freeze({
   onggi: Object.freeze({
@@ -46,6 +47,32 @@ const JAR_LAYOUTS = Object.freeze({
   })
 });
 
+/*
+ * The fitted seal is a single authored image containing the hole and toad.
+ * Expression CSS used to replace its entire filter, which erased the active
+ * quiz/jar colour. Keep the base palette and reaction effect as two layers so
+ * every expression retains the selected quiz colour.
+ */
+const SEAL_BASE_FILTERS = Object.freeze({
+  onggi: "drop-shadow(0 4px 5px rgba(0, 0, 0, .46))",
+  celadon: "hue-rotate(46deg) saturate(.72) brightness(1.08) drop-shadow(0 4px 5px rgba(0, 0, 0, .46))",
+  "moon-white": "grayscale(.62) sepia(.12) brightness(1.38) contrast(.9) drop-shadow(0 4px 5px rgba(0, 0, 0, .42))",
+  "night-lacquer": "hue-rotate(188deg) saturate(.7) brightness(.7) contrast(1.18) drop-shadow(0 4px 5px rgba(0, 0, 0, .55))"
+});
+
+const SEAL_EXPRESSION_FILTERS = Object.freeze({
+  default: "",
+  correct: "brightness(1.13) saturate(1.12) drop-shadow(0 0 6px rgba(238, 196, 93, .34))",
+  combo: "brightness(1.13) saturate(1.12) drop-shadow(0 0 6px rgba(238, 196, 93, .34))",
+  wrong: "saturate(.62) brightness(.82) contrast(1.08) drop-shadow(0 4px 5px rgba(0, 0, 0, .5))",
+  timeout: "saturate(.62) brightness(.82) contrast(1.08) drop-shadow(0 4px 5px rgba(0, 0, 0, .5))",
+  angry: "sepia(.35) saturate(1.42) hue-rotate(330deg) contrast(1.12) drop-shadow(0 0 7px rgba(192, 65, 48, .3))",
+  rage: "sepia(.35) saturate(1.42) hue-rotate(330deg) contrast(1.12) drop-shadow(0 0 7px rgba(192, 65, 48, .3))",
+  surprised: "brightness(1.2) contrast(1.05) drop-shadow(0 0 7px rgba(111, 212, 235, .28))",
+  confused: "saturate(.78) brightness(.9) drop-shadow(0 4px 5px rgba(0, 0, 0, .5))",
+  idle: "saturate(.78) brightness(.9) drop-shadow(0 4px 5px rgba(0, 0, 0, .5))"
+});
+
 const VALID_EXPRESSIONS = new Set([
   "default",
   "correct",
@@ -73,6 +100,19 @@ function listen(type, handler) {
 function selectedJarSkin() {
   const requested = root?.dataset.jarSkin || "onggi";
   return Object.hasOwn(JAR_ASSETS, requested) ? requested : "onggi";
+}
+
+function syncSealFilter(expression = actor?.dataset.toadExpression || "default", jarSkin = selectedJarSkin()) {
+  if (!sealAnchor || !actor) return;
+
+  if (actor.dataset.sealMode !== "fitted") {
+    sealAnchor.style.removeProperty("filter");
+    return;
+  }
+
+  const baseFilter = SEAL_BASE_FILTERS[jarSkin] || SEAL_BASE_FILTERS.onggi;
+  const effectFilter = SEAL_EXPRESSION_FILTERS[expression] || "";
+  sealAnchor.style.filter = effectFilter ? `${baseFilter} ${effectFilter}` : baseFilter;
 }
 
 function applyJarLayout(jarSkin = selectedJarSkin()) {
@@ -112,6 +152,7 @@ function syncCosmetics() {
   actor.dataset.toadSkin = toadSkin;
   actor.dataset.sealMode = "fitted";
   applyJarLayout(jarSkin);
+  syncSealFilter(actor.dataset.toadExpression || "default", jarSkin);
 }
 
 function normalizeClearKeyLabels(scope = document) {
@@ -168,6 +209,7 @@ function setExpression(expression, {
   clearResetTimer();
   actor.dataset.toadExpression = next;
   stage.dataset.toadExpression = next;
+  syncSealFilter(next);
 
   if (react && next !== "default") retriggerMotion();
   else actor.classList.remove("is-reacting");
@@ -178,6 +220,7 @@ function setExpression(expression, {
       actor.dataset.toadExpression = "default";
       stage.dataset.toadExpression = "default";
       actor.classList.remove("is-reacting");
+      syncSealFilter("default");
     }, Math.max(650, Number(duration) || 1050));
   }
 }
@@ -187,6 +230,7 @@ if (root && stage && actor && jarImage) {
   jarImage.addEventListener("error", () => {
     const fallback = JAR_ASSETS.onggi[jarIsOpen ? "open" : "closed"];
     applyJarLayout("onggi");
+    syncSealFilter(actor.dataset.toadExpression || "default", "onggi");
     if (!jarImage.src.endsWith(fallback)) {
       jarImage.src = fallback;
     }
@@ -268,6 +312,7 @@ if (root && stage && actor && jarImage) {
     setExpression,
     setPouring,
     syncCosmetics,
+    syncSealFilter,
     applyJarLayout,
     normalizeClearKeyLabels
   };
