@@ -1,0 +1,9 @@
+/* Compatibility surface for the real-art test and older cached pages. */
+.real-sprite-art .kongjwi-part-canvas,
+.real-sprite-art .kongjwi-part-image { filter: none; }
+.real-sprite-art .kongjwi-part-canvas { --kong-frame-x: 0%; }
+.shop-item-visual.real-skin-thumbnail::before { content: none !important; }
+.shop-item-visual[data-category="outfit"] { background-image: url("../art/sprites/kongjwi-outfits.svg"); }
+.shop-item-visual[data-category="tool"] { background-image: url("../art/sprites/tools.svg"); }
+.shop-item-visual[data-category="toad"] { background-image: url("../art/sprites/toads.svg"); }
+.shop-item-visual[data-category="jar"] { background-image: url("../art/sprites/jars.svg"); }

@@ -1,0 +1,243 @@
+{
+  "version": 1,
+  "character": "kongjwi",
+  "source": {
+    "file": "assets/art/photoreal/kongjwi-keyposes.png",
+    "sha256": "71ffbb086f0ec55d1b93368422bd35dc3e4f9f7282f25a5f63e3601a75decbaa",
+    "canvas": [
+      784,
+      1168
+    ],
+    "formatNote": "source extension is PNG but the authored bytes decode as JPEG; pixels are read without resampling"
+  },
+  "cutPolicy": {
+    "method": "border-connected neutral-background mask plus largest-component cleanup",
+    "faceCut": "neckCutY=424 in source coordinates",
+    "pixelPolicy": "opaque RGB values are copied from the source; only alpha is added"
+  },
+  "parts": {
+    "standing-neutral": {
+      "file": "standing-neutral.png",
+      "canvas": [
+        784,
+        1168
+      ],
+      "sourceRect": [
+        0,
+        0,
+        784,
+        1168
+      ],
+      "anchors": {
+        "neckCutY": 424,
+        "headCenter": [
+          392,
+          238
+        ],
+        "feetBaseline": 1166
+      },
+      "note": "same source pixels with transparent masking; no repainting"
+    },
+    "body-base": {
+      "file": "body-base.png",
+      "canvas": [
+        784,
+        1168
+      ],
+      "sourceRect": [
+        0,
+        0,
+        784,
+        1168
+      ],
+      "anchors": {
+        "neckCutY": 424,
+        "headCenter": [
+          392,
+          238
+        ],
+        "feetBaseline": 1166
+      },
+      "note": "same source pixels with transparent masking; no repainting"
+    },
+    "head-neutral": {
+      "file": "head-neutral.png",
+      "canvas": [
+        784,
+        1168
+      ],
+      "sourceRect": [
+        0,
+        0,
+        784,
+        1168
+      ],
+      "anchors": {
+        "neckCutY": 424,
+        "headCenter": [
+          392,
+          238
+        ],
+        "feetBaseline": 1166
+      },
+      "note": "same source pixels with transparent masking; no repainting"
+    },
+    "face-neutral": {
+      "file": "face-neutral.png",
+      "canvas": [
+        784,
+        1168
+      ],
+      "sourceRect": [
+        0,
+        0,
+        784,
+        1168
+      ],
+      "anchors": {
+        "neckCutY": 424,
+        "headCenter": [
+          392,
+          238
+        ],
+        "feetBaseline": 1166
+      },
+      "note": "same source pixels with transparent masking; no repainting"
+    },
+    "torso": {
+      "file": "torso.png",
+      "canvas": [
+        784,
+        1168
+      ],
+      "sourceRect": [
+        0,
+        0,
+        784,
+        1168
+      ],
+      "anchors": {
+        "neckCutY": 424,
+        "headCenter": [
+          392,
+          238
+        ],
+        "feetBaseline": 1166
+      },
+      "note": "same source pixels with transparent masking; no repainting"
+    },
+    "arm-left": {
+      "file": "arm-left.png",
+      "canvas": [
+        784,
+        1168
+      ],
+      "sourceRect": [
+        0,
+        0,
+        784,
+        1168
+      ],
+      "anchors": {
+        "neckCutY": 424,
+        "headCenter": [
+          392,
+          238
+        ],
+        "feetBaseline": 1166
+      },
+      "note": "same source pixels with transparent masking; no repainting"
+    },
+    "arm-right": {
+      "file": "arm-right.png",
+      "canvas": [
+        784,
+        1168
+      ],
+      "sourceRect": [
+        0,
+        0,
+        784,
+        1168
+      ],
+      "anchors": {
+        "neckCutY": 424,
+        "headCenter": [
+          392,
+          238
+        ],
+        "feetBaseline": 1166
+      },
+      "note": "same source pixels with transparent masking; no repainting"
+    },
+    "lower-body": {
+      "file": "lower-body.png",
+      "canvas": [
+        784,
+        1168
+      ],
+      "sourceRect": [
+        0,
+        0,
+        784,
+        1168
+      ],
+      "anchors": {
+        "neckCutY": 424,
+        "headCenter": [
+          392,
+          238
+        ],
+        "feetBaseline": 1166
+      },
+      "note": "same source pixels with transparent masking; no repainting"
+    }
+  },
+  "faceReference": {
+    "file": "face-reference.png",
+    "source": "assets/art/photoreal/콩쥐와꾸.png",
+    "size": [
+      260,
+      326
+    ],
+    "purpose": "face reference for future expression variants; no repainting is performed"
+  },
+  "poses": {
+    "standing-neutral": {
+      "body": "body-base",
+      "head": "head-neutral",
+      "expression": "neutral",
+      "toolAnchor": [
+        0.78,
+        0.51
+      ],
+      "transformPolicy": "move layers; do not repaint source pixels"
+    }
+  },
+  "expressions": {
+    "neutral": {
+      "part": "head-neutral",
+      "status": "authored"
+    },
+    "focused": {
+      "part": "head-neutral",
+      "status": "pose-only slot"
+    },
+    "correct": {
+      "part": "head-neutral",
+      "status": "pose-only slot"
+    },
+    "wrong": {
+      "part": "head-neutral",
+      "status": "pose-only slot"
+    },
+    "timeout": {
+      "part": "head-neutral",
+      "status": "pose-only slot"
+    },
+    "celebrate": {
+      "part": "head-neutral",
+      "status": "pose-only slot"
+    }
+  }
+}
