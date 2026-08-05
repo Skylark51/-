@@ -1,0 +1,57 @@
+/* Keep authored jar PNGs inside their product cards. */
+.shop-page .shop-grid[data-category="jar"] .shop-item-visual.shop-jar-visual {
+  position: relative;
+  box-sizing: border-box;
+  overflow: hidden !important;
+  padding: 2px 4px 8px;
+}
+
+.shop-page .shop-grid[data-category="jar"] .shop-asset-jar.is-authored-jar {
+  box-sizing: border-box;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+
+.shop-page .shop-grid[data-category="jar"] .shop-jar-image {
+  box-sizing: border-box;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: scale(.94) !important;
+  transform-origin: center center !important;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-item {
+  grid-template-rows: minmax(0, 1fr) auto 36px !important;
+  row-gap: 5px !important;
+  padding: 8px 8px 5px !important;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-item-visual.shop-jar-visual {
+  padding: 1px 3px 7px;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-jar-image {
+  transform: scale(.91) !important;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-item-actions {
+  align-self: end;
+  min-height: 36px;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-item-action {
+  min-height: 36px !important;
+}
+
+@media (max-width: 370px), (max-height: 720px) {
+  :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="jar"] .shop-jar-image {
+    transform: scale(.88) !important;
+  }
+}
