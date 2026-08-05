@@ -4,10 +4,22 @@ const actor = document.getElementById("sceneJarActor");
 const jarImage = document.getElementById("sceneJarImage");
 
 const JAR_ASSETS = Object.freeze({
-  onggi: "assets/art/jars/onggi/thumbnail-no-toad.png",
-  celadon: "assets/art/jars/celadon/thumbnail-no-toad.png",
-  "moon-white": "assets/art/jars/moon-white/thumbnail-no-toad.png",
-  "night-lacquer": "assets/art/jars/night-lacquer/thumbnail-no-toad.png"
+  onggi: Object.freeze({
+    closed: "assets/art/jars/onggi/thumbnail-no-toad.png",
+    open: "assets/art/jars/onggi/lid-open.png"
+  }),
+  celadon: Object.freeze({
+    closed: "assets/art/jars/celadon/thumbnail-no-toad.png",
+    open: "assets/art/jars/celadon/lid-open.png"
+  }),
+  "moon-white": Object.freeze({
+    closed: "assets/art/jars/moon-white/thumbnail-no-toad.png",
+    open: "assets/art/jars/moon-white/lid-open.png"
+  }),
+  "night-lacquer": Object.freeze({
+    closed: "assets/art/jars/night-lacquer/thumbnail-no-toad.png",
+    open: "assets/art/jars/night-lacquer/lid-open.png"
+  })
 });
 
 const VALID_EXPRESSIONS = new Set([
@@ -24,6 +36,8 @@ const VALID_EXPRESSIONS = new Set([
 ]);
 
 let resetTimer = 0;
+let pourTimer = 0;
+let jarIsOpen = false;
 let destroyed = false;
 const removers = [];
 
@@ -32,11 +46,17 @@ function listen(type, handler) {
   removers.push(() => window.removeEventListener(type, handler));
 }
 
+function selectedJarAssets() {
+  const jarSkin = root?.dataset.jarSkin || "onggi";
+  return JAR_ASSETS[jarSkin] || JAR_ASSETS.onggi;
+}
+
 function syncCosmetics() {
   if (!root || !actor || !jarImage) return;
   const jarSkin = root.dataset.jarSkin || "onggi";
   const toadSkin = root.dataset.toadSkin || "field-brown";
-  const nextSource = JAR_ASSETS[jarSkin] || JAR_ASSETS.onggi;
+  const assets = selectedJarAssets();
+  const nextSource = jarIsOpen ? assets.open : assets.closed;
 
   if (!jarImage.src.endsWith(nextSource)) {
     jarImage.src = nextSource;
@@ -55,6 +75,31 @@ function normalizeClearKeyLabels(scope = document) {
 function clearResetTimer() {
   window.clearTimeout(resetTimer);
   resetTimer = 0;
+}
+
+function clearPourTimer() {
+  window.clearTimeout(pourTimer);
+  pourTimer = 0;
+}
+
+function setPouring(active, duration = 940) {
+  if (!actor || !stage || destroyed) return;
+
+  clearPourTimer();
+  jarIsOpen = Boolean(active);
+  actor.classList.toggle("is-pouring", jarIsOpen);
+  stage.classList.toggle("is-pouring", jarIsOpen);
+  syncCosmetics();
+
+  if (jarIsOpen) {
+    pourTimer = window.setTimeout(() => {
+      if (destroyed) return;
+      jarIsOpen = false;
+      actor.classList.remove("is-pouring");
+      stage.classList.remove("is-pouring");
+      syncCosmetics();
+    }, Math.max(700, Number(duration) || 940));
+  }
 }
 
 function retriggerMotion() {
@@ -92,8 +137,9 @@ function setExpression(expression, {
 if (root && stage && actor && jarImage) {
   jarImage.decoding = "async";
   jarImage.addEventListener("error", () => {
-    if (!jarImage.src.endsWith(JAR_ASSETS.onggi)) {
-      jarImage.src = JAR_ASSETS.onggi;
+    const fallback = JAR_ASSETS.onggi[jarIsOpen ? "open" : "closed"];
+    if (!jarImage.src.endsWith(fallback)) {
+      jarImage.src = fallback;
     }
   });
 
@@ -115,23 +161,45 @@ if (root && stage && actor && jarImage) {
   });
   keypadObserver.observe(document.body, { childList: true, subtree: true });
 
-  listen("game:start", () => setExpression("default", { react: false }));
-  listen("question:changed", () => normalizeClearKeyLabels());
+  listen("game:start", () => {
+    setPouring(false);
+    setExpression("default", { react: false });
+  });
+  listen("question:changed", () => {
+    setPouring(false);
+    normalizeClearKeyLabels();
+  });
   listen("ui:device-mode", () => normalizeClearKeyLabels());
   listen("answer:correct", event => {
     const detail = event.detail || {};
+    setPouring(true, 940);
     setExpression(Number(detail.combo) >= 3 ? "combo" : "correct", {
       duration: Number(detail.combo) >= 3 ? 1250 : 950
     });
   });
-  listen("answer:wrong", () => setExpression("wrong", { duration: 1200 }));
-  listen("answer:timeout", () => setExpression("timeout", { duration: 1450 }));
+  listen("answer:wrong", () => {
+    setPouring(false);
+    setExpression("wrong", { duration: 1200 });
+  });
+  listen("answer:timeout", () => {
+    setPouring(false);
+    setExpression("timeout", { duration: 1450 });
+  });
   listen("water:warning", () => setExpression("confused", { duration: 1200 }));
   listen("water:critical", () => setExpression("angry", { duration: 1500 }));
   listen("fever:start", () => setExpression("surprised", { duration: 1300 }));
-  listen("game:clear", () => setExpression("correct", { persistent: true }));
-  listen("game:over", () => setExpression("rage", { persistent: true }));
-  listen("game:pause", () => setExpression("idle", { persistent: true, react: false }));
+  listen("game:clear", () => {
+    setPouring(false);
+    setExpression("correct", { persistent: true });
+  });
+  listen("game:over", () => {
+    setPouring(false);
+    setExpression("rage", { persistent: true });
+  });
+  listen("game:pause", () => {
+    setPouring(false);
+    setExpression("idle", { persistent: true, react: false });
+  });
   listen("game:resume", () => setExpression("default", { react: false }));
 
   syncCosmetics();
@@ -141,6 +209,7 @@ if (root && stage && actor && jarImage) {
   window.addEventListener("beforeunload", () => {
     destroyed = true;
     clearResetTimer();
+    clearPourTimer();
     cosmeticObserver.disconnect();
     keypadObserver.disconnect();
     removers.splice(0).forEach(remove => remove());
@@ -148,6 +217,7 @@ if (root && stage && actor && jarImage) {
 
   globalThis.__KONGJWI_QUIZ_SCENE_ACTORS__ = {
     setExpression,
+    setPouring,
     syncCosmetics,
     normalizeClearKeyLabels
   };

@@ -1,0 +1,336 @@
+/*
+ * Balanced quiz animation composition.
+ * Keeps the question HUD intact while separating the stage into a reserved
+ * Kongjwi area, a central pouring path and a stable jar/toad area.
+ */
+
+.scene-animation-zone {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 83% 86%, rgba(207, 151, 70, 0.14), transparent 29%),
+    radial-gradient(circle at 18% 26%, rgba(120, 184, 198, 0.07), transparent 24%),
+    linear-gradient(160deg, #172129 0%, #151c21 54%, #211c17 100%) !important;
+}
+
+.scene-background-layer::before {
+  opacity: 0.54;
+  background:
+    radial-gradient(circle at 15% 18%, rgba(245, 211, 145, 0.07), transparent 16%),
+    linear-gradient(180deg, transparent 0 72%, rgba(30, 23, 17, 0.28) 72% 100%) !important;
+}
+
+.scene-moon-haze {
+  left: 10% !important;
+  top: 8% !important;
+  width: 17% !important;
+  opacity: 0.42;
+}
+
+.scene-background-house {
+  left: 3% !important;
+  bottom: 13% !important;
+  width: 38% !important;
+  height: 57% !important;
+  opacity: 0.18 !important;
+  filter: saturate(0.45) brightness(0.66) blur(0.35px) !important;
+}
+
+.scene-ground-line {
+  bottom: -18% !important;
+  height: 40% !important;
+  opacity: 0.72;
+}
+
+.scene-cinematic-shade {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.07), transparent 34%, transparent 75%, rgba(0, 0, 0, 0.24)),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.02), transparent 60%, rgba(0, 0, 0, 0.06)) !important;
+}
+
+.quiz-scene-actors {
+  display: grid !important;
+  grid-template-columns: minmax(0, 38%) minmax(0, 24%) minmax(0, 38%);
+  align-items: stretch;
+  padding: 0 1.5%;
+  overflow: hidden;
+}
+
+.scene-kongjwi-zone,
+.scene-action-zone,
+.scene-jar-zone {
+  position: relative !important;
+  inset: auto !important;
+  width: auto !important;
+  height: 100% !important;
+  min-width: 0;
+  min-height: 0;
+}
+
+.scene-kongjwi-zone { grid-column: 1; }
+.scene-action-zone { grid-column: 2; }
+.scene-jar-zone { grid-column: 3; }
+
+.scene-kongjwi-reserved {
+  position: absolute !important;
+  inset: 0 !important;
+}
+
+.scene-kongjwi-reserved::after {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 8%;
+  bottom: 7%;
+  height: 15%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(104, 184, 200, 0.11), transparent 70%);
+  opacity: 0.62;
+}
+
+.scene-action-zone {
+  pointer-events: none;
+}
+
+.scene-pour-guide {
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  top: 22%;
+  bottom: 18%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 54% 50%, rgba(112, 209, 229, 0.045), transparent 68%);
+}
+
+.scene-jar-actor {
+  left: 50% !important;
+  right: auto !important;
+  bottom: 2.5% !important;
+  width: min(100%, clamp(132px, 38vw, 220px)) !important;
+  height: auto !important;
+  max-width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  transform: translateX(-50%);
+  transform-origin: 50% 88% !important;
+  filter: drop-shadow(0 12px 15px rgba(0, 0, 0, 0.42)) !important;
+}
+
+.scene-jar-image {
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+}
+
+.scene-toad-viewport {
+  right: 7.1% !important;
+  bottom: 15.3% !important;
+  width: 28.1% !important;
+  height: 23.8% !important;
+  background: rgba(21, 14, 8, 0.68) !important;
+  box-shadow:
+    inset 0 0 0 1.5px rgba(36, 21, 11, 0.88),
+    inset 0 4px 9px rgba(0, 0, 0, 0.4),
+    0 0 5px rgba(0, 0, 0, 0.25) !important;
+}
+
+.scene-toad-viewport::after {
+  border-width: 1.5px !important;
+  opacity: 0.82;
+}
+
+.scene-toad-sprite {
+  inset: -11% -9% -14% !important;
+  filter: brightness(1.2) contrast(1.06) saturate(1.08);
+  animation-name: quiz-toad-breathe-balanced !important;
+  animation-duration: 1.9s !important;
+}
+
+.jar-game-shell[data-toad-skin="gold-worker"] .scene-toad-sprite {
+  filter: sepia(.68) saturate(1.75) hue-rotate(356deg) brightness(1.22) !important;
+}
+
+.jar-game-shell[data-toad-skin="jade-guard"] .scene-toad-sprite {
+  filter: hue-rotate(76deg) saturate(1.18) brightness(1.14) !important;
+}
+
+.jar-game-shell[data-toad-skin="star-night"] .scene-toad-sprite {
+  filter: hue-rotate(176deg) saturate(1.35) brightness(1.02) contrast(1.08) !important;
+}
+
+.scene-jar-actor.is-reacting[data-toad-expression="correct"] .scene-toad-sprite,
+.scene-jar-actor.is-reacting[data-toad-expression="combo"] .scene-toad-sprite {
+  animation: quiz-toad-correct-balanced 580ms cubic-bezier(.18, .78, .24, 1) !important;
+}
+
+.scene-jar-actor.is-reacting[data-toad-expression="wrong"] .scene-toad-sprite,
+.scene-jar-actor.is-reacting[data-toad-expression="timeout"] .scene-toad-sprite {
+  animation: quiz-toad-wrong-balanced 620ms cubic-bezier(.25, .7, .28, 1) !important;
+}
+
+.scene-jar-actor.is-reacting[data-toad-expression="angry"] .scene-toad-sprite,
+.scene-jar-actor.is-reacting[data-toad-expression="rage"] .scene-toad-sprite {
+  animation: quiz-toad-angry-balanced 520ms ease-in-out !important;
+}
+
+.scene-jar-actor.is-reacting[data-toad-expression="surprised"] .scene-toad-sprite,
+.scene-jar-actor.is-reacting[data-toad-expression="confused"] .scene-toad-sprite {
+  animation: quiz-toad-surprised-balanced 570ms ease-out !important;
+}
+
+.scene-pour-arc {
+  left: 31% !important;
+  top: 17% !important;
+  width: 42% !important;
+  height: 43% !important;
+  opacity: 0;
+  overflow: visible;
+  border-top: clamp(3px, 0.9vw, 6px) solid rgba(109, 217, 239, 0.92);
+  border-radius: 52% 58% 0 0;
+  background: none !important;
+  filter: drop-shadow(0 0 5px rgba(89, 205, 231, 0.62));
+  transform: rotate(8deg) scaleX(0.88);
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+.scene-pour-arc::before,
+.scene-pour-arc::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(127, 225, 244, 0.92);
+  box-shadow: 0 0 5px rgba(83, 198, 224, 0.56);
+}
+
+.scene-pour-arc::before {
+  right: 1%;
+  top: -5px;
+  width: 7px;
+  height: 10px;
+}
+
+.scene-pour-arc::after {
+  right: 8%;
+  top: 3px;
+  width: 4px;
+  height: 7px;
+}
+
+.game-stage.is-pouring .scene-pour-arc {
+  animation: quiz-water-arc-balanced 940ms ease-out both;
+}
+
+.scene-jar-actor.is-pouring {
+  animation: quiz-jar-receive-water 940ms ease-out both;
+}
+
+.scene-animation-zone .scene-water-meter {
+  left: 8px !important;
+  bottom: 8px !important;
+  width: min(32%, 132px) !important;
+}
+
+.scene-animation-zone .toad-bubble {
+  right: clamp(112px, 35%, 188px) !important;
+  bottom: clamp(16px, 10%, 42px) !important;
+  max-width: min(39%, 168px) !important;
+}
+
+.scene-animation-zone .scene-leak-effect {
+  right: clamp(27px, 8.4%, 48px) !important;
+  bottom: -7px !important;
+  width: 30px !important;
+  height: 64px !important;
+  opacity: 0.24 !important;
+  transform: scale(.72) rotate(2deg) !important;
+}
+
+@keyframes quiz-toad-breathe-balanced {
+  from { transform: translate3d(0, 0.8%, 0) scale(1); }
+  to { transform: translate3d(0, -0.8%, 0) scale(1.012, .995); }
+}
+
+@keyframes quiz-toad-correct-balanced {
+  0% { transform: translate3d(0, 2%, 0) scale(.98); }
+  38% { transform: translate3d(0, -4%, 0) scale(1.035, .98); }
+  72% { transform: translate3d(0, 1%, 0) scale(.995, 1.01); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes quiz-toad-wrong-balanced {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
+  28% { transform: translate3d(3%, 1%, 0) rotate(1.5deg); }
+  58% { transform: translate3d(-2.5%, 0, 0) rotate(-1.2deg); }
+  80% { transform: translate3d(1%, 0, 0) rotate(.5deg); }
+}
+
+@keyframes quiz-toad-angry-balanced {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  25% { transform: translate3d(-2.5%, 0, 0); }
+  50% { transform: translate3d(2.5%, 0, 0); }
+  75% { transform: translate3d(-1.5%, 0, 0); }
+}
+
+@keyframes quiz-toad-surprised-balanced {
+  0% { transform: translate3d(0, 3%, 0) scale(.96); }
+  45% { transform: translate3d(0, -4%, 0) scale(1.035); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes quiz-water-arc-balanced {
+  0% { opacity: 0; transform: rotate(8deg) scaleX(.15); }
+  14% { opacity: 1; }
+  72% { opacity: 1; transform: rotate(8deg) scaleX(1); }
+  100% { opacity: 0; transform: rotate(8deg) scaleX(1.04); }
+}
+
+@keyframes quiz-jar-receive-water {
+  0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
+  42% { transform: translateX(-50%) translateY(1px) scale(1.012, .993); }
+  68% { transform: translateX(-50%) translateY(0) scale(.998, 1.004); }
+}
+
+@media (max-width: 430px) {
+  .scene-stage-layout {
+    grid-template-rows: minmax(0, 25%) minmax(0, 75%) !important;
+  }
+
+  .quiz-scene-actors {
+    grid-template-columns: minmax(0, 38%) minmax(0, 23%) minmax(0, 39%);
+    padding-inline: 1%;
+  }
+
+  .scene-jar-actor {
+    bottom: 3% !important;
+    width: min(100%, clamp(128px, 38vw, 158px)) !important;
+  }
+
+  .scene-pour-arc {
+    left: 30% !important;
+    top: 19% !important;
+    width: 43% !important;
+    height: 40% !important;
+  }
+
+  .scene-animation-zone .toad-bubble {
+    right: clamp(105px, 37%, 150px) !important;
+    max-width: 40% !important;
+  }
+}
+
+@media (max-height: 620px) and (orientation: portrait) {
+  .scene-jar-actor {
+    width: min(100%, clamp(118px, 35vw, 148px)) !important;
+  }
+
+  .scene-animation-zone .scene-water-meter {
+    bottom: 5px !important;
+  }
+}
+
+.reduce-motion .scene-toad-sprite,
+.reduce-motion .scene-jar-actor,
+.reduce-motion .scene-pour-arc {
+  animation: none !important;
+}
