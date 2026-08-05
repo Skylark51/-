@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" data-page="shop" data-ui-version="20260804-shop-fixed-shell1">
+<html lang="ko" data-page="shop" data-ui-version="20260805-shop-navigation1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -22,82 +22,15 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="assets/css/shop.css?v=20260804-shop-fixed-shell1">
   <link rel="stylesheet" href="assets/css/lobby-scene.css?v=20260803-cohesive1">
   <link rel="stylesheet" href="assets/css/mobile-unified-shell.css?v=20260804-unified2">
   <link rel="stylesheet" href="assets/css/mobile-fixed-shell.css?v=20260804-fixed-shell2">
   <link rel="stylesheet" href="assets/css/mobile-settings-dialog.css?v=20260804-settings1">
-  <style id="shopUnifiedShell">
-    .shop-page .shop-shell {
-      width: min(1320px, 100%);
-      padding-top: 14px;
-    }
-    .shop-page .lobby-topbar {
-      margin-bottom: 16px;
-    }
-    .shop-page .desktop-tabs [aria-current="page"] {
-      background: #2c2118;
-      color: var(--gold-2);
-    }
-    .shop-page .bean-wallet {
-      font-variant-numeric: tabular-nums;
-    }
-    .shop-page .modal-card .device-mode-field {
-      min-width: 0;
-      margin: 17px 0;
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 13px;
-    }
-    .shop-page .modal-card .device-mode-field legend {
-      padding: 0 5px;
-      color: var(--muted);
-      font-size: 10px;
-      font-weight: 900;
-    }
-    .shop-page .modal-card .device-mode-options {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 7px;
-    }
-    .shop-page .modal-card .device-mode-options label {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      min-width: 0;
-      min-height: 40px;
-      margin: 0;
-      padding: 6px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #15110d;
-      color: var(--muted);
-      font-size: 10px;
-      font-weight: 850;
-      text-align: center;
-    }
-    .shop-page .modal-card .device-mode-options label:has(input:checked) {
-      border-color: rgba(213, 160, 62, .56);
-      background: rgba(213, 160, 62, .14);
-      color: var(--gold-2);
-    }
-    .shop-page .modal-card .device-mode-options input {
-      margin: 0;
-      accent-color: var(--gold);
-    }
-    @media (max-width: 700px) {
-      .shop-page .shop-shell {
-        padding: 8px 9px 24px;
-      }
-      .shop-page .lobby-topbar {
-        margin-bottom: 9px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="assets/css/shop.css?v=20260804-shop-fixed-shell1">
+  <link rel="stylesheet" href="assets/css/shop-navigation.css?v=20260805-navigation1">
 </head>
 <body class="shop-page lobby-page">
-  <a class="skip-link" href="#shopGrid">상품 목록으로 바로가기</a>
+  <a class="skip-link" href="#shopWorkspace">상점 메뉴로 바로가기</a>
 
   <main class="shop-shell lobby-app">
     <header class="lobby-topbar">
@@ -117,53 +50,36 @@
       </nav>
 
       <div class="topbar-actions">
-        <a class="bean-wallet" href="#shopGrid" aria-label="현재 보유 콩"><small>보유 콩</small><strong id="shopBeans">0</strong></a>
+        <div class="bean-wallet" aria-label="현재 보유 콩"><small>보유 콩</small><strong id="shopBeans">0</strong></div>
         <button id="settingsButton" class="topbar-icon" type="button" aria-label="설정 열기">⚙</button>
       </div>
     </header>
 
-    <section class="shop-layout">
-      <article class="shop-preview-card" aria-labelledby="previewTitle">
-        <div class="shop-preview-heading">
-          <div><p class="eyebrow">EQUIPMENT PREVIEW</p><h1 id="previewTitle">현재 장착 장면</h1></div>
-          <span id="previewRarity" class="rarity-badge">기본</span>
-        </div>
-
-        <div id="shopPreviewStage" class="shop-preview-stage" aria-label="선택한 상품의 게임 장면 미리보기">
-          <div id="shopSceneArt" class="shop-scene-art" data-scene-cell="idle" aria-hidden="true"></div>
-          <div class="shop-preview-shade" aria-hidden="true"></div>
-          <div class="preview-scene-label"><span>현재 장면</span><strong>두꺼비가 구멍을 막는 중</strong></div>
-          <div id="previewAssetNotice" class="preview-asset-notice" hidden>이 상품의 게임 장면 원화는 준비 중입니다.</div>
-        </div>
-
-        <div class="shop-preview-copy">
-          <span id="previewCategory" class="preview-category">콩쥐 도구</span>
-          <h2 id="previewName">나무 바가지</h2>
-          <p id="previewDescription">콩쥐가 처음부터 쓰는 묵직한 나무 바가지입니다.</p>
-          <div class="equipped-summary" aria-label="현재 장착 목록">
-            <span>도구 <b id="equippedTool">나무 바가지</b></span>
-            <span>의상 <b id="equippedOutfit">고전 홍색 한복</b></span>
-            <span>두꺼비 <b id="equippedToad">논두렁 두꺼비</b></span>
-            <span>장독대 <b id="equippedJar">전통 옹기</b></span>
-          </div>
-          <div class="shop-preview-actions">
-            <button id="previewActionButton" class="primary-action" type="button">현재 장착 중</button>
-            <a class="secondary-action" href="콩쥐야_줘때써.html?training=atomic_number">게임에서 확인</a>
-          </div>
-        </div>
-      </article>
-
-      <section class="shop-catalog" aria-labelledby="catalogTitle">
-        <div class="shop-intro">
+    <section id="shopWorkspace" class="shop-workspace">
+      <section id="shopHomeView" class="shop-view shop-home-view" aria-labelledby="shopTitle">
+        <header class="shop-view-header shop-home-header">
           <div>
             <p class="eyebrow">BEAN STORE</p>
-            <h2 id="catalogTitle">콩으로 외형 바꾸기</h2>
-            <p>구매 기록과 보유 콩은 기존 저장 데이터를 그대로 사용합니다. 실제 장면 원화가 없는 상품은 임시 색상 필터로 속이지 않고 준비 상태를 표시합니다.</p>
+            <h1 id="shopTitle">콩 상점</h1>
+            <p>바꿀 외형의 종류를 선택하세요.</p>
           </div>
           <span id="ownedCount" class="owned-count">보유 4 / 16</span>
-        </div>
+        </header>
+        <div id="shopCategories" class="shop-category-grid" aria-label="상점 카테고리"></div>
+      </section>
 
-        <div id="shopTabs" class="shop-tabs" role="tablist" aria-label="상품 카테고리"></div>
+      <section id="shopCategoryView" class="shop-view shop-category-view" aria-labelledby="categoryTitle" hidden>
+        <header class="shop-view-header shop-category-header">
+          <button id="shopBackButton" class="shop-back-button" type="button" aria-label="상점 카테고리로 돌아가기">
+            <span aria-hidden="true">←</span>
+          </button>
+          <div class="shop-category-heading">
+            <p id="categoryEyebrow" class="eyebrow">CATEGORY</p>
+            <h2 id="categoryTitle">콩쥐 도구</h2>
+            <p id="categoryDescription">사용할 외형을 선택하세요.</p>
+          </div>
+          <span id="categoryOwnedCount" class="owned-count">1 / 4</span>
+        </header>
         <div id="shopGrid" class="shop-grid" aria-live="polite"></div>
       </section>
     </section>
@@ -190,7 +106,7 @@
   </dialog>
 
   <div id="shopStatus" class="shop-status" role="status" aria-live="polite"></div>
-  <script type="module" src="assets/js/shop.js?v=20260804-bgmfix1"></script>
+  <script type="module" src="assets/js/shop-navigation.js?v=20260805-navigation1"></script>
   <script type="module">
     import { GameStorage } from "./assets/js/storage.js";
     import { applyDeviceMode, getDeviceMode, mountDeviceControls } from "./assets/js/device-entry.js";
