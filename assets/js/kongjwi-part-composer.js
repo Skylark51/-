@@ -250,7 +250,7 @@ export function mountKongjwiComposer(host, { root = document.documentElement, da
 
   listen("answer:correct", event => {
     const combo = Number(event?.detail?.combo) || 0;
-    setExpression(combo >= 3 ? "celebrate" : "correct", { duration: combo >= 3 ? 1320 : 1120 });
+    setExpression("correct", { duration: combo >= 3 ? 1320 : 1120 });
   });
   listen("answer:wrong", () => {
     setExpression("wrong", { duration: 1180 });
