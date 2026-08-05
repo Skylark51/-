@@ -1,13 +1,13 @@
 import { GAME_CONFIG } from "../../data/game-config.js";
 import { BEAN_REWARDS } from "../../data/upgrades.js";
-import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js";
-import { QUESTIONS, validateQuestions } from "../../data/questions.js";
+import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js?v=20260805-redox-mobile2";
+import { QUESTIONS, validateQuestions } from "../../data/questions.js?v=20260805-redox-mobile2";
 import { QuestionEngine } from "./question-engine.js";
 import { GameCore } from "./game-core.js";
 import { GameStorage } from "./storage.js";
 import { UpgradeSystem } from "./upgrade-system.js";
 import { ActionSystem } from "./action-system.js";
-import { UIAdapter } from "./ui-adapter.js";
+import { UIAdapter } from "./ui-adapter.js?v=20260805-redox-mobile2";
 
 const validationErrors = validateQuestions();
 if (validationErrors.length) {

@@ -1,1 +1,1 @@
-export{QUESTIONS,QUESTION_BANKS,validateQuestions}from'./questions/index.js';
+export{QUESTIONS,QUESTION_BANKS,validateQuestions}from'./questions/index.js?v=20260805-redox-mobile2';

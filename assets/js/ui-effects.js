@@ -1,9 +1,9 @@
-﻿import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js";
+import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js?v=20260805-redox-mobile2";
 import { GameStorage } from "./storage.js";
 import { applyDeviceMode, getDeviceMode, syncViewport } from "./device-entry.js";
 import { GAME_TITLE, displayJarName } from "./theme-system.js";
 import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical2";
-import { mountMobileKeypad } from "./mobile-keypad.js?v=20260804-quiz-reference1";
+import { mountMobileKeypad } from "./mobile-keypad.js?v=20260805-redox-mobile2";
 import { mountGameScene } from "./game-cosmetics-entry.js?v=20260805-safe-jar1";
 
 const SELECTION_KEY = "kongjuiya-training-selection";
@@ -11,7 +11,7 @@ const storage = new GameStorage();
 mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ?? 0.5 });
 const byId = id => document.getElementById(id);
 const formatNumber = value => Math.round(Number(value) || 0).toLocaleString("ko-KR");
-const DIFFICULTY_NAMES = Object.freeze({ easy: "쉬움", normal: "보통", hard: "어려움" });
+const DIFFICULTY_NAMES = Object.freeze({ easy: "쉬움", normal: "보통", hard: "톴려움" });
 
 function setOfficialTitle() {
   document.title = GAME_TITLE;
@@ -53,7 +53,7 @@ async function initializeGamePage() {
     return;
   }
 
-  await import("./main.js?v=20260803-contain1");
+  await import("./main.js?v=20260805-redox-mobile2");
   const api = globalThis.KongJuiYaGame;
   if (!api) throw new Error("게임 엔진을 불러오지 못했습니다.");
 
@@ -75,6 +75,7 @@ async function initializeGamePage() {
 
   const app = byId("ui-gameApp");
   if (!app) throw new Error("게임 화면 루트가 없습니다.");
+  app.dataset.trainingId = mode.id;
 
   applyMotionPreference();
   syncViewport();
