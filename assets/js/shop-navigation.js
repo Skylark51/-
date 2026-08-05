@@ -1,3 +1,4 @@
+import'./shop-kongjwi-art.js?v=20260805-authored1';
 import{GameStorage}from'./storage.js';
 import{mountHistoricalBgm}from'./historical-bgm.js?v=20260804-historical2';
 import{CosmeticSystem,COSMETIC_STORAGE_KEY}from'./cosmetic-system.js';
