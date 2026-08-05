@@ -6,15 +6,15 @@ const errors=[];
 const warnings=[];
 const modes=new Map(TRAINING_MODES.map(mode=>[mode.id,mode]));
 const allowedElements=new Set(ELEMENTS_1_TO_20);
+const redoxExtendedElements=new Set(['Cr','Mn','Fe','Co','Ni','Cu','Zn','Br','Ag','I','Ba','Pb']);
 const forbiddenPhrases=['교육과정상','교육과정에 따르면','교육과정 기준','교과 과정상'];
 const outOfRangeSymbols=['Sc','Ti','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe','Cs','Ba','La','Ce','Pr','Nd','Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn'];
 const forbiddenElementPattern=new RegExp('(?<![A-Za-z])(?:'+outOfRangeSymbols.join('|')+')(?![a-z])','g');
 const numericTypes=new Set(['numeric']);
 const quantityModes=new Set(['mole_mass','gas_molar_volume','concentration']);
-const numericAnswers=value=>Number(String(value).replaceAll(',',''));
 const fail=(code,item,detail='')=>errors.push(code+':'+(item?.id||'unknown')+(detail?':'+detail:''));
 const warn=(code,item,detail='')=>warnings.push(code+':'+(item?.id||'unknown')+(detail?':'+detail:''));
-const textOf=item=>JSON.stringify([item.prompt,item.explanation,item.tags,item.choices,item.answers]);
+const textOf=item=>JSON.stringify([item.prompt,item.promptHtml,item.explanation,item.tags,item.choices,item.answers]);
 const formulaMass=formula=>{let total=0;const tokens=String(formula).match(/[A-Z][a-z]?\d*/g)||[];if(tokens.join('')!==formula)return null;for(const token of tokens){const match=token.match(/^([A-Z][a-z]?)(\d*)$/);const symbol=match[1];const count=Number(match[2]||1);if(!allowedElements.has(symbol))return null;total+=ATOMIC_MASSES[symbol]*count}return total};
 const formulaTags=item=>item.tags.filter(tag=>/^[A-Z][a-z]?\d*(?:[A-Z][a-z]?\d*)*$/.test(tag));
 
@@ -36,7 +36,12 @@ for(const item of QUESTIONS){
   }
   const text=textOf(item);
   for(const phrase of forbiddenPhrases)if(text.includes(phrase))fail('forbidden_phrase',item,phrase);
-  if(forbiddenElementPattern.test(text)){fail('element_out_of_range',item,text.match(forbiddenElementPattern)?.join(','));forbiddenElementPattern.lastIndex=0}
+  const outOfRangeMatches=[...text.matchAll(forbiddenElementPattern)].map(match=>match[0]);
+  forbiddenElementPattern.lastIndex=0;
+  const disallowedOutOfRange=item.trainingId==='redox'
+    ?outOfRangeMatches.filter(symbol=>!redoxExtendedElements.has(symbol))
+    :outOfRangeMatches;
+  if(disallowedOutOfRange.length)fail('element_out_of_range',item,[...new Set(disallowedOutOfRange)].join(','));
   const promptKey=String(item.prompt).replace(/(?<![A-Za-z])\d+(?:\.\d+)?(?![A-Za-z])/g,'#').replace(/\s+/g,' ').trim();
   const promptList=normalizedPrompts.get(promptKey)||[];promptList.push(item);normalizedPrompts.set(promptKey,promptList);
   if(item.type==='numeric'&&quantityModes.has(item.trainingId)&&item.calculationType!=='formula_result'&&!item.unit)fail('missing_unit',item);
@@ -61,7 +66,11 @@ for(const item of QUESTION_BANKS.valence_electron||[])if(['He','Ne','Ar'].some(s
 for(const item of QUESTION_BANKS.period_group||[]){const symbol=item.tags.find(tag=>allowedElements.has(tag));const group=item.tags.includes('족');const expected=group?GROUPS[symbol]:PERIODS[symbol];if(!symbol||Number(item.answers[0])!==expected||((item.prompt.includes('주기')&&item.prompt.includes('족'))))fail('period_group_rule',item)}
 for(const item of QUESTION_BANKS.electronegativity||[]){if(item.id.startsWith('electronegativity_value_')){const symbol=item.tags.find(tag=>allowedElements.has(tag));if(!symbol||ELECTRONEGATIVITY[symbol]===undefined||Number(item.answers[0])!==ELECTRONEGATIVITY[symbol]||typeof item.tolerance!=='number')fail('electronegativity_fixed_value',item);if(['He','Ne','Ar'].includes(symbol))fail('noble_gas_electronegativity',item)}}
 for(const item of QUESTION_BANKS.gas_molar_volume||[])if(/이상\s*기체|PV\s*=|이상 기체 방정식/.test(item.prompt+' '+item.explanation))fail('gas_banned_term',item);
-for(const item of QUESTION_BANKS.redox||[])if(item.type!=='binary_choice'||item.choices.length!==2||!item.autoSubmit)fail('redox_not_single_binary',item);
+if(QUESTION_BANKS.redox?.length!==30)errors.push('redox_count');
+for(const item of QUESTION_BANKS.redox||[]){
+  const labels=(item.choices||[]).map(choice=>choice.label);
+  if(item.type!=='multiple_choice'||item.choices.length!==3||!item.autoSubmit||item.inputMode!=='choice'||JSON.stringify(item.keyboardShortcuts)!==JSON.stringify(['1','2','3'])||JSON.stringify(labels)!==JSON.stringify(['산화','환원','둘 다 아님'])||!item.promptHtml?.includes('<u>'))fail('redox_not_three_choice',item);
+}
 
 const counts=Object.fromEntries(Object.entries(QUESTION_BANKS).map(([name,items])=>[name,items.length]));
 console.log('Question files: data/questions/*.js');
