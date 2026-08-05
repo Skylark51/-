@@ -46,6 +46,12 @@ function syncCosmetics() {
   actor.dataset.toadSkin = toadSkin;
 }
 
+function normalizeClearKeyLabels(scope = document) {
+  scope.querySelectorAll?.(".keypad-clear").forEach(button => {
+    if (button.textContent !== "C") button.textContent = "C";
+  });
+}
+
 function clearResetTimer() {
   window.clearTimeout(resetTimer);
   resetTimer = 0;
@@ -84,6 +90,7 @@ function setExpression(expression, {
 }
 
 if (root && stage && actor && jarImage) {
+  jarImage.decoding = "async";
   jarImage.addEventListener("error", () => {
     if (!jarImage.src.endsWith(JAR_ASSETS.onggi)) {
       jarImage.src = JAR_ASSETS.onggi;
@@ -96,7 +103,21 @@ if (root && stage && actor && jarImage) {
     attributeFilter: ["data-jar-skin", "data-toad-skin"]
   });
 
+  const keypadObserver = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (!(node instanceof Element)) continue;
+        if (node.matches(".keypad-clear")) normalizeClearKeyLabels(node.parentElement || node);
+        else if (node.querySelector?.(".keypad-clear")) normalizeClearKeyLabels(node);
+      }
+    }
+    normalizeClearKeyLabels();
+  });
+  keypadObserver.observe(document.body, { childList: true, subtree: true });
+
   listen("game:start", () => setExpression("default", { react: false }));
+  listen("question:changed", () => normalizeClearKeyLabels());
+  listen("ui:device-mode", () => normalizeClearKeyLabels());
   listen("answer:correct", event => {
     const detail = event.detail || {};
     setExpression(Number(detail.combo) >= 3 ? "combo" : "correct", {
@@ -114,17 +135,20 @@ if (root && stage && actor && jarImage) {
   listen("game:resume", () => setExpression("default", { react: false }));
 
   syncCosmetics();
+  normalizeClearKeyLabels();
   setExpression("default", { react: false });
 
   window.addEventListener("beforeunload", () => {
     destroyed = true;
     clearResetTimer();
     cosmeticObserver.disconnect();
+    keypadObserver.disconnect();
     removers.splice(0).forEach(remove => remove());
   }, { once: true });
 
   globalThis.__KONGJWI_QUIZ_SCENE_ACTORS__ = {
     setExpression,
-    syncCosmetics
+    syncCosmetics,
+    normalizeClearKeyLabels
   };
 }
