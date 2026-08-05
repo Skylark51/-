@@ -29,10 +29,10 @@ const SWATCHES = Object.freeze({
 });
 
 const OUTFIT_ART = Object.freeze({
-  "classic-red": "assets/art/kongjwi/kongjwi-classic-red-cutout.png?v=20260806-outfit-cutout1",
-  "blue-scholar": "assets/art/kongjwi/kongjwi-blue-scholar-cutout.png?v=20260806-outfit-cutout1",
-  "field-green": "assets/art/kongjwi/kongjwi-field-work-cutout.png?v=20260806-outfit-cutout1",
-  "royal-night": "assets/art/kongjwi/kongjwi-night-court-cutout.png?v=20260806-outfit-cutout1"
+  "classic-red": "assets/art/kongjwi/kongjwi-classic-red.webp?v=20260805-outfit5",
+  "blue-scholar": "assets/art/kongjwi/kongjwi-blue-scholar.webp?v=20260805-outfit5",
+  "field-green": "assets/art/kongjwi/kongjwi-field-work.webp?v=20260805-outfit5",
+  "royal-night": "assets/art/kongjwi/kongjwi-night-court.webp?v=20260805-outfit5"
 });
 
 const storage = new GameStorage();
