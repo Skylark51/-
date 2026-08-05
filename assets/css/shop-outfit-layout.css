@@ -1,0 +1,201 @@
+/* Final outfit-card layout: real full-body images, no legacy sprite slot. */
+.shop-page .shop-item-visual::before,
+.shop-page .shop-category-visual::before {
+  content: none !important;
+  display: none !important;
+}
+
+.shop-page .shop-item,
+.shop-page .shop-item-visual,
+.shop-page .shop-category-visual,
+.shop-page .shop-asset {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.shop-page .shop-item-visual,
+.shop-page .shop-category-visual {
+  position: relative;
+  isolation: isolate;
+}
+
+.shop-page .shop-asset-outfit.is-authored-kongjwi {
+  display: grid !important;
+  place-items: end center !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  overflow: hidden !important;
+  background: none !important;
+  background-image: none !important;
+  background-size: auto !important;
+  background-position: center !important;
+  filter: none !important;
+}
+
+.shop-page .shop-kongjwi-image {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: var(--outfit-x, 50%) var(--outfit-y, 100%) !important;
+  transform: scale(var(--outfit-scale, 1));
+  transform-origin: center bottom;
+  filter: drop-shadow(0 8px 9px rgba(0, 0, 0, .34));
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.shop-page .shop-asset-error {
+  display: grid;
+  place-items: center;
+  width: calc(100% - 16px);
+  min-height: 72px;
+  margin: auto;
+  border: 1px dashed rgba(239, 118, 102, .52);
+  border-radius: 10px;
+  background: rgba(66, 24, 23, .34);
+  color: #ffd0c9;
+  font-size: 9px;
+  font-weight: 850;
+  text-align: center;
+}
+
+.shop-page .shop-grid[data-category="outfit"] {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.shop-page .shop-grid[data-category="outfit"] .shop-item {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.shop-page .shop-grid[data-category="outfit"] .shop-item-visual {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.shop-page .shop-item.is-equipped::after {
+  top: 8px !important;
+  right: 8px !important;
+}
+
+@media (max-width: 1050px) {
+  .shop-page .shop-grid[data-category="outfit"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-category-view {
+  min-width: 0;
+  overflow: hidden;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-template-rows: none !important;
+  grid-auto-rows: auto;
+  align-content: start !important;
+  align-items: start !important;
+  gap: 8px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  padding: 0 1px 8px;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"]::-webkit-scrollbar {
+  display: none;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item {
+  display: grid !important;
+  grid-template-rows: clamp(132px, 34vw, 156px) auto 34px !important;
+  gap: 6px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 8px !important;
+  overflow: hidden !important;
+  border-radius: 15px;
+  align-self: start;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item-visual {
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  overflow: hidden !important;
+  border-radius: 11px;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item-copy {
+  min-width: 0;
+  padding: 0 1px !important;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item h3 {
+  margin: 0 !important;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item-meta {
+  margin-top: 4px !important;
+  padding-top: 0 !important;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item-action {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 34px !important;
+  margin: 0 !important;
+  border-radius: 9px;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item.is-equipped::after {
+  top: 8px !important;
+  right: 8px !important;
+  padding: 3px 6px;
+  font-size: 6px;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-category-visual[data-category="outfit"] .shop-kongjwi-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+@media (max-width: 370px) {
+  :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] {
+    gap: 6px !important;
+  }
+
+  :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item {
+    grid-template-rows: 126px auto 32px !important;
+    padding: 7px !important;
+  }
+}
