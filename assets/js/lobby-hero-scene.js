@@ -7,7 +7,7 @@ import photo6 from "./scene-photo/jar-photo-6.js";
 import photo7 from "./scene-photo/jar-photo-7.js";
 
 const HERO_ART_URL = `data:image/jpeg;base64,${photo1}${photo2}${photo3}${photo4}${photo5}${photo6}${photo7}`;
-const PHOTO_STYLE_ID = "uploaded-jar-scene-style-v4";
+const PHOTO_STYLE_ID = "uploaded-jar-scene-style-v5";
 
 function installPhotoStyles() {
   if (document.getElementById(PHOTO_STYLE_ID)) return;
@@ -211,10 +211,31 @@ function arrangeHeroContent() {
   const actions = copy?.querySelector(".hero-actions");
   const hint = copy?.querySelector(".cta-hint");
   const badges = hero?.querySelector(".hero-badges");
-  if (!copy || !actions) return;
+  if (!hero || !copy || !actions || !hint || !badges) return;
 
-  if (hint) copy.insertBefore(hint, actions);
-  if (badges) copy.insertBefore(badges, actions);
+  const hintAnchor = document.createComment("hero-hint-origin");
+  const badgesAnchor = document.createComment("hero-badges-origin");
+  hint.before(hintAnchor);
+  badges.before(badgesAnchor);
+
+  const media = matchMedia("(max-width: 760px), (max-device-width: 760px)");
+  const sync = () => {
+    const mobile = media.matches || document.documentElement.dataset.deviceLayout === "mobile";
+    if (mobile) {
+      copy.insertBefore(hint, actions);
+      copy.insertBefore(badges, actions);
+      return;
+    }
+    hintAnchor.parentNode?.insertBefore(hint, hintAnchor.nextSibling);
+    badgesAnchor.parentNode?.insertBefore(badges, badgesAnchor.nextSibling);
+  };
+
+  sync();
+  media.addEventListener?.("change", sync);
+  new MutationObserver(sync).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-device-layout"]
+  });
 }
 
 function installJarSelectionScene() {
