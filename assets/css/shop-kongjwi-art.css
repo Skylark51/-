@@ -1,0 +1,25 @@
+.shop-asset-outfit.is-authored-kongjwi {
+  width: min(88%, 190px);
+  height: min(94%, 230px);
+  aspect-ratio: 2 / 3;
+  background-repeat: no-repeat !important;
+  background-position: center bottom !important;
+  background-size: contain !important;
+  filter: drop-shadow(0 12px 12px rgba(0, 0, 0, .38));
+}
+
+.shop-category-visual .shop-asset-outfit.is-authored-kongjwi {
+  height: min(94%, 230px);
+}
+
+.shop-item-visual .shop-asset-outfit.is-authored-kongjwi {
+  height: min(94%, 220px);
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"])
+  .shop-page .shop-category-visual .shop-asset-outfit.is-authored-kongjwi,
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"])
+  .shop-page .shop-item-visual .shop-asset-outfit.is-authored-kongjwi {
+  width: min(88%, 126px);
+  height: min(94%, 150px);
+}
