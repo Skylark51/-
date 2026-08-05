@@ -23,7 +23,7 @@ for (const filename of [
   assert.ok(!renderer.includes(filename), `${filename} must not remain as visible shop art`);
 }
 
-assert.ok(renderer.includes('const UNDERLAYER_ART = `assets/art/kongjwi/kongjwi-underlayer.webp'), "wardrobe must use the existing underlayer base");
+assert.ok(renderer.includes('const UNDERLAYER_ART = `assets/art/kongjwi/kongjwi-underlayer-cutout.png'), "wardrobe must use the existing underlayer base");
 assert.ok(renderer.includes('image.className = className'), "outfits must render as img elements");
 assert.ok(renderer.includes('grid.dataset.category = category.id'), "the product grid must expose its active category to CSS");
 assert.ok(renderer.includes('visual.dataset.category = item.category'), "each product visual must expose its category");
@@ -33,7 +33,7 @@ assert.ok(layout.includes("background: transparent !important"), "transparent PN
 assert.ok(layout.includes("grid-template-rows: repeat(2, minmax(264px, 1fr))"), "mobile outfit rows must include the try-on controls");
 assert.ok(layout.includes('.shop-item[data-category="outfit"] .shop-item-visual::before'), "legacy placeholder removal must be scoped to outfit cards");
 assert.ok(!layout.includes('.shop-page .shop-item-visual::before,\n.shop-page .shop-category-visual::before'), "other shop categories must keep their visual placeholders");
-assert.ok(html.includes("shop-outfit-layout.css?v=20260805-outfit6"), "outfit layout cache key must be current");
-assert.ok(html.includes("shop-navigation.js?v=20260805-outfit6"), "shop renderer cache key must be current");
+assert.ok(html.includes("shop-outfit-layout.css?v=20260805-jar-clean2"), "outfit layout cache key must be current");
+assert.ok(html.includes("shop-navigation.js?v=20260805-jar-clean2"), "shop renderer cache key must be current");
 
 console.log("shop-authored-kongjwi: all checks passed");
