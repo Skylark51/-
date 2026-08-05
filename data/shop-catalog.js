@@ -10,19 +10,19 @@ const item = (id, category, title, price, description, visualKey, rarity = "일�
 });
 
 export const SHOP_ITEMS = Object.freeze([
-  item("tool_wood_bucket", "tool", "나무 바가지", 0, "콩쥐가 처음부터 쓰는 묵직한 나무 바가지입니다.", "wood", "기본"),
-  item("tool_brass_bucket", "tool", "놋쇠 바가지", 180, "따뜻한 금속광과 단단한 테두리가 돋보입니다.", "brass", "고급"),
-  item("tool_celadon_bucket", "tool", "청자 바가지", 420, "맑은 비취빛 유약을 입힌 장식용 바가지입니다.", "celadon", "희귀"),
-  item("tool_moon_bucket", "tool", "월광 바가지", 850, "피버 중 은은한 달빛 잔상이 따라옵니다.", "moon", "영웅"),
+  item("tool_wood_bucket", "tool", "나무 바가지", 0, "묵직한 나무 바가지입니다. 타격감이 좋아보입니다.", "wood", "기본"),
+  item("tool_brass_bucket", "tool", "놋쇠 바가지", 180, "단단해 보이지만 어딘가 엉성한 놋쇠 바가지입니다.", "brass", "고급"),
+  item("tool_celadon_bucket", "tool", "청자 바가지", 420, "맑은 비취빛 유약을 입힌 장식용 바가지입니다. 일상 생활에 사용해도 될지 의문입니다.", "celadon", "희귀"),
+  item("tool_moon_bucket", "tool", "월광 바가지", 850, "피버 중 은은한 달빛 잔상이 따라옵니다. 비싸지만 확실히 값은 하는 바가지입니다", "moon", "영웅"),
 
-  item("outfit_classic_red", "outfit", "고전 홍색 한복", 0, "콩쥐의 기본 홍색 작업복입니다.", "classic-red", "기본"),
+  item("outfit_classic_red", "outfit", "고전 홍색 한복", 0, "예스러운 느낌이 일품인 홍색 한복입니다.", "classic-red", "기본"),
   item("outfit_blue_scholar", "outfit", "청람 학자복", 280, "짙은 남색과 옥색 띠를 사용한 차분한 옷입니다.", "blue-scholar", "고급"),
-  item("outfit_field_green", "outfit", "들녘 작업복", 480, "초록 저고리와 갈색 앞치마로 구성된 실용적인 옷입니다.", "field-green", "희귀"),
-  item("outfit_royal_night", "outfit", "야화 궁중복", 980, "검푸른 비단과 금색 문양이 흐르는 특별 의상입니다.", "royal-night", "영웅"),
+  item("outfit_field_green", "outfit", "들녘 작업복", 480, "초록 저고리와 갈색 앞치마로 구성된 실용적인 옷입니다. 장독대에 물을 채우기에 적합해 보입니다.", "field-green", "희귀"),
+  item("outfit_royal_night", "outfit", "야화 궁중복", 980, "검푸른 비단과 금색 문양이 흐르는 특별 의상입니다. 장독대에 물을 채우기에 부적합해 보이지만 괜찮습니다. 누군가가 알아서 해주지 않겠습니까.", "royal-night", "영웅"),
 
   item("toad_field_brown", "toad", "논두렁 두꺼비", 0, "장독대 구멍을 묵묵히 막는 기본 두꺼비입니다.", "field-brown", "기본"),
   item("toad_gold_worker", "toad", "황금 야근 두꺼비", 360, "월급은 그대로지만 몸만 황금빛이 됩니다.", "gold-worker", "고급"),
-  item("toad_jade_guard", "toad", "비취 수문장", 620, "청록빛 피부와 옥색 반점이 특징입니다.", "jade-guard", "희귀"),
+  item("toad_jade_guard", "toad", "비취 수문장", 620, "청록빛 피부와 옥색 반점이 발현되었습니다. 무언가 독두꺼비 같아 보이기도 하네요.", "jade-guard", "희귀"),
   item("toad_star_night", "toad", "별밤 두꺼비", 920, "어두운 피부 위로 작은 별무늬가 반짝입니다.", "star-night", "영웅"),
 
   item("jar_onggi", "jar", "전통 옹기", 0, "세월이 깃든 전통 옹기입니다.", "onggi", "기본"),
