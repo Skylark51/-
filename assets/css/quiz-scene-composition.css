@@ -1,7 +1,7 @@
 /*
- * Balanced quiz animation composition.
- * Keeps the question HUD intact while separating the stage into a reserved
- * Kongjwi area, a central pouring path and a stable jar/toad area.
+ * Quiz scene composition and jar-hole anchoring.
+ * The jar remains a responsive square, while the hole and toad use calibrated
+ * percentages inside that square. Only the sprite moves; the hole never does.
  */
 
 .scene-animation-zone {
@@ -102,6 +102,15 @@
 }
 
 .scene-jar-actor {
+  --hole-x: 61.8%;
+  --hole-y: 66.8%;
+  --hole-w: 27.4%;
+  --hole-h: 22.8%;
+  --hole-rotate: -6deg;
+  --toad-scale: 1.06;
+  --toad-offset-x: -1.5%;
+  --toad-offset-y: -2%;
+
   left: 50% !important;
   right: auto !important;
   bottom: 2.5% !important;
@@ -109,12 +118,15 @@
   height: auto !important;
   max-width: 100% !important;
   aspect-ratio: 1 / 1 !important;
+  isolation: isolate;
   transform: translateX(-50%);
   transform-origin: 50% 88% !important;
   filter: drop-shadow(0 12px 15px rgba(0, 0, 0, 0.42)) !important;
 }
 
 .scene-jar-image {
+  position: absolute !important;
+  z-index: 2 !important;
   inset: 0 !important;
   width: 100% !important;
   height: 100% !important;
@@ -122,60 +134,123 @@
   object-position: center bottom !important;
 }
 
-.scene-toad-viewport {
-  right: 7.1% !important;
-  bottom: 15.3% !important;
-  width: 28.1% !important;
-  height: 23.8% !important;
-  background: rgba(21, 14, 8, 0.68) !important;
-  box-shadow:
-    inset 0 0 0 1.5px rgba(36, 21, 11, 0.88),
-    inset 0 4px 9px rgba(0, 0, 0, 0.4),
-    0 0 5px rgba(0, 0, 0, 0.25) !important;
+/* Fixed anchor: this is the only element that knows where the jar hole is. */
+.scene-hole-anchor {
+  position: absolute;
+  z-index: 4;
+  left: var(--hole-x);
+  top: var(--hole-y);
+  width: var(--hole-w);
+  height: var(--hole-h);
+  overflow: visible;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(var(--hole-rotate));
+  transform-origin: 50% 50%;
 }
 
-.scene-toad-viewport::after {
-  border-width: 1.5px !important;
-  opacity: 0.82;
+/* Mask: everything inside is clipped to the actual opening. */
+.scene-hole-mask {
+  position: absolute;
+  z-index: 1;
+  inset: 3.5% 3% 4%;
+  display: block;
+  overflow: hidden;
+  border-radius: 48% 45% 51% 47%;
+  clip-path: ellipse(47% 44% at 50% 52%);
+  background:
+    radial-gradient(ellipse at 47% 58%, rgba(49, 31, 17, 0.46), transparent 56%),
+    rgba(7, 5, 4, 0.94);
+  box-shadow:
+    inset 0 7px 12px rgba(0, 0, 0, 0.66),
+    inset 0 -3px 6px rgba(134, 84, 35, 0.12);
+}
+
+/* Stable positioning wrapper. Sprite animation cannot move this element. */
+.scene-toad-positioner {
+  position: absolute;
+  inset: -14% -12% -18%;
+  display: block;
+  transform:
+    translate(var(--toad-offset-x), var(--toad-offset-y))
+    scale(var(--toad-scale));
+  transform-origin: 50% 58%;
 }
 
 .scene-toad-sprite {
-  inset: -11% -9% -14% !important;
-  filter: brightness(1.2) contrast(1.06) saturate(1.08);
-  animation-name: quiz-toad-breathe-balanced !important;
-  animation-duration: 1.9s !important;
+  position: absolute !important;
+  z-index: 2 !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-image: url("../images/toad-expressions/toad-expression-sprite.webp") !important;
+  background-repeat: no-repeat !important;
+  background-size: 200% 500% !important;
+  filter: brightness(1.22) contrast(1.08) saturate(1.08);
+  transform-origin: 50% 68% !important;
+  animation: quiz-toad-breathe-anchored 1.9s ease-in-out infinite alternate !important;
+  will-change: transform;
+}
+
+/* Foreground rim: covers the sprite edge and makes the toad sit behind the jar wall. */
+.scene-hole-rim {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: block;
+  border: clamp(1.5px, 0.55vw, 2.6px) solid rgba(44, 25, 12, 0.94);
+  border-radius: 48% 45% 51% 47%;
+  clip-path: ellipse(49% 47% at 50% 52%);
+  box-shadow:
+    inset 0 5px 8px rgba(0, 0, 0, 0.42),
+    inset 0 -3px 4px rgba(216, 157, 76, 0.13),
+    0 0 0 1px rgba(0, 0, 0, 0.16);
+}
+
+.scene-hole-rim::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  left: 9%;
+  right: 7%;
+  bottom: -2%;
+  height: 22%;
+  border-radius: 0 0 52% 48%;
+  background: linear-gradient(180deg, rgba(61, 35, 17, 0.34), rgba(24, 14, 8, 0.82));
+  box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.4);
+  opacity: 0.88;
 }
 
 .jar-game-shell[data-toad-skin="gold-worker"] .scene-toad-sprite {
-  filter: sepia(.68) saturate(1.75) hue-rotate(356deg) brightness(1.22) !important;
+  filter: sepia(.68) saturate(1.75) hue-rotate(356deg) brightness(1.24) !important;
 }
 
 .jar-game-shell[data-toad-skin="jade-guard"] .scene-toad-sprite {
-  filter: hue-rotate(76deg) saturate(1.18) brightness(1.14) !important;
+  filter: hue-rotate(76deg) saturate(1.18) brightness(1.16) !important;
 }
 
 .jar-game-shell[data-toad-skin="star-night"] .scene-toad-sprite {
-  filter: hue-rotate(176deg) saturate(1.35) brightness(1.02) contrast(1.08) !important;
+  filter: hue-rotate(176deg) saturate(1.35) brightness(1.04) contrast(1.08) !important;
 }
 
 .scene-jar-actor.is-reacting[data-toad-expression="correct"] .scene-toad-sprite,
 .scene-jar-actor.is-reacting[data-toad-expression="combo"] .scene-toad-sprite {
-  animation: quiz-toad-correct-balanced 580ms cubic-bezier(.18, .78, .24, 1) !important;
+  animation: quiz-toad-correct-anchored 580ms cubic-bezier(.18, .78, .24, 1) !important;
 }
 
 .scene-jar-actor.is-reacting[data-toad-expression="wrong"] .scene-toad-sprite,
 .scene-jar-actor.is-reacting[data-toad-expression="timeout"] .scene-toad-sprite {
-  animation: quiz-toad-wrong-balanced 620ms cubic-bezier(.25, .7, .28, 1) !important;
+  animation: quiz-toad-wrong-anchored 620ms cubic-bezier(.25, .7, .28, 1) !important;
 }
 
 .scene-jar-actor.is-reacting[data-toad-expression="angry"] .scene-toad-sprite,
 .scene-jar-actor.is-reacting[data-toad-expression="rage"] .scene-toad-sprite {
-  animation: quiz-toad-angry-balanced 520ms ease-in-out !important;
+  animation: quiz-toad-angry-anchored 520ms ease-in-out !important;
 }
 
 .scene-jar-actor.is-reacting[data-toad-expression="surprised"] .scene-toad-sprite,
 .scene-jar-actor.is-reacting[data-toad-expression="confused"] .scene-toad-sprite {
-  animation: quiz-toad-surprised-balanced 570ms ease-out !important;
+  animation: quiz-toad-surprised-anchored 570ms ease-out !important;
 }
 
 .scene-pour-arc {
@@ -218,7 +293,7 @@
 }
 
 .game-stage.is-pouring .scene-pour-arc {
-  animation: quiz-water-arc-balanced 940ms ease-out both;
+  animation: quiz-water-arc-anchored 940ms ease-out both;
 }
 
 .scene-jar-actor.is-pouring {
@@ -246,39 +321,39 @@
   transform: scale(.72) rotate(2deg) !important;
 }
 
-@keyframes quiz-toad-breathe-balanced {
-  from { transform: translate3d(0, 0.8%, 0) scale(1); }
-  to { transform: translate3d(0, -0.8%, 0) scale(1.012, .995); }
+@keyframes quiz-toad-breathe-anchored {
+  from { transform: translate3d(0, 0.7%, 0) scale(1); }
+  to { transform: translate3d(0, -0.7%, 0) scale(1.012, .995); }
 }
 
-@keyframes quiz-toad-correct-balanced {
+@keyframes quiz-toad-correct-anchored {
   0% { transform: translate3d(0, 2%, 0) scale(.98); }
   38% { transform: translate3d(0, -4%, 0) scale(1.035, .98); }
   72% { transform: translate3d(0, 1%, 0) scale(.995, 1.01); }
   100% { transform: translate3d(0, 0, 0) scale(1); }
 }
 
-@keyframes quiz-toad-wrong-balanced {
+@keyframes quiz-toad-wrong-anchored {
   0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
   28% { transform: translate3d(3%, 1%, 0) rotate(1.5deg); }
   58% { transform: translate3d(-2.5%, 0, 0) rotate(-1.2deg); }
   80% { transform: translate3d(1%, 0, 0) rotate(.5deg); }
 }
 
-@keyframes quiz-toad-angry-balanced {
+@keyframes quiz-toad-angry-anchored {
   0%, 100% { transform: translate3d(0, 0, 0); }
   25% { transform: translate3d(-2.5%, 0, 0); }
   50% { transform: translate3d(2.5%, 0, 0); }
   75% { transform: translate3d(-1.5%, 0, 0); }
 }
 
-@keyframes quiz-toad-surprised-balanced {
+@keyframes quiz-toad-surprised-anchored {
   0% { transform: translate3d(0, 3%, 0) scale(.96); }
   45% { transform: translate3d(0, -4%, 0) scale(1.035); }
   100% { transform: translate3d(0, 0, 0) scale(1); }
 }
 
-@keyframes quiz-water-arc-balanced {
+@keyframes quiz-water-arc-anchored {
   0% { opacity: 0; transform: rotate(8deg) scaleX(.15); }
   14% { opacity: 1; }
   72% { opacity: 1; transform: rotate(8deg) scaleX(1); }

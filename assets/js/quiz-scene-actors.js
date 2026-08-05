@@ -22,6 +22,31 @@ const JAR_ASSETS = Object.freeze({
   })
 });
 
+/*
+ * The hole is anchored to the transparent square used by every jar asset.
+ * Keeping these values separate from the responsive stage layout prevents the
+ * toad from drifting when the actor is resized. The four assets currently use
+ * the same hole artwork, but each skin keeps an independent calibration entry.
+ */
+const JAR_LAYOUTS = Object.freeze({
+  onggi: Object.freeze({
+    hole: Object.freeze({ x: 61.8, y: 66.8, width: 27.4, height: 22.8, rotate: -6 }),
+    toad: Object.freeze({ scale: 1.06, offsetX: -1.5, offsetY: -2 })
+  }),
+  celadon: Object.freeze({
+    hole: Object.freeze({ x: 61.9, y: 66.9, width: 27.4, height: 22.8, rotate: -5.5 }),
+    toad: Object.freeze({ scale: 1.06, offsetX: -1.5, offsetY: -2 })
+  }),
+  "moon-white": Object.freeze({
+    hole: Object.freeze({ x: 61.8, y: 67.1, width: 27.8, height: 23.1, rotate: -5.5 }),
+    toad: Object.freeze({ scale: 1.07, offsetX: -1.5, offsetY: -2 })
+  }),
+  "night-lacquer": Object.freeze({
+    hole: Object.freeze({ x: 61.8, y: 66.8, width: 27.4, height: 22.8, rotate: -6 }),
+    toad: Object.freeze({ scale: 1.06, offsetX: -1.5, offsetY: -2 })
+  })
+});
+
 const VALID_EXPRESSIONS = new Set([
   "default",
   "correct",
@@ -46,16 +71,37 @@ function listen(type, handler) {
   removers.push(() => window.removeEventListener(type, handler));
 }
 
+function selectedJarSkin() {
+  const requested = root?.dataset.jarSkin || "onggi";
+  return Object.hasOwn(JAR_ASSETS, requested) ? requested : "onggi";
+}
+
 function selectedJarAssets() {
-  const jarSkin = root?.dataset.jarSkin || "onggi";
-  return JAR_ASSETS[jarSkin] || JAR_ASSETS.onggi;
+  return JAR_ASSETS[selectedJarSkin()];
+}
+
+function applyJarLayout(jarSkin = selectedJarSkin()) {
+  if (!actor) return;
+
+  const layout = JAR_LAYOUTS[jarSkin] || JAR_LAYOUTS.onggi;
+  const { hole, toad } = layout;
+
+  actor.style.setProperty("--hole-x", `${hole.x}%`);
+  actor.style.setProperty("--hole-y", `${hole.y}%`);
+  actor.style.setProperty("--hole-w", `${hole.width}%`);
+  actor.style.setProperty("--hole-h", `${hole.height}%`);
+  actor.style.setProperty("--hole-rotate", `${hole.rotate}deg`);
+  actor.style.setProperty("--toad-scale", String(toad.scale));
+  actor.style.setProperty("--toad-offset-x", `${toad.offsetX}%`);
+  actor.style.setProperty("--toad-offset-y", `${toad.offsetY}%`);
 }
 
 function syncCosmetics() {
   if (!root || !actor || !jarImage) return;
-  const jarSkin = root.dataset.jarSkin || "onggi";
+
+  const jarSkin = selectedJarSkin();
   const toadSkin = root.dataset.toadSkin || "field-brown";
-  const assets = selectedJarAssets();
+  const assets = JAR_ASSETS[jarSkin];
   const nextSource = jarIsOpen ? assets.open : assets.closed;
 
   if (!jarImage.src.endsWith(nextSource)) {
@@ -64,6 +110,7 @@ function syncCosmetics() {
 
   actor.dataset.jarSkin = jarSkin;
   actor.dataset.toadSkin = toadSkin;
+  applyJarLayout(jarSkin);
 }
 
 function normalizeClearKeyLabels(scope = document) {
@@ -138,6 +185,7 @@ if (root && stage && actor && jarImage) {
   jarImage.decoding = "async";
   jarImage.addEventListener("error", () => {
     const fallback = JAR_ASSETS.onggi[jarIsOpen ? "open" : "closed"];
+    applyJarLayout("onggi");
     if (!jarImage.src.endsWith(fallback)) {
       jarImage.src = fallback;
     }
@@ -219,6 +267,7 @@ if (root && stage && actor && jarImage) {
     setExpression,
     setPouring,
     syncCosmetics,
+    applyJarLayout,
     normalizeClearKeyLabels
   };
 }
