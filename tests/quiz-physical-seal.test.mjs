@@ -11,15 +11,15 @@ const html = await read("콩쥐야_줘때써.html");
 const css = await read("assets/css/quiz-physical-seal.css");
 const actors = await read("assets/js/quiz-scene-actors.js");
 
-assert.ok(html.includes("quiz-physical-seal.css"), "fitted seal stylesheet must load after the scene layout");
-assert.ok(css.includes('data-seal-mode="fitted"'), "the scene must use the fitted plug mode");
-assert.ok(css.includes("overflow: hidden !important"), "the oversized toad must be clipped tightly by the jar opening");
-assert.ok(css.includes("toad-expression-sprite.webp"), "the separate toad asset must be used");
-assert.ok(css.includes("fitted-seal-press"), "correct answers must compress the fitted seal");
-assert.ok(css.includes("fitted-seal-shake"), "wrong answers must react without opening a gap");
+assert.ok(html.includes("quiz-physical-seal.css"), "reference seal stylesheet must load after the scene layout");
+assert.ok(css.includes('data-seal-mode="fitted"'), "the scene must keep the fitted seal mode");
+assert.ok(css.includes("data:image/webp;base64,"), "the approved sealed composition must be embedded as the calibration patch");
+assert.ok(css.includes("width: 52% !important"), "the sealed patch must be large enough to show head, belly and forelegs");
+assert.ok(css.includes("height: 50% !important"), "the sealed patch must fill the opening vertically");
+assert.ok(css.includes(".scene-hole-mask"), "the obsolete inner-face viewport must be explicitly disabled");
+assert.ok(css.includes("display: none !important"), "old hole mask and synthetic rim must not cover the approved composition");
+assert.ok(css.includes("reference-seal-press"), "correct answers must compress the complete seal");
+assert.ok(css.includes("reference-seal-shake"), "wrong answers must react without exposing an empty hole");
 assert.ok(actors.includes('actor.dataset.sealMode = "fitted"'), "the actor must explicitly enable fitted sealing");
-assert.ok(actors.includes("--seal-toad-scale-x"), "calibration must include horizontal compression");
-assert.ok(actors.includes("--seal-toad-scale-y"), "calibration must include vertical compression");
-assert.ok(actors.includes("shiftX: -50"), "the toad must be centered in the hole rather than offset beside it");
 
 console.log("quiz-physical-seal: all checks passed");
