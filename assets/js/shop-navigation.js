@@ -28,12 +28,14 @@ const SWATCHES = Object.freeze({
   "night-lacquer": ["#0d0d13", "#4e315c"]
 });
 
+const ASSET_VERSION = "20260805-outfit6";
 const OUTFIT_ART = Object.freeze({
-  "classic-red": "assets/art/kongjwi/kongjwi-classic-red.webp?v=20260805-outfit5",
-  "blue-scholar": "assets/art/kongjwi/kongjwi-blue-scholar.webp?v=20260805-outfit5",
-  "field-green": "assets/art/kongjwi/kongjwi-field-work.webp?v=20260805-outfit5",
-  "royal-night": "assets/art/kongjwi/kongjwi-night-court.webp?v=20260805-outfit5"
+  "classic-red": `assets/art/kongjwi/kongjwi-classic-red-cutout.png?v=${ASSET_VERSION}`,
+  "blue-scholar": `assets/art/kongjwi/kongjwi-blue-scholar-cutout.png?v=${ASSET_VERSION}`,
+  "field-green": `assets/art/kongjwi/kongjwi-field-work-cutout.png?v=${ASSET_VERSION}`,
+  "royal-night": `assets/art/kongjwi/kongjwi-night-court-cutout.png?v=${ASSET_VERSION}`
 });
+const UNDERLAYER_ART = `assets/art/kongjwi/kongjwi-underlayer.webp?v=${ASSET_VERSION}`;
 
 const JAR_ART = Object.freeze({
   onggi: "assets/art/jars/onggi/thumbnail-no-toad.png?v=20260805-jar-thumbnails1",
@@ -51,10 +53,13 @@ const rootUrl = `${location.pathname}${location.search}`;
 
 let activeCategory = null;
 let statusTimer = 0;
+let previewOutfitId = null;
+let wardrobeReturnFocus = null;
 
 const itemsFor = categoryId => SHOP_ITEMS.filter(item => item.category === categoryId);
 const categoryFor = categoryId => SHOP_CATEGORIES.find(category => category.id === categoryId);
 const ownedCount = categoryId => itemsFor(categoryId).filter(item => cosmetics.card(item.id).owned).length;
+const outfitItems = () => itemsFor("outfit");
 
 function applySwatch(node, item) {
   const [first, second] = SWATCHES[item.visualKey] || ["#60422d", "#b78258"];
@@ -62,48 +67,55 @@ function applySwatch(node, item) {
   node.style.setProperty("--swatch-b", second);
 }
 
+function sourceCandidates(versionedSource) {
+  return [...new Set([versionedSource, versionedSource.split("?")[0]])];
+}
+
+function createImage(source, className, label, onFailure) {
+  const image = new Image();
+  image.className = className;
+  image.alt = label;
+  image.draggable = false;
+  image.decoding = "async";
+  image.loading = "eager";
+  image.fetchPriority = "high";
+
+  const candidates = sourceCandidates(source);
+  let candidateIndex = 0;
+  image.addEventListener("error", () => {
+    candidateIndex += 1;
+    if (candidateIndex < candidates.length) {
+      image.src = candidates[candidateIndex];
+      return;
+    }
+    onFailure?.(candidates);
+  });
+  image.src = candidates[candidateIndex];
+  return image;
+}
+
 function createOutfitAsset(item) {
   const versionedSource = OUTFIT_ART[item.visualKey];
   if (!versionedSource) throw new Error(`Missing Kongjwi outfit mapping: ${item.visualKey}`);
 
-  const sourceCandidates = [...new Set([versionedSource, versionedSource.split("?")[0]])];
   const asset = document.createElement("span");
   asset.className = "shop-asset shop-asset-outfit is-authored-kongjwi";
   asset.dataset.visualKey = item.visualKey;
   asset.dataset.assetState = "loading";
   asset.setAttribute("aria-hidden", "true");
 
-  const image = new Image();
-  image.className = "shop-kongjwi-image";
-  image.alt = "";
-  image.draggable = false;
-  image.decoding = "async";
-  image.loading = "eager";
-  image.fetchPriority = "high";
-
-  let candidateIndex = 0;
-  image.addEventListener("load", () => {
-    asset.dataset.assetState = "ready";
-  });
-
-  image.addEventListener("error", () => {
-    candidateIndex += 1;
-    if (candidateIndex < sourceCandidates.length) {
-      image.src = sourceCandidates[candidateIndex];
-      return;
-    }
-
+  const image = createImage(versionedSource, "shop-kongjwi-image", "", candidates => {
     asset.dataset.assetState = "error";
-    console.error(`[콩 상점] 의상 이미지를 불러오지 못했습니다: ${sourceCandidates.join(", ")}`);
+    console.error(`[콩 상점] 의상 PNG를 불러오지 못했습니다: ${candidates.join(", ")}`);
     image.remove();
-
     const error = document.createElement("span");
     error.className = "shop-asset-error";
     error.textContent = `${item.title} 이미지 로드 실패`;
     asset.append(error);
   });
-
-  image.src = sourceCandidates[candidateIndex];
+  image.addEventListener("load", () => {
+    asset.dataset.assetState = "ready";
+  });
   asset.append(image);
   return asset;
 }
@@ -112,7 +124,6 @@ function createJarAsset(item) {
   const versionedSource = JAR_ART[item.visualKey];
   if (!versionedSource) throw new Error(`Missing jar thumbnail mapping: ${item.visualKey}`);
 
-  const sourceCandidates = [...new Set([versionedSource, versionedSource.split("?")[0]])];
   const asset = document.createElement("span");
   asset.className = "shop-asset shop-asset-jar is-authored-jar";
   asset.dataset.visualKey = item.visualKey;
@@ -123,12 +134,14 @@ function createJarAsset(item) {
   asset.style.aspectRatio = "auto";
   asset.style.overflow = "visible";
 
-  const image = new Image();
-  image.className = "shop-jar-image";
-  image.alt = "";
-  image.draggable = false;
-  image.decoding = "async";
-  image.loading = "eager";
+  const image = createImage(versionedSource, "shop-jar-image", "", candidates => {
+    asset.dataset.assetState = "error";
+    console.error(`[콩 상점] 장독대 이미지를 불러오지 못했습니다: ${candidates.join(", ")}`);
+    image.remove();
+  });
+  image.addEventListener("load", () => {
+    asset.dataset.assetState = "ready";
+  });
   image.style.position = "static";
   image.style.display = "block";
   image.style.width = "100%";
@@ -137,24 +150,6 @@ function createJarAsset(item) {
   image.style.objectFit = "contain";
   image.style.objectPosition = "center";
 
-  let candidateIndex = 0;
-  image.addEventListener("load", () => {
-    asset.dataset.assetState = "ready";
-  });
-
-  image.addEventListener("error", () => {
-    candidateIndex += 1;
-    if (candidateIndex < sourceCandidates.length) {
-      image.src = sourceCandidates[candidateIndex];
-      return;
-    }
-
-    asset.dataset.assetState = "error";
-    console.error(`[콩 상점] 장독대 이미지를 불러오지 못했습니다: ${sourceCandidates.join(", ")}`);
-    image.remove();
-  });
-
-  image.src = sourceCandidates[candidateIndex];
   asset.append(image);
   return asset;
 }
@@ -198,6 +193,125 @@ function actionFor(item) {
   return [card.affordable ? "구매" : "콩 부족", !card.affordable, false];
 }
 
+function currentWardrobeItem() {
+  return previewOutfitId ? SHOP_ITEM_MAP[previewOutfitId] || null : null;
+}
+
+function setWardrobeImage(source, label) {
+  const image = byId("outfitWardrobeImage");
+  const candidates = sourceCandidates(source);
+  let index = 0;
+  image.dataset.assetState = "loading";
+  image.alt = label;
+  image.onload = () => {
+    image.dataset.assetState = "ready";
+  };
+  image.onerror = () => {
+    index += 1;
+    if (index < candidates.length) {
+      image.src = candidates[index];
+      return;
+    }
+    image.dataset.assetState = "error";
+    showStatus(`${label} 이미지를 불러오지 못했습니다.`, "error");
+  };
+  image.src = candidates[index];
+}
+
+function renderWardrobeOptions() {
+  const options = byId("outfitWardrobeOptions");
+  const underlayer = document.createElement("button");
+  underlayer.type = "button";
+  underlayer.className = "outfit-wardrobe-option is-underlayer";
+  underlayer.classList.toggle("is-selected", previewOutfitId === null);
+  underlayer.setAttribute("aria-pressed", String(previewOutfitId === null));
+  underlayer.innerHTML = "<span>기본</span><strong>속옷 상태</strong>";
+  underlayer.addEventListener("click", () => {
+    previewOutfitId = null;
+    renderWardrobe();
+  });
+
+  const outfitButtons = outfitItems().map(item => {
+    const card = cosmetics.card(item.id);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "outfit-wardrobe-option";
+    button.classList.toggle("is-selected", previewOutfitId === item.id);
+    button.classList.toggle("is-equipped", card.equipped);
+    button.dataset.itemId = item.id;
+    button.setAttribute("aria-pressed", String(previewOutfitId === item.id));
+    button.innerHTML = `<span>${card.owned ? "보유" : `콩 ${formatNumber(item.price)}`}</span><strong>${item.title}</strong>`;
+    button.addEventListener("click", () => {
+      previewOutfitId = item.id;
+      renderWardrobe();
+    });
+    return button;
+  });
+
+  options.replaceChildren(underlayer, ...outfitButtons);
+}
+
+function renderWardrobe() {
+  const selected = currentWardrobeItem();
+  const title = byId("outfitWardrobeSelection");
+  const detail = byId("outfitWardrobeDetail");
+  const equipButton = byId("outfitWardrobeEquip");
+
+  if (!selected) {
+    title.textContent = "속옷 상태";
+    detail.textContent = "옷을 입히기 전의 콩쥐입니다. 아래에서 의상을 골라 입어볼 수 있습니다.";
+    equipButton.textContent = "의상을 선택하세요";
+    equipButton.disabled = true;
+    setWardrobeImage(UNDERLAYER_ART, "속옷 상태의 콩쥐 전신");
+  } else {
+    const card = cosmetics.card(selected.id);
+    title.textContent = selected.title;
+    detail.textContent = card.owned
+      ? "입어보기 중입니다. 장착하면 다른 화면에도 이 의상이 적용됩니다."
+      : "입어보기는 가능합니다. 실제 장착은 상점에서 구매한 뒤 할 수 있습니다.";
+    if (card.equipped) {
+      equipButton.textContent = "현재 장착 중";
+      equipButton.disabled = true;
+    } else if (card.owned) {
+      equipButton.textContent = "이 옷 장착";
+      equipButton.disabled = false;
+    } else {
+      equipButton.textContent = "구매 후 장착 가능";
+      equipButton.disabled = true;
+    }
+    setWardrobeImage(OUTFIT_ART[selected.visualKey], `${selected.title}을 입은 콩쥐 전신`);
+  }
+
+  renderWardrobeOptions();
+}
+
+function openWardrobe(item = null, trigger = null) {
+  const dialog = byId("outfitWardrobeDialog");
+  wardrobeReturnFocus = trigger || document.activeElement;
+  previewOutfitId = item?.category === "outfit" ? item.id : null;
+  renderWardrobe();
+  if (!dialog.open) dialog.showModal();
+}
+
+function equipWardrobeSelection() {
+  const item = currentWardrobeItem();
+  if (!item) return;
+  const card = cosmetics.card(item.id);
+  if (!card.owned) {
+    showStatus("먼저 해당 의상을 구매해야 합니다.", "error");
+    return;
+  }
+
+  const result = cosmetics.equip(item.id);
+  if (result.ok) showStatus(`${item.title}을(를) 장착했습니다.`, "success");
+  else showStatus("의상을 장착하지 못했습니다.", "error");
+
+  updateWallet();
+  renderHub();
+  if (activeCategory) renderProducts();
+  renderWardrobe();
+}
+
 function createCategoryCard(category) {
   const categoryItems = itemsFor(category.id);
   const equipped = SHOP_ITEM_MAP[cosmetics.equipped(category.id)] || categoryItems[0];
@@ -225,7 +339,7 @@ function createCategoryCard(category) {
   const visual = document.createElement("span");
   visual.className = "shop-category-visual";
   visual.dataset.category = category.id;
-  if (category.id === "jar") {
+  if (category.id === "jar" || category.id === "outfit") {
     visual.style.background = "transparent";
     visual.style.borderColor = "rgba(255, 255, 255, 0.07)";
   }
@@ -266,7 +380,7 @@ function createProductCard(item) {
   const visual = document.createElement("div");
   visual.className = "shop-item-visual";
   visual.dataset.category = item.category;
-  if (item.category === "jar") {
+  if (item.category === "jar" || item.category === "outfit") {
     visual.style.background = "transparent";
     visual.style.borderColor = "rgba(255, 255, 255, 0.07)";
   }
@@ -291,7 +405,20 @@ function createProductCard(item) {
   actionButton.classList.toggle("is-owned", isOwned);
   actionButton.addEventListener("click", () => purchaseOrEquip(item));
 
-  card.append(visual, copy, actionButton);
+  const actions = document.createElement("div");
+  actions.className = "shop-item-actions";
+  if (item.category === "outfit") {
+    const tryOnButton = document.createElement("button");
+    tryOnButton.type = "button";
+    tryOnButton.className = "shop-item-try-on";
+    tryOnButton.textContent = "입어보기";
+    tryOnButton.setAttribute("aria-label", `${item.title} 입어보기`);
+    tryOnButton.addEventListener("click", event => openWardrobe(item, event.currentTarget));
+    actions.append(tryOnButton);
+  }
+  actions.append(actionButton);
+
+  card.append(visual, copy, actions);
   return card;
 }
 
@@ -302,11 +429,13 @@ function renderProducts() {
   const categoryItems = itemsFor(category.id);
   const [eyebrow, description] = META[category.id];
   const grid = byId("shopGrid");
+  const wardrobeButton = byId("openOutfitWardrobe");
 
   byId("categoryEyebrow").textContent = eyebrow;
   byId("categoryTitle").textContent = category.label;
   byId("categoryDescription").textContent = description;
   byId("categoryOwnedCount").textContent = `${ownedCount(category.id)} / ${categoryItems.length}`;
+  wardrobeButton.hidden = category.id !== "outfit";
   grid.dataset.category = category.id;
   grid.replaceChildren(...categoryItems.map(createProductCard));
 }
@@ -315,6 +444,7 @@ function showHome() {
   activeCategory = null;
   byId("shopHomeView").hidden = false;
   byId("shopCategoryView").hidden = true;
+  byId("openOutfitWardrobe").hidden = true;
   byId("shopGrid").removeAttribute("data-category");
   renderHub();
 }
@@ -360,9 +490,11 @@ function purchaseOrEquip(item) {
     showStatus(messages[result.reason] || "상품을 처리하지 못했습니다.", "error");
   }
 
+  if (item.category === "outfit") previewOutfitId = item.id;
   updateWallet();
   renderHub();
   if (activeCategory) renderProducts();
+  if (byId("outfitWardrobeDialog").open) renderWardrobe();
 }
 
 function syncExternalChanges(event) {
@@ -373,11 +505,24 @@ function syncExternalChanges(event) {
   updateWallet();
   renderHub();
   if (activeCategory) renderProducts();
+  if (byId("outfitWardrobeDialog").open) renderWardrobe();
 }
 
 function init() {
   const initialCategory = decodeURIComponent(location.hash.slice(1));
+  const wardrobeDialog = byId("outfitWardrobeDialog");
+
   byId("shopBackButton").addEventListener("click", () => history.back());
+  byId("openOutfitWardrobe").addEventListener("click", event => openWardrobe(null, event.currentTarget));
+  byId("outfitWardrobeEquip").addEventListener("click", equipWardrobeSelection);
+  byId("outfitWardrobeUnderlayer").addEventListener("click", () => {
+    previewOutfitId = null;
+    renderWardrobe();
+  });
+  wardrobeDialog.addEventListener("close", () => {
+    wardrobeReturnFocus?.focus?.();
+    wardrobeReturnFocus = null;
+  });
   addEventListener("popstate", route);
   addEventListener("storage", syncExternalChanges);
 

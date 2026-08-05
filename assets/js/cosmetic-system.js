@@ -6,12 +6,6 @@ import {
   categoryFor
 } from "../../data/shop-catalog.js";
 
-if (typeof document !== "undefined" && document.documentElement?.dataset.page === "shop") {
-  import("./shop-outfit-cutout.js?v=20260805-outfit-cutout2").catch(error => {
-    console.error("[콩 상점] 의상 배경 제거 모듈을 불러오지 못했습니다.", error);
-  });
-}
-
 export const COSMETIC_STORAGE_KEY = "kongjuiya-cosmetics-v1";
 
 const cloneDefaults = () => ({

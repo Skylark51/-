@@ -1,4 +1,4 @@
-/* Kongjwi outfit cards use real portrait images and a dedicated mobile grid. */
+/* Transparent PNG outfit cards and the Kongjwi wardrobe. */
 .shop-page .shop-item[data-category="outfit"] .shop-item-visual::before,
 .shop-page .shop-category-visual[data-category="outfit"]::before {
   content: none !important;
@@ -19,9 +19,8 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 28%, rgba(225, 229, 235, .18), transparent 37%),
-    linear-gradient(180deg, #4a4e54 0%, #272b30 54%, #17191d 100%) !important;
+  background: transparent !important;
+  background-image: none !important;
 }
 
 .shop-page .shop-asset-outfit.is-authored-kongjwi {
@@ -32,10 +31,8 @@
   min-height: 0 !important;
   aspect-ratio: auto !important;
   overflow: hidden !important;
-  background: none !important;
+  background: transparent !important;
   background-image: none !important;
-  background-size: auto !important;
-  background-position: center !important;
   filter: none !important;
 }
 
@@ -45,6 +42,7 @@
   height: 100% !important;
   max-width: 100% !important;
   max-height: 100% !important;
+  padding: 2px !important;
   object-fit: contain !important;
   object-position: center bottom !important;
   transform: none !important;
@@ -81,9 +79,264 @@
   overflow: hidden;
 }
 
+.shop-page .shop-item-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  min-width: 0;
+}
+
+.shop-page .shop-item[data-category="outfit"] .shop-item-actions {
+  grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
+}
+
+.shop-page .shop-item-try-on,
+.shop-page .open-outfit-wardrobe {
+  border: 1px solid rgba(205, 172, 62, .48);
+  background: rgba(255, 255, 255, .04);
+  color: #f3df95;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.shop-page .shop-item-try-on {
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 8px;
+  border-radius: 10px;
+  font-size: 10px;
+}
+
+.shop-page .shop-item-try-on:hover,
+.shop-page .shop-item-try-on:focus-visible,
+.shop-page .open-outfit-wardrobe:hover,
+.shop-page .open-outfit-wardrobe:focus-visible {
+  border-color: rgba(239, 205, 70, .9);
+  background: rgba(216, 178, 15, .12);
+  outline: none;
+}
+
+.shop-page .open-outfit-wardrobe {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
 .shop-page .shop-item.is-equipped::after {
   top: 8px !important;
   right: 8px !important;
+}
+
+.outfit-wardrobe-dialog {
+  width: min(92vw, 760px);
+  max-width: 760px;
+  max-height: min(92dvh, 900px);
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+  border: 1px solid rgba(205, 172, 62, .42);
+  border-radius: 24px;
+  background: #17140e;
+  color: #f7f0d9;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .68);
+}
+
+.outfit-wardrobe-dialog::backdrop {
+  background: rgba(5, 4, 2, .78);
+  backdrop-filter: blur(7px);
+}
+
+.outfit-wardrobe-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(230px, .86fr) minmax(280px, 1.14fr);
+  grid-template-areas:
+    "header header"
+    "stage copy"
+    "stage options"
+    "stage actions";
+  gap: 12px 18px;
+  max-height: min(92dvh, 900px);
+  padding: 22px;
+  overflow: auto;
+}
+
+.outfit-wardrobe-close {
+  position: absolute;
+  z-index: 5;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .28);
+  color: #f7f0d9;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.outfit-wardrobe-header {
+  grid-area: header;
+  padding-right: 44px;
+}
+
+.outfit-wardrobe-header h2 {
+  margin: 2px 0 4px;
+  font-size: clamp(22px, 4vw, 34px);
+  line-height: 1;
+}
+
+.outfit-wardrobe-header p:last-child {
+  margin: 0;
+  color: rgba(247, 240, 217, .66);
+  font-size: 12px;
+}
+
+.outfit-wardrobe-stage {
+  grid-area: stage;
+  display: grid;
+  place-items: center;
+  min-height: 500px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(225, 213, 169, .1), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, .025), rgba(0, 0, 0, .18));
+}
+
+.outfit-wardrobe-stage img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 560px;
+  padding: 12px;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 16px 20px rgba(0, 0, 0, .4));
+  transition: opacity 120ms ease;
+}
+
+.outfit-wardrobe-stage img[data-asset-state="loading"] {
+  opacity: .45;
+}
+
+.outfit-wardrobe-copy {
+  grid-area: copy;
+  align-self: end;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, .07);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .025);
+}
+
+.outfit-wardrobe-copy strong {
+  display: block;
+  font-size: 18px;
+}
+
+.outfit-wardrobe-copy p {
+  margin: 6px 0 0;
+  color: rgba(247, 240, 217, .67);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.outfit-wardrobe-options {
+  grid-area: options;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  align-content: start;
+}
+
+.outfit-wardrobe-option {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .025);
+  color: #eee7cf;
+  text-align: left;
+  cursor: pointer;
+}
+
+.outfit-wardrobe-option span,
+.outfit-wardrobe-option strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.outfit-wardrobe-option span {
+  color: rgba(238, 231, 207, .52);
+  font-size: 8px;
+  font-weight: 850;
+}
+
+.outfit-wardrobe-option strong {
+  margin-top: 3px;
+  font-size: 11px;
+}
+
+.outfit-wardrobe-option.is-selected {
+  border-color: #d5b312;
+  background: rgba(213, 179, 18, .13);
+  box-shadow: inset 0 0 0 1px rgba(213, 179, 18, .16);
+}
+
+.outfit-wardrobe-option.is-equipped::after {
+  content: "장착";
+  float: right;
+  margin-top: -22px;
+  color: #9bd688;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.outfit-wardrobe-actions {
+  grid-area: actions;
+  display: grid;
+  grid-template-columns: auto minmax(120px, 1fr) auto;
+  gap: 7px;
+  align-self: end;
+}
+
+.outfit-wardrobe-actions button {
+  min-height: 40px;
+  padding: 0 13px;
+  border-radius: 11px;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.outfit-wardrobe-primary {
+  border: 1px solid #d6b000;
+  background: #d6b000;
+  color: #17130a;
+}
+
+.outfit-wardrobe-primary:disabled {
+  border-color: rgba(255, 255, 255, .08);
+  background: rgba(255, 255, 255, .06);
+  color: rgba(247, 240, 217, .42);
+  cursor: not-allowed;
+}
+
+.outfit-wardrobe-secondary {
+  border: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(255, 255, 255, .035);
+  color: #f0e7ca;
 }
 
 :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-category-view {
@@ -91,12 +344,23 @@
   overflow: hidden;
 }
 
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-category-header:has(.open-outfit-wardrobe:not([hidden])) {
+  grid-template-columns: 38px minmax(0, 1fr) auto auto;
+  gap: 6px;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .open-outfit-wardrobe {
+  min-height: 30px;
+  padding-inline: 9px;
+  font-size: 8px;
+}
+
 :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] {
   flex: 1 1 auto;
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  grid-template-rows: repeat(2, minmax(250px, 1fr)) !important;
-  grid-auto-rows: minmax(250px, 1fr);
+  grid-template-rows: repeat(2, minmax(264px, 1fr)) !important;
+  grid-auto-rows: minmax(264px, 1fr);
   align-content: stretch !important;
   align-items: stretch !important;
   gap: 8px !important;
@@ -117,12 +381,12 @@
 
 :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item {
   display: grid !important;
-  grid-template-rows: minmax(150px, 1fr) auto 34px !important;
+  grid-template-rows: minmax(150px, 1fr) auto 38px !important;
   gap: 6px !important;
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
-  min-height: 250px !important;
+  min-height: 264px !important;
   height: 100% !important;
   margin: 0 !important;
   padding: 8px !important;
@@ -161,12 +425,15 @@
   padding-top: 0 !important;
 }
 
-:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item-action {
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item-action,
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item-try-on {
   width: 100% !important;
   min-width: 0 !important;
-  min-height: 34px !important;
+  min-height: 38px !important;
   margin: 0 !important;
   border-radius: 9px;
+  padding-inline: 4px;
+  font-size: 9px;
 }
 
 :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item.is-equipped::after {
@@ -176,17 +443,80 @@
   font-size: 6px;
 }
 
+@media (max-width: 720px) {
+  .outfit-wardrobe-dialog {
+    width: min(96vw, 520px);
+    max-height: 94dvh;
+    border-radius: 20px;
+  }
+
+  .outfit-wardrobe-card {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "stage"
+      "copy"
+      "options"
+      "actions";
+    gap: 10px;
+    max-height: 94dvh;
+    padding: 16px;
+  }
+
+  .outfit-wardrobe-stage {
+    min-height: min(46dvh, 430px);
+  }
+
+  .outfit-wardrobe-stage img {
+    max-height: min(46dvh, 430px);
+    padding: 8px;
+  }
+
+  .outfit-wardrobe-options {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .outfit-wardrobe-options::-webkit-scrollbar {
+    display: none;
+  }
+
+  .outfit-wardrobe-option {
+    flex: 0 0 min(38vw, 150px);
+  }
+
+  .outfit-wardrobe-actions {
+    grid-template-columns: .8fr 1.4fr .7fr;
+  }
+
+  .outfit-wardrobe-actions button {
+    padding-inline: 7px;
+    font-size: 9px;
+  }
+}
+
 @media (max-width: 370px), (max-height: 720px) {
   :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] {
-    grid-template-rows: repeat(2, minmax(232px, 1fr)) !important;
-    grid-auto-rows: minmax(232px, 1fr);
+    grid-template-rows: repeat(2, minmax(246px, 1fr)) !important;
+    grid-auto-rows: minmax(246px, 1fr);
     gap: 6px !important;
   }
 
   :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="outfit"] .shop-item {
-    grid-template-rows: minmax(136px, 1fr) auto 32px !important;
-    min-height: 232px !important;
+    grid-template-rows: minmax(132px, 1fr) auto 36px !important;
+    min-height: 246px !important;
     padding: 7px !important;
+  }
+
+  .outfit-wardrobe-stage {
+    min-height: 330px;
+  }
+
+  .outfit-wardrobe-stage img {
+    max-height: 330px;
   }
 }
 
