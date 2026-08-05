@@ -5,7 +5,17 @@ const OUTFIT_ART_BY_TITLE = Object.freeze({
   "야화 궁중복": "assets/art/kongjwi/kongjwi-night-court.webp"
 });
 
+const STYLE_ID = "shop-kongjwi-art-style";
 let scheduled = false;
+
+function ensureStylesheet() {
+  if (document.getElementById(STYLE_ID)) return;
+  const link = document.createElement("link");
+  link.id = STYLE_ID;
+  link.rel = "stylesheet";
+  link.href = new URL("../css/shop-kongjwi-art.css?v=20260805-authored1", import.meta.url).href;
+  document.head.append(link);
+}
 
 function applyOutfitArt(asset, title) {
   const source = OUTFIT_ART_BY_TITLE[title];
@@ -19,6 +29,7 @@ function applyOutfitArt(asset, title) {
 
 function patchShopOutfits() {
   scheduled = false;
+  ensureStylesheet();
 
   document.querySelectorAll('.shop-category-card[data-category="outfit"]').forEach(card => {
     const title = card.querySelector(".shop-category-card-bottom b")?.textContent?.trim();
@@ -39,6 +50,7 @@ function schedulePatch() {
   requestAnimationFrame(patchShopOutfits);
 }
 
+ensureStylesheet();
 const observer = new MutationObserver(schedulePatch);
 observer.observe(document.body, { childList: true, subtree: true });
 
