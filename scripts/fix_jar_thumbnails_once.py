@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
 TARGETS = [
@@ -14,170 +15,321 @@ TARGETS = [
     ROOT / "assets/art/jars/night-lacquer/thumbnail-no-toad.png",
 ]
 
+# Generous jar-shaped GrabCut boundary. It excludes the authored gradient
+# background while preserving the complete lid, body, broken rim and base.
+POLYGON = np.array(
+    [
+        [0.43, 0.015], [0.57, 0.015], [0.59, 0.065], [0.68, 0.09],
+        [0.72, 0.14], [0.73, 0.21], [0.78, 0.32], [0.79, 0.70],
+        [0.76, 0.88], [0.68, 0.97], [0.32, 0.97], [0.24, 0.88],
+        [0.21, 0.70], [0.22, 0.32], [0.27, 0.21], [0.28, 0.14],
+        [0.32, 0.09], [0.41, 0.065],
+    ],
+    dtype=np.float32,
+)
 
-def odd(value: int) -> int:
-    value = max(3, value)
-    return value if value % 2 else value + 1
+CACHE_VERSION = "20260805-jar-clean2"
+CSS_MARKER = "/* CLEAN JAR THUMBNAILS V2 */"
 
 
-def component_stats(mask: np.ndarray):
-    count, labels, stats, centers = cv2.connectedComponentsWithStats(mask.astype(np.uint8), 8)
-    return count, labels, stats, centers
+def cut_out_jar(path: Path) -> Image.Image:
+    original = cv2.imread(str(path), cv2.IMREAD_COLOR)
+    if original is None:
+        raise RuntimeError(f"Unable to read {path}")
 
+    source_h, source_w = original.shape[:2]
+    work_w = 512
+    work_h = round(source_h * work_w / source_w)
+    work = cv2.resize(original, (work_w, work_h), interpolation=cv2.INTER_AREA)
 
-def clean_thumbnail(path: Path) -> None:
-    source = Image.open(path).convert("RGBA")
-    rgba = np.asarray(source).copy()
-    height, width = rgba.shape[:2]
-    alpha = rgba[:, :, 3]
-    original_mask = (alpha > 6).astype(np.uint8)
+    points = np.column_stack((POLYGON[:, 0] * work_w, POLYGON[:, 1] * work_h)).astype(np.int32)
+    mask = np.full((work_h, work_w), cv2.GC_BGD, dtype=np.uint8)
+    cv2.fillPoly(mask, [points], cv2.GC_PR_FGD)
 
-    if not original_mask.any():
-        raise RuntimeError(f"{path}: alpha mask is empty")
+    # Definite foreground seeds are placed on solid ceramic regions, away from
+    # the opening and away from the gradient background.
+    cv2.ellipse(
+        mask,
+        (round(work_w * 0.45), round(work_h * 0.58)),
+        (round(work_w * 0.08), round(work_h * 0.20)),
+        0,
+        0,
+        360,
+        cv2.GC_FGD,
+        -1,
+    )
+    cv2.ellipse(
+        mask,
+        (round(work_w * 0.50), round(work_h * 0.18)),
+        (round(work_w * 0.09), round(work_h * 0.045)),
+        0,
+        0,
+        360,
+        cv2.GC_FGD,
+        -1,
+    )
 
-    # The unwanted authored slot is a thin rounded-rectangle outline. Opening the
-    # alpha mask removes that thin geometry while retaining the jar's solid body.
-    kernel_size = odd(round(min(width, height) / 155))
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
-    solid_mask = cv2.morphologyEx(original_mask, cv2.MORPH_OPEN, kernel)
+    background_model = np.zeros((1, 65), dtype=np.float64)
+    foreground_model = np.zeros((1, 65), dtype=np.float64)
+    cv2.grabCut(
+        work,
+        mask,
+        None,
+        background_model,
+        foreground_model,
+        6,
+        cv2.GC_INIT_WITH_MASK,
+    )
 
-    count, labels, stats, centers = component_stats(solid_mask)
-    candidates: list[tuple[float, int]] = []
-    for label in range(1, count):
-        x, y, box_w, box_h, area = stats[label]
-        center_x, center_y = centers[label]
-        if area < max(80, width * height * 0.00025):
-            continue
-        if box_w < width * 0.025 or box_h < height * 0.035:
-            continue
+    foreground = np.where(
+        (mask == cv2.GC_FGD) | (mask == cv2.GC_PR_FGD), 255, 0
+    ).astype(np.uint8)
+    foreground = cv2.morphologyEx(
+        foreground,
+        cv2.MORPH_OPEN,
+        cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)),
+    )
 
-        fill = area / max(1, box_w * box_h)
-        aspect = box_w / max(1, box_h)
-        centrality = max(0.15, 1.0 - abs(center_x - width / 2) / (width / 2))
-        lower_weight = 0.55 + center_y / height
-
-        # Penalize large, hollow, approximately square outlines in the upper area.
-        looks_like_slot = (
-            box_w > width * 0.20
-            and box_h > height * 0.16
-            and 0.58 < aspect < 1.72
-            and fill < 0.38
-            and center_y < height * 0.62
-        )
-        if looks_like_slot:
-            continue
-
-        score = float(area) * centrality * lower_weight * (0.65 + min(fill, 0.8))
-        candidates.append((score, label))
-
+    count, labels, stats, _ = cv2.connectedComponentsWithStats((foreground > 0).astype(np.uint8), 8)
+    candidates = [
+        index
+        for index in range(1, count)
+        if stats[index, cv2.CC_STAT_AREA] > work_h * work_w * 0.005
+    ]
     if not candidates:
-        raise RuntimeError(f"{path}: could not isolate the jar body")
+        raise RuntimeError(f"Could not isolate jar in {path}")
 
-    _, main_label = max(candidates)
-    main_solid = (labels == main_label).astype(np.uint8)
-    x, y, box_w, box_h, main_area = stats[main_label]
+    main_label = max(candidates, key=lambda index: stats[index, cv2.CC_STAT_AREA])
+    component = np.where(labels == main_label, 255, 0).astype(np.uint8)
+    component = cv2.morphologyEx(
+        component,
+        cv2.MORPH_CLOSE,
+        cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)),
+    )
 
-    # Expand from the solid jar body into its original anti-aliased edge, lid,
-    # highlights and nearby shadow while excluding distant frame pixels.
-    reach = odd(max(kernel_size * 5, round(min(width, height) * 0.035)))
-    reach_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (reach, reach))
-    near_main = cv2.dilate(main_solid, reach_kernel)
-    keep_mask = (original_mask & near_main).astype(np.uint8)
+    contours, _ = cv2.findContours(component, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contour = max(contours, key=cv2.contourArea)
+    silhouette = np.zeros_like(component)
+    cv2.drawContours(silhouette, [contour], -1, 255, cv2.FILLED)
 
-    # Preserve small detached jar details located immediately around the main body.
-    original_count, original_labels, original_stats, original_centers = component_stats(original_mask)
-    margin_x = max(round(box_w * 0.28), reach)
-    margin_y = max(round(box_h * 0.30), reach)
-    region_left = max(0, x - margin_x)
-    region_top = max(0, y - margin_y)
-    region_right = min(width, x + box_w + margin_x)
-    region_bottom = min(height, y + box_h + margin_y)
+    # Fill the broken opening as part of the jar silhouette so its dark interior
+    # remains intact rather than becoming transparent.
+    silhouette = cv2.resize(
+        silhouette,
+        (source_w, source_h),
+        interpolation=cv2.INTER_LINEAR,
+    )
+    alpha = cv2.GaussianBlur(silhouette, (0, 0), 1.0)
 
-    for label in range(1, original_count):
-        comp_x, comp_y, comp_w, comp_h, comp_area = original_stats[label]
-        center_x, center_y = original_centers[label]
-        if comp_area < 10:
-            continue
-        inside_region = (
-            region_left <= center_x <= region_right
-            and region_top <= center_y <= region_bottom
-        )
-        if not inside_region:
-            continue
-
-        fill = comp_area / max(1, comp_w * comp_h)
-        aspect = comp_w / max(1, comp_h)
-        looks_like_frame_piece = (
-            comp_w > box_w * 1.45
-            and comp_h > box_h * 0.65
-            and 0.55 < aspect < 1.85
-            and fill < 0.34
-        )
-        if not looks_like_frame_piece:
-            keep_mask[original_labels == label] = 1
-
-    ys, xs = np.nonzero(keep_mask)
+    rgba = cv2.cvtColor(original, cv2.COLOR_BGR2RGBA)
+    rgba[:, :, 3] = alpha
+    ys, xs = np.nonzero(alpha > 3)
     if not len(xs):
-        raise RuntimeError(f"{path}: cleanup removed the complete jar")
+        raise RuntimeError(f"Cutout became empty for {path}")
 
     left, right = int(xs.min()), int(xs.max()) + 1
     top, bottom = int(ys.min()), int(ys.max()) + 1
-    jar_w, jar_h = right - left, bottom - top
+    cropped = Image.fromarray(rgba[top:bottom, left:right], "RGBA")
 
-    # Sanity checks prevent committing an accidental full-frame crop.
-    if jar_w > width * 0.72 or jar_h > height * 0.78:
-        raise RuntimeError(
-            f"{path}: isolated region is implausibly large ({jar_w}x{jar_h} from {width}x{height})"
-        )
-    if jar_w < width * 0.035 or jar_h < height * 0.04:
-        raise RuntimeError(f"{path}: isolated jar is implausibly small ({jar_w}x{jar_h})")
-
-    cleaned = rgba.copy()
-    cleaned[keep_mask == 0] = (0, 0, 0, 0)
-    cropped = Image.fromarray(cleaned[top:bottom, left:right], "RGBA")
-
-    # Use one transparent square canvas for all four cards. The jar occupies most
-    # of the canvas without distortion and remains centered with safe edge padding.
     canvas_size = 512
-    max_extent = 438
-    scale = min(max_extent / cropped.width, max_extent / cropped.height)
+    maximum_extent = 440
+    scale = min(maximum_extent / cropped.width, maximum_extent / cropped.height)
     target_w = max(1, round(cropped.width * scale))
     target_h = max(1, round(cropped.height * scale))
     resized = cropped.resize((target_w, target_h), Image.Resampling.LANCZOS)
 
     canvas = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
-    paste_x = (canvas_size - target_w) // 2
-    paste_y = (canvas_size - target_h) // 2
-    canvas.alpha_composite(resized, (paste_x, paste_y))
+    canvas.alpha_composite(
+        resized,
+        ((canvas_size - target_w) // 2, (canvas_size - target_h) // 2),
+    )
     canvas.save(path, format="PNG", optimize=True)
 
+    corner_alpha = [canvas.getpixel(point)[3] for point in [(0, 0), (511, 0), (0, 511), (511, 511)]]
+    if any(corner_alpha):
+        raise RuntimeError(f"Transparent canvas verification failed for {path}")
+
     print(
-        f"cleaned {path.relative_to(ROOT)}: "
-        f"source={width}x{height}, isolated={jar_w}x{jar_h}, output=512x512"
+        f"cleaned {path.relative_to(ROOT)}: {source_w}x{source_h} opaque source -> "
+        f"512x512 transparent cutout ({target_w}x{target_h} visible)"
+    )
+    return canvas
+
+
+def replace_required(text: str, old: str, new: str, label: str) -> str:
+    if old not in text:
+        raise RuntimeError(f"Expected {label} block was not found")
+    return text.replace(old, new, 1)
+
+
+def patch_renderer() -> None:
+    path = ROOT / "assets/js/shop-navigation.js"
+    text = path.read_text(encoding="utf-8")
+    text = text.replace("20260805-jar-thumbnails1", CACHE_VERSION)
+
+    text = replace_required(
+        text,
+        '''  const visual = document.createElement("span");
+  visual.className = "shop-category-visual";
+  visual.dataset.category = category.id;
+  if (category.id === "jar" || category.id === "outfit") {
+    visual.style.background = "transparent";
+    visual.style.borderColor = "rgba(255, 255, 255, 0.07)";
+  }
+''',
+        '''  const visual = document.createElement("span");
+  visual.className = category.id === "jar"
+    ? "shop-category-visual shop-jar-visual"
+    : "shop-category-visual";
+  visual.dataset.category = category.id;
+  if (category.id === "outfit") {
+    visual.style.background = "transparent";
+    visual.style.borderColor = "rgba(255, 255, 255, 0.07)";
+  }
+''',
+        "category jar visual",
     )
 
+    text = replace_required(
+        text,
+        '''  const visual = document.createElement("div");
+  visual.className = "shop-item-visual";
+  visual.dataset.category = item.category;
+  if (item.category === "jar" || item.category === "outfit") {
+    visual.style.background = "transparent";
+    visual.style.borderColor = "rgba(255, 255, 255, 0.07)";
+  }
+''',
+        '''  const visual = document.createElement("div");
+  visual.className = item.category === "jar"
+    ? "shop-item-visual shop-jar-visual"
+    : "shop-item-visual";
+  visual.dataset.category = item.category;
+  if (item.category === "outfit") {
+    visual.style.background = "transparent";
+    visual.style.borderColor = "rgba(255, 255, 255, 0.07)";
+  }
+''',
+        "product jar visual",
+    )
+    path.write_text(text, encoding="utf-8")
 
-def replace_once(path: Path, old: str, new: str) -> None:
+
+def patch_styles() -> None:
+    path = ROOT / "assets/css/shop-outfit-layout.css"
     text = path.read_text(encoding="utf-8")
-    if old not in text:
-        raise RuntimeError(f"{path}: expected cache token not found: {old}")
-    path.write_text(text.replace(old, new), encoding="utf-8")
+    if CSS_MARKER in text:
+        text = text.split(CSS_MARKER, 1)[0].rstrip() + "\n"
+
+    text += f'''\n{CSS_MARKER}
+.shop-page .shop-item[data-category="jar"] .shop-item-visual::before,
+.shop-page .shop-item[data-category="jar"] .shop-item-visual::after,
+.shop-page .shop-category-visual[data-category="jar"]::before,
+.shop-page .shop-category-visual[data-category="jar"]::after,
+.shop-page .shop-jar-visual::before,
+.shop-page .shop-jar-visual::after {{
+  content: none !important;
+  display: none !important;
+  background-image: none !important;
+}}
+
+.shop-page .shop-item[data-category="jar"] .shop-item-visual,
+.shop-page .shop-category-visual[data-category="jar"],
+.shop-page .shop-jar-visual {{
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  align-self: stretch !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}}
+
+.shop-page .shop-asset-jar.is-authored-jar {{
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  overflow: visible !important;
+  background: none !important;
+  background-image: none !important;
+  filter: drop-shadow(0 6px 7px rgba(0, 0, 0, .28)) !important;
+}}
+
+.shop-page .shop-jar-image {{
+  position: static !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: none !important;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}}
+'''
+    path.write_text(text, encoding="utf-8")
+
+
+def patch_cache_links() -> None:
+    path = ROOT / "shop.html"
+    text = path.read_text(encoding="utf-8")
+    text, css_count = re.subn(
+        r"(shop-outfit-layout\.css\?v=)[^\"]+",
+        rf"\g<1>{CACHE_VERSION}",
+        text,
+        count=1,
+    )
+    text, js_count = re.subn(
+        r"(assets/js/shop-navigation\.js\?v=)[^\"]+",
+        rf"\g<1>{CACHE_VERSION}",
+        text,
+        count=1,
+    )
+    if css_count != 1 or js_count != 1:
+        raise RuntimeError("Could not update shop cache-busting links")
+    path.write_text(text, encoding="utf-8")
+
+
+def create_preview(images: list[tuple[str, Image.Image]]) -> None:
+    preview = Image.new("RGB", (1024, 1024), "#211d19")
+    draw = ImageDraw.Draw(preview)
+    for index, (name, image) in enumerate(images):
+        x = (index % 2) * 512
+        y = (index // 2) * 512
+        tile = Image.new("RGB", (512, 512), "#25211d")
+        tile_draw = ImageDraw.Draw(tile)
+        for row in range(0, 512, 32):
+            for column in range(0, 512, 32):
+                if (row // 32 + column // 32) % 2 == 0:
+                    tile_draw.rectangle((column, row, column + 31, row + 31), fill="#3b352f")
+        tile.paste(image, (0, 0), image)
+        preview.paste(tile, (x, y))
+        draw.text((x + 10, y + 10), name, fill="white")
+    preview.save(ROOT / "jar-clean-preview.png", format="PNG", optimize=True)
 
 
 def main() -> None:
+    cleaned: list[tuple[str, Image.Image]] = []
     for target in TARGETS:
-        clean_thumbnail(target)
+        cleaned.append((target.parent.name, cut_out_jar(target)))
 
-    replace_once(
-        ROOT / "assets/js/shop-navigation.js",
-        "20260805-jar-thumbnails1",
-        "20260805-jar-clean1",
-    )
-    replace_once(
-        ROOT / "shop.html",
-        "assets/js/shop-navigation.js?v=20260805-outfit5",
-        "assets/js/shop-navigation.js?v=20260805-jar-clean1",
-    )
+    patch_renderer()
+    patch_styles()
+    patch_cache_links()
+    create_preview(cleaned)
 
 
 if __name__ == "__main__":
