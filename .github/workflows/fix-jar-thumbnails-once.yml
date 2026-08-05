@@ -1,4 +1,4 @@
-name: One-time jar thumbnail export
+name: One-time jar shop source export
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  export-jar-thumbnails:
+  export-jar-shop-sources:
     runs-on: ubuntu-latest
     steps:
       - name: Check out main
@@ -19,10 +19,10 @@ jobs:
         with:
           ref: main
 
-      - name: Upload current jar thumbnails
+      - name: Upload current assets and rendering sources
         uses: actions/upload-artifact@v4
         with:
-          name: jar-thumbnails-original
+          name: jar-shop-sources
           retention-days: 1
           if-no-files-found: error
           path: |
@@ -30,3 +30,8 @@ jobs:
             assets/art/jars/celadon/thumbnail-no-toad.png
             assets/art/jars/moon-white/thumbnail-no-toad.png
             assets/art/jars/night-lacquer/thumbnail-no-toad.png
+            assets/css/shop.css
+            assets/css/shop-navigation.css
+            assets/css/shop-outfit-layout.css
+            assets/js/shop-navigation.js
+            shop.html
