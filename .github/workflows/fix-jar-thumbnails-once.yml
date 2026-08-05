@@ -56,7 +56,7 @@ jobs:
 
             await page.goto('http://127.0.0.1:8765/shop.html#jar', { waitUntil: 'networkidle' });
             await page.waitForFunction(() => {
-              const images = [...document.querySelectorAll('.shop-jar-image')];
+              const images = [...document.querySelectorAll('.shop-item[data-category="jar"] .shop-jar-image')];
               return images.length === 4 && images.every(image => image.complete && image.naturalWidth === 512 && image.naturalHeight === 512);
             });
 
@@ -135,14 +135,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/art/jars/onggi/thumbnail-no-toad.png \
-                  assets/art/jars/celadon/thumbnail-no-toad.png \
-                  assets/art/jars/moon-white/thumbnail-no-toad.png \
-                  assets/art/jars/night-lacquer/thumbnail-no-toad.png \
-                  assets/css/shop-outfit-layout.css \
-                  assets/js/shop-navigation.js \
-                  shop.html \
-                  .github/workflows/fix-jar-thumbnails-once.yml \
-                  scripts/fix_jar_thumbnails_once.py
+          git add -A
           git commit -m "fix: remove embedded frames from jar thumbnails"
           git push origin HEAD:main
