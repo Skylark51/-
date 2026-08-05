@@ -35,6 +35,63 @@ const OUTFIT_ART = Object.freeze({
   "royal-night": "assets/art/kongjwi/kongjwi-night-court.webp"
 });
 
+const OUTFIT_STYLE_ID = "shop-authored-kongjwi-style";
+
+function ensureOutfitStyles() {
+  if (document.getElementById(OUTFIT_STYLE_ID)) return;
+
+  const style = document.createElement("style");
+  style.id = OUTFIT_STYLE_ID;
+  style.textContent = `
+    .shop-page .shop-asset-outfit.is-authored-kongjwi {
+      display: grid !important;
+      place-items: center !important;
+      width: 100% !important;
+      height: 100% !important;
+      min-width: 0 !important;
+      min-height: 0 !important;
+      aspect-ratio: auto !important;
+      overflow: visible !important;
+      background: none !important;
+      background-image: none !important;
+      background-size: auto !important;
+      background-position: center !important;
+      filter: none !important;
+    }
+
+    .shop-page .shop-kongjwi-image {
+      display: block !important;
+      width: min(90%, 190px) !important;
+      height: 94% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      object-fit: contain !important;
+      object-position: center bottom !important;
+      filter: drop-shadow(0 10px 10px rgba(0, 0, 0, .38));
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"])
+      .shop-page .shop-grid {
+      align-items: stretch !important;
+      align-content: stretch !important;
+    }
+
+    :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"])
+      .shop-page .shop-item {
+      height: 100% !important;
+    }
+
+    :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"])
+      .shop-page .shop-kongjwi-image {
+      width: 92% !important;
+      height: 94% !important;
+    }
+  `;
+  document.head.append(style);
+}
+
 const storage = new GameStorage();
 const cosmetics = new CosmeticSystem(storage);
 const bgm = mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ?? 0.5 });
@@ -47,7 +104,6 @@ let statusTimer = 0;
 
 const itemsFor = categoryId => SHOP_ITEMS.filter(item => item.category === categoryId);
 const categoryFor = categoryId => SHOP_CATEGORIES.find(category => category.id === categoryId);
-const itemTitle = itemId => SHOP_ITEM_MAP[itemId]?.title || "기본 외형";
 const ownedCount = categoryId => itemsFor(categoryId).filter(item => cosmetics.card(item.id).owned).length;
 
 function applySwatch(node, item) {
@@ -61,7 +117,6 @@ function createOutfitImage(item, assetNode) {
   if (!source) return false;
 
   assetNode.classList.add("is-authored-kongjwi");
-  assetNode.removeAttribute("style");
 
   const image = new Image();
   image.className = "shop-kongjwi-image";
@@ -290,6 +345,7 @@ function syncExternalChanges(event) {
 }
 
 function init() {
+  ensureOutfitStyles();
   const initialCategory = decodeURIComponent(location.hash.slice(1));
   byId("shopBackButton").addEventListener("click", () => history.back());
   addEventListener("popstate", route);
