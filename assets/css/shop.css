@@ -175,11 +175,22 @@ a { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
-/* Jar atlas: one complete jar per square product card. */
+
+/* Jar atlas: keep each 96x96 cell square so the complete jar remains centered and undistorted. */
 .shop-item { min-height: 0; aspect-ratio: 1; overflow: hidden; }
 .shop-item-visual { width: min(48%, 168px); height: auto; aspect-ratio: 1; align-self: center; flex: 0 0 auto; }
 .shop-item-visual.shop-jar-visual > .shop-jar-sprite { display: none; }
-.shop-item-visual.shop-jar-visual::after { content: ""; position: absolute; z-index: 1; left: 50%; top: 0; width: 71.64%; height: 100%; transform: translateX(-50%); background-image: url("../art/sprites/jars.png"); background-repeat: no-repeat; background-size: 400% 191.04%; background-position: var(--jar-sprite-position, 0%) 50%; filter: drop-shadow(0 10px 11px rgba(0, 0, 0, 0.38)); }
+.shop-item-visual.shop-jar-visual::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 7%;
+  background-image: url("../art/sprites/jars.png");
+  background-repeat: no-repeat;
+  background-size: 400% 100%;
+  background-position: var(--jar-sprite-position, 0%) 50%;
+  filter: drop-shadow(0 10px 11px rgba(0, 0, 0, 0.38));
+}
 .shop-item[data-item-id="jar_onggi"] .shop-item-visual::after { --jar-sprite-position: 0%; }
 .shop-item[data-item-id="jar_celadon"] .shop-item-visual::after { --jar-sprite-position: 33.333%; }
 .shop-item[data-item-id="jar_moon_white"] .shop-item-visual::after { --jar-sprite-position: 66.667%; }
