@@ -38,10 +38,10 @@ const OUTFIT_ART = Object.freeze({
 const UNDERLAYER_ART = `assets/art/kongjwi/kongjwi-underlayer-cutout.png?v=${ASSET_VERSION}`;
 
 const JAR_ART = Object.freeze({
-  onggi: "assets/art/jars/onggi/thumbnail-no-toad.png?v=20260805-jar-thumbnails1",
-  celadon: "assets/art/jars/celadon/thumbnail-no-toad.png?v=20260805-jar-thumbnails1",
-  "moon-white": "assets/art/jars/moon-white/thumbnail-no-toad.png?v=20260805-jar-thumbnails1",
-  "night-lacquer": "assets/art/jars/night-lacquer/thumbnail-no-toad.png?v=20260805-jar-thumbnails1"
+  onggi: "assets/art/jars/onggi/thumbnail-no-toad.png?v=20260805-jar-clean2",
+  celadon: "assets/art/jars/celadon/thumbnail-no-toad.png?v=20260805-jar-clean2",
+  "moon-white": "assets/art/jars/moon-white/thumbnail-no-toad.png?v=20260805-jar-clean2",
+  "night-lacquer": "assets/art/jars/night-lacquer/thumbnail-no-toad.png?v=20260805-jar-clean2"
 });
 
 const storage = new GameStorage();
@@ -337,9 +337,11 @@ function createCategoryCard(category) {
   top.append(label, count);
 
   const visual = document.createElement("span");
-  visual.className = "shop-category-visual";
+  visual.className = category.id === "jar"
+    ? "shop-category-visual shop-jar-visual"
+    : "shop-category-visual";
   visual.dataset.category = category.id;
-  if (category.id === "jar" || category.id === "outfit") {
+  if (category.id === "outfit") {
     visual.style.background = "transparent";
     visual.style.borderColor = "rgba(255, 255, 255, 0.07)";
   }
@@ -378,9 +380,11 @@ function createProductCard(item) {
   applySwatch(card, item);
 
   const visual = document.createElement("div");
-  visual.className = "shop-item-visual";
+  visual.className = item.category === "jar"
+    ? "shop-item-visual shop-jar-visual"
+    : "shop-item-visual";
   visual.dataset.category = item.category;
-  if (item.category === "jar" || item.category === "outfit") {
+  if (item.category === "outfit") {
     visual.style.background = "transparent";
     visual.style.borderColor = "rgba(255, 255, 255, 0.07)";
   }
