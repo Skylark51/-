@@ -1,0 +1,34 @@
+/* Transparent full-body outfit rendering. The card frame remains unchanged. */
+.shop-page .shop-item[data-category="outfit"] .shop-item-visual,
+.shop-page .shop-category-visual[data-category="outfit"] {
+  background: transparent !important;
+}
+
+.shop-page .shop-asset-outfit.is-authored-kongjwi {
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+.shop-page .shop-kongjwi-image {
+  display: block !important;
+  width: auto !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  padding: 5px 4px 8px !important;
+  box-sizing: border-box !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  transform: none !important;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .34));
+}
+
+.shop-page .shop-kongjwi-image[data-cutout-state="processing"] {
+  opacity: 0;
+}
+
+.shop-page .shop-kongjwi-image[data-cutout-state="ready"] {
+  opacity: 1;
+}
