@@ -1,7 +1,7 @@
 import { GameStorage } from "./storage.js";
 import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical2";
 import { installRecordsInterface } from "./records-interface.js?v=20260804-records1";
-import { installLobbyHeroScene } from "./lobby-hero-scene.js?v=20260805-home-square3";
+import { installLobbyHeroScene } from "./lobby-hero-scene.js?v=20260805-home-square4";
 
 const VALID_VIEWS = new Set(["home", "jars", "records"]);
 const viewNodes = [...document.querySelectorAll("[data-app-view]")];
@@ -10,9 +10,9 @@ const storage = new GameStorage();
 const bgm = mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ?? 0.5 });
 
 const MOBILE_UI_BREAKPOINT = 760;
-const MOBILE_UI_STYLESHEET = "assets/css/mobile-unified-shell.css?v=20260804-unified3";
+const MOBILE_UI_STYLESHEET = "assets/css/mobile-unified-shell.css?v=20260805-unified4";
 const RECORDS_INTERFACE_STYLESHEET = "assets/css/records-interface.css?v=20260804-records1";
-const MOBILE_FIXED_SHELL_STYLESHEET = "assets/css/mobile-fixed-shell.css?v=20260804-fixed-shell3";
+const MOBILE_FIXED_SHELL_STYLESHEET = "assets/css/mobile-fixed-shell.css?v=20260805-fixed-shell5";
 const MOBILE_SETTINGS_STYLESHEET = "assets/css/mobile-settings-dialog.css?v=20260804-settings1";
 const MOBILE_NAV_ICONS = [
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9 20v-7h6v7"/></svg>',

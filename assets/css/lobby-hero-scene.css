@@ -1,190 +1,198 @@
-/* Animated lobby artwork: Kongjwi, the leaking jar, and the toad remain visible instead of a black hero panel. */
-.lobby-hero {
-  background:
-    radial-gradient(circle at 78% 18%, rgba(246, 205, 113, .24), transparent 31%),
-    linear-gradient(145deg, #382819 0%, #193b3d 54%, #0e1716 100%);
+/* The home hero renders one photograph as its only artwork layer. */
+#lobbyTop.lobby-hero {
+  background-color: #17110d;
+  background-image: var(--hero-photo);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
-.hero-live-scene {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 77% 30%, rgba(255, 222, 139, .28), transparent 34%),
-    radial-gradient(circle at 88% 82%, rgba(75, 202, 215, .24), transparent 28%),
-    linear-gradient(120deg, #3b2b1c 0%, #263b35 48%, #102726 100%);
-}
-
-.hero-live-scene::before {
-  content: "";
-  position: absolute;
-  inset: 0;
+#lobbyTop .hero-shade {
   z-index: 1;
-  background:
-    linear-gradient(90deg, rgba(14, 10, 7, .91) 0%, rgba(14, 10, 7, .68) 37%, rgba(14, 10, 7, .08) 65%, transparent 100%),
-    linear-gradient(180deg, rgba(8, 7, 5, .08), transparent 56%, rgba(8, 7, 5, .42));
 }
 
-.hero-live-scene__art {
-  position: absolute;
-  right: -1.5%;
-  top: 50%;
-  width: min(61%, 690px);
-  height: 112%;
-  object-fit: cover;
-  object-position: 50% 46%;
-  transform: translateY(-50%) scale(1.035);
-  filter: saturate(1.08) contrast(1.03) brightness(1.06) drop-shadow(0 26px 34px rgba(0, 0, 0, .38));
-  animation: heroSceneBreathe 7.5s ease-in-out infinite alternate;
-}
-
-.hero-live-scene__water-glow {
-  position: absolute;
+#lobbyTop .hero-copy {
   z-index: 2;
-  right: 7%;
-  bottom: 2%;
-  width: 38%;
-  height: 24%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(103, 224, 239, .34), rgba(35, 132, 151, .11) 47%, transparent 72%);
-  filter: blur(14px);
-  mix-blend-mode: screen;
-  animation: heroWaterPulse 2.8s ease-in-out infinite;
 }
 
-.hero-live-scene__atmosphere {
-  position: absolute;
-  z-index: 3;
-  inset: 0;
+#lobbyTop .hero-badges {
+  position: static;
+  margin: 18px 0 0;
 }
 
-.hero-live-scene__firefly,
-.hero-live-scene__drop {
-  position: absolute;
-  display: block;
-  animation-delay: var(--particle-delay);
+#lobbyTop .hero-actions {
+  margin-top: 10px;
 }
 
-.hero-live-scene__firefly {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #ffe39a;
-  box-shadow: 0 0 7px #ffe39a, 0 0 17px rgba(255, 207, 91, .78);
-  opacity: 0;
-  animation: heroFirefly 4.2s ease-in-out infinite;
-}
-
-.firefly-a { right: 42%; top: 21%; }
-.firefly-b { right: 15%; top: 35%; }
-.firefly-c { right: 31%; top: 64%; }
-
-.hero-live-scene__drop {
-  right: 16%;
-  top: 49%;
-  width: 8px;
-  height: 13px;
-  border-radius: 65% 35% 60% 40%;
-  background: linear-gradient(180deg, #ddfbff, #58d7ea 58%, #168aa8);
-  box-shadow: 0 0 9px rgba(91, 215, 234, .56);
-  opacity: 0;
-  transform: rotate(35deg);
-  animation: heroWaterDrop 1.75s linear infinite;
-}
-
-.drop-b { right: 13.5%; top: 51%; }
-.drop-c { right: 18%; top: 47%; }
-
-.lobby-hero.has-live-scene .hero-shade {
-  z-index: 1;
-  background:
-    linear-gradient(90deg, rgba(10, 8, 6, .91) 0%, rgba(10, 8, 6, .70) 37%, rgba(10, 8, 6, .07) 67%, rgba(10, 8, 6, .03)),
-    linear-gradient(180deg, rgba(0, 0, 0, .05), transparent 57%, rgba(0, 0, 0, .36));
-}
-
-.lobby-hero.has-live-scene .hero-copy,
-.lobby-hero.has-live-scene .hero-badges {
+.jar-selection-scene {
   position: relative;
-  z-index: 4;
+  margin: 0 0 18px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 18px;
+  background: #120f0c;
+  box-shadow: var(--shadow-soft);
 }
 
-@keyframes heroSceneBreathe {
-  0% { transform: translateY(-50%) translate3d(0, 0, 0) scale(1.035); }
-  45% { transform: translateY(-50%) translate3d(-7px, -4px, 0) scale(1.055); }
-  100% { transform: translateY(-50%) translate3d(4px, 3px, 0) scale(1.045); }
+.jar-selection-scene img {
+  display: block;
+  width: 100%;
+  max-height: 390px;
+  aspect-ratio: 1536 / 834;
+  object-fit: cover;
+  object-position: center;
 }
 
-@keyframes heroWaterPulse {
-  0%, 100% { opacity: .46; transform: scale(.94); }
-  50% { opacity: .88; transform: scale(1.08); }
-}
-
-@keyframes heroFirefly {
-  0%, 100% { opacity: 0; transform: translate3d(0, 12px, 0) scale(.6); }
-  25% { opacity: .9; }
-  52% { opacity: .45; transform: translate3d(-15px, -9px, 0) scale(1); }
-  76% { opacity: 1; transform: translate3d(8px, -21px, 0) scale(.75); }
-}
-
-@keyframes heroWaterDrop {
-  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(35deg) scale(.7); }
-  12% { opacity: .95; }
-  78% { opacity: .86; transform: translate3d(22px, 56px, 0) rotate(35deg) scale(1); }
-  100% { opacity: 0; transform: translate3d(29px, 72px, 0) rotate(35deg) scale(.72); }
-}
-
-@media (max-width: 980px) {
-  .hero-live-scene__art {
-    right: -9%;
-    width: 72%;
-    height: 108%;
-    object-position: 51% 46%;
+@media (max-width: 760px) {
+  html[data-lobby-view=home] .lobby-page .lobby-app {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
   }
-}
 
-@media (max-width: 760px), (max-device-width: 760px) {
-  .hero-live-scene::before {
+  html[data-lobby-view=home] .lobby-page #homeView {
+    display: block;
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  html[data-lobby-view=home] #lobbyTop.lobby-hero {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 20px;
+    background-position: 42% center;
+    background-size: cover;
+  }
+
+  html[data-lobby-view=home] #lobbyTop .hero-shade {
+    position: absolute;
+    inset: 0;
     background:
-      linear-gradient(180deg, rgba(9, 7, 5, .70) 0%, rgba(9, 7, 5, .39) 43%, rgba(9, 7, 5, .12) 68%, rgba(9, 7, 5, .47) 100%),
-      linear-gradient(90deg, rgba(9, 7, 5, .54), transparent 75%);
+      linear-gradient(180deg, rgba(8, 6, 4, .88) 0%, rgba(8, 6, 4, .48) 30%, rgba(8, 6, 4, .04) 50%, rgba(8, 6, 4, .56) 73%, rgba(8, 6, 4, .92) 100%),
+      linear-gradient(90deg, rgba(8, 6, 4, .16), transparent 44%, transparent 72%, rgba(8, 6, 4, .14));
   }
 
-  .hero-live-scene__art {
-    right: -18%;
-    top: 54%;
-    width: 112%;
-    height: 106%;
-    object-position: 58% 48%;
-    opacity: .94;
-    filter: saturate(1.06) contrast(1.02) brightness(1.08) drop-shadow(0 18px 25px rgba(0, 0, 0, .34));
+  html[data-lobby-view=home] #lobbyTop .hero-copy {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    padding: 13px;
+    overflow: hidden;
   }
 
-  .hero-live-scene__water-glow {
-    right: 0;
-    bottom: 4%;
-    width: 62%;
-    height: 21%;
+  html[data-lobby-view=home] #lobbyTop .hero-copy > .eyebrow {
+    margin: 0 0 4px;
+    font-size: 7.5px;
+    line-height: 1.25;
+    letter-spacing: .08em;
   }
 
-  .firefly-a { right: 64%; top: 49%; }
-  .firefly-b { right: 17%; top: 38%; }
-  .firefly-c { right: 42%; top: 72%; }
-
-  .hero-live-scene__drop {
-    right: 19%;
-    top: 55%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-live-scene__art,
-  .hero-live-scene__water-glow,
-  .hero-live-scene__firefly,
-  .hero-live-scene__drop {
-    animation: none !important;
+  html[data-lobby-view=home] #lobbyTop .hero-copy > h1 {
+    max-width: 100%;
+    margin: 0;
+    font-size: clamp(26px, 7.9vw, 32px);
+    line-height: 1.06;
+    letter-spacing: -.058em;
+    text-wrap: balance;
   }
 
-  .hero-live-scene__firefly { opacity: .55; }
+  html[data-lobby-view=home] #lobbyTop .hero-copy > p:not(.eyebrow, .cta-hint) {
+    max-width: 100%;
+    margin: 7px 0 0;
+    color: rgba(248, 239, 220, .9);
+    font-size: 9.5px;
+    line-height: 1.4;
+  }
+
+  html[data-lobby-view=home] #lobbyTop .cta-hint {
+    display: block;
+    min-height: 0;
+    margin: 5px 0 0;
+    color: rgba(242, 213, 141, .96);
+    font-size: 7.8px;
+    font-weight: 800;
+    line-height: 1.35;
+  }
+
+  html[data-lobby-view=home] #lobbyTop .hero-badges {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin: auto 0 7px;
+  }
+
+  html[data-lobby-view=home] #lobbyTop .hero-badges span {
+    display: none;
+  }
+
+  html[data-lobby-view=home] #lobbyTop .hero-badges span:first-child {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    min-height: 32px;
+    padding: 5px 8px;
+    border: 1px solid rgba(242, 213, 141, .25);
+    border-radius: 10px;
+    background: rgba(13, 10, 7, .72);
+    color: #eee2ca;
+    font-size: 7.9px;
+    font-weight: 850;
+    line-height: 1.28;
+    box-shadow: 0 7px 18px rgba(0, 0, 0, .2);
+    backdrop-filter: blur(9px);
+  }
+
+  html[data-lobby-view=home] #lobbyTop .hero-badges b {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border-radius: 7px;
+    background: rgba(213, 160, 62, .2);
+    color: var(--gold-2);
+    font-size: 7.5px;
+  }
+
+  html[data-lobby-view=home] #lobbyTop .hero-actions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin: 0;
+  }
+
+  html[data-lobby-view=home] #lobbyTop .hero-actions > * {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 7px;
+    overflow: hidden;
+    border-radius: 12px;
+    font-size: 9.3px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html[data-lobby-view=home] .lobby-page #homeView .home-grid {
+    margin-top: 8px;
+  }
+
+  .jar-selection-scene {
+    margin-bottom: 14px;
+    border-radius: 14px;
+  }
+
+  .jar-selection-scene img {
+    max-height: none;
+  }
 }
