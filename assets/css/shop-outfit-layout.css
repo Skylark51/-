@@ -189,3 +189,44 @@
     padding: 7px !important;
   }
 }
+
+/* Jar cards show only the authored transparent PNG, without an extra inner frame. */
+.shop-page .shop-item[data-category="jar"] .shop-item-visual::before,
+.shop-page .shop-category-visual[data-category="jar"]::before {
+  content: none !important;
+  display: none !important;
+}
+
+.shop-page .shop-item[data-category="jar"] .shop-item-visual,
+.shop-page .shop-category-visual[data-category="jar"] {
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.shop-page .shop-asset-jar.is-authored-jar {
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  background: none !important;
+}
+
+.shop-page .shop-jar-image {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: none !important;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
