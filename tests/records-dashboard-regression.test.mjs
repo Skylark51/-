@@ -22,9 +22,11 @@ for (const id of [
   assert.match(indexHtml, new RegExp(`id=["']${id}["']`));
 }
 
-assert.doesNotMatch(indexHtml, /KONGJWI PART PREVIEW|data-kongjwi-dashboard|kongjwi-dashboard\.js/);
+assert.match(indexHtml, /data-kongjwi-dashboard/);
+assert.match(indexHtml, /kongjwi-dashboard\.js\?v=20260805-outfit-rig1/);
+assert.match(indexHtml, /장착 콩쥐 미리보기/);
 assert.doesNotMatch(navigation, /records-interface|installRecordsInterface/);
 assert.match(lobbyActions, /const metrics = renderDashboard\(storage\);/);
 assert.match(lobbyActions, /renderDetailedRecords\(metrics\);/);
 
-console.log("records-dashboard-regression: canonical dashboard restored");
+console.log("records-dashboard-regression: records and Kongjwi preview restored");

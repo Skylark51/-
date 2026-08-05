@@ -1,22 +1,35 @@
 /**
- * Coordinate-aligned Kongjwi part composer.
+ * Pixel-preserving Kongjwi outfit-part composer.
  *
- * Every character layer is a transparent PNG derived from the authored source
- * image.  This module only changes DOM transforms and sprite positions; it does
- * not paint, filter, or regenerate the character pixels.
+ * Every visible character pixel comes from assets/art/kongjwi. Runtime code only
+ * swaps authored outfit/expression layers and applies DOM transforms.
  */
 
 export const KONGJWI_ASSET_ROOT = "assets/art/kongjwi-parts/";
+const ASSET_VERSION = "20260805-outfit-rig1";
+
+export const KONGJWI_RIGS = Object.freeze({
+  "classic-red": Object.freeze({ root: "classic-red/" }),
+  "blue-scholar": Object.freeze({ root: "blue-scholar/" }),
+  "field-green": Object.freeze({ root: "field-green/" }),
+  "royal-night": Object.freeze({ root: "royal-night/" })
+});
 
 export const KONGJWI_PARTS = Object.freeze({
   torso: "torso.png",
   lowerBody: "lower-body.png",
   armLeft: "arm-left.png",
   armRight: "arm-right.png",
-  head: "head-neutral.png",
-  hairNeck: "head-hair-neck.png",
-  bodyBase: "body-base.png",
-  face: "face-neutral.png"
+  hairNeck: "head-hair-neck.png"
+});
+
+const EXPRESSION_FILES = Object.freeze({
+  neutral: "face-neutral.png",
+  focused: "face-focused.png",
+  correct: "face-correct.png",
+  wrong: "face-wrong.png",
+  timeout: "face-timeout.png",
+  celebrate: "face-celebrate.png"
 });
 
 const TOOL_ROWS = Object.freeze({
@@ -26,13 +39,20 @@ const TOOL_ROWS = Object.freeze({
   moon: 3
 });
 
+const TOOL_FILES = Object.freeze({
+  wood: "wood.png",
+  brass: "brass.png",
+  celadon: "celadon.png",
+  moon: "moon.png"
+});
+
 const PART_ORDER = Object.freeze([
   ["torso", KONGJWI_PARTS.torso],
   ["lower-body", KONGJWI_PARTS.lowerBody],
   ["arm-left", KONGJWI_PARTS.armLeft],
   ["arm-right", KONGJWI_PARTS.armRight],
   ["head-hair-neck", KONGJWI_PARTS.hairNeck],
-  ["face", KONGJWI_PARTS.face]
+  ["face", EXPRESSION_FILES.neutral]
 ]);
 
 const POSES = Object.freeze({
@@ -51,10 +71,10 @@ const POSES = Object.freeze({
     torso: "translate3d(0, 0, 0) rotate(-1deg)",
     lowerBody: "translate3d(0, 0, 0) rotate(0deg)",
     armLeft: "translate3d(-1.5%, -2.4%, 0) rotate(-13deg)",
-    armRight: "translate3d(1.4%, -1.2%, 0) rotate(7deg)",
+    armRight: "translate3d(1.4%, -1.2%, 0) rotate(18deg)",
     hairNeck: "translate3d(-1%, -1.2%, 0) rotate(-4deg)",
     face: "translate3d(-1%, -1.2%, 0) rotate(-4deg)",
-    tool: "translate3d(4%, -4%, 0) rotate(-20deg)"
+    tool: "translate3d(65%, -18%, 0) rotate(-38deg)"
   }),
   wrong: Object.freeze({
     canvas: "translate3d(1.2%, 0, 0) rotate(3deg)",
@@ -64,7 +84,7 @@ const POSES = Object.freeze({
     armRight: "translate3d(2%, 1%, 0) rotate(-9deg)",
     hairNeck: "translate3d(1.5%, 0, 0) rotate(7deg)",
     face: "translate3d(1.5%, 0, 0) rotate(7deg)",
-    tool: "translate3d(1%, 2%, 0) rotate(14deg)"
+    tool: "translate3d(-8%, 7%, 0) rotate(14deg)"
   }),
   timeout: Object.freeze({
     canvas: "translate3d(0.8%, 1%, 0) rotate(2deg)",
@@ -74,7 +94,7 @@ const POSES = Object.freeze({
     armRight: "translate3d(1%, 2%, 0) rotate(-5deg)",
     hairNeck: "translate3d(0, 2%, 0) rotate(5deg)",
     face: "translate3d(0, 2%, 0) rotate(5deg)",
-    tool: "translate3d(0, 3%, 0) rotate(10deg)"
+    tool: "translate3d(-6%, 8%, 0) rotate(10deg)"
   }),
   celebrate: Object.freeze({
     canvas: "translate3d(0, -1.8%, 0) rotate(-1deg)",
@@ -84,7 +104,7 @@ const POSES = Object.freeze({
     armRight: "translate3d(2%, -3%, 0) rotate(18deg)",
     hairNeck: "translate3d(0, -2%, 0) rotate(-2deg)",
     face: "translate3d(0, -2%, 0) rotate(-2deg)",
-    tool: "translate3d(2%, -5%, 0) rotate(-24deg)"
+    tool: "translate3d(55%, -20%, 0) rotate(-34deg)"
   })
 });
 
@@ -103,11 +123,20 @@ function setStyle(element, property, value) {
   element?.style?.setProperty(property, value);
 }
 
-function createPart(name, file) {
+function rigFor(outfit) {
+  return KONGJWI_RIGS[outfit] ? outfit : "classic-red";
+}
+
+function assetUrl(outfit, file) {
+  const key = rigFor(outfit);
+  return `${KONGJWI_ASSET_ROOT}${KONGJWI_RIGS[key].root}${file}?v=${ASSET_VERSION}`;
+}
+
+function createPart(name, file, outfit = "classic-red") {
   const image = document.createElement("img");
   image.className = "kongjwi-part kongjwi-part-image";
   image.dataset.part = name;
-  image.src = `${KONGJWI_ASSET_ROOT}${file}`;
+  image.src = assetUrl(outfit, file);
   image.alt = "";
   image.draggable = false;
   image.decoding = "async";
@@ -144,7 +173,7 @@ export function mountKongjwiComposer(host, { root = document.documentElement, da
   const canvas = document.createElement("div");
   canvas.className = "kongjwi-part-canvas";
   canvas.dataset.character = "kongjwi";
-  canvas.dataset.canvas = "784x1168";
+  canvas.dataset.canvas = "256x384";
   canvas.dataset.dashboard = dashboard ? "true" : "false";
   canvas.setAttribute("aria-hidden", "true");
 
@@ -161,6 +190,7 @@ export function mountKongjwiComposer(host, { root = document.documentElement, da
 
   let pose = "standing";
   let expression = "neutral";
+  let outfit = "classic-red";
   let resetTimer = 0;
   let hitTimer = 0;
   let destroyed = false;
@@ -171,11 +201,30 @@ export function mountKongjwiComposer(host, { root = document.documentElement, da
     removers.push(() => globalThis.removeEventListener(type, handler));
   }
 
+  function setFace(nextExpression = expression) {
+    const next = VALID_EXPRESSIONS.has(nextExpression) ? nextExpression : "neutral";
+    const face = layers.get("face");
+    if (face) face.src = assetUrl(outfit, EXPRESSION_FILES[next]);
+  }
+
+  function setOutfit(visualKey = root?.dataset?.kongjwiOutfit || "classic-red") {
+    if (destroyed) return;
+    outfit = rigFor(visualKey);
+    for (const [name, file] of PART_ORDER) {
+      if (name === "face") continue;
+      const layer = layers.get(name);
+      if (layer) layer.src = assetUrl(outfit, file);
+    }
+    setFace(expression);
+    canvas.dataset.outfit = outfit;
+    root?.setAttribute?.("data-kongjwi-rig", outfit);
+  }
+
   function setTool(visualKey = root?.dataset?.toolSkin || "wood") {
-    const row = TOOL_ROWS[visualKey] ?? TOOL_ROWS.wood;
-    tool.dataset.toolSkin = visualKey;
-    tool.style.backgroundPosition = `0% ${(row / 3) * 100}%`;
-    root?.setAttribute?.("data-kongjwi-tool", visualKey);
+    const key = Object.hasOwn(TOOL_ROWS, visualKey) ? visualKey : "wood";
+    tool.dataset.toolSkin = key;
+    tool.style.backgroundImage = `url("assets/art/kongjwi-tools/${TOOL_FILES[key]}?v=${ASSET_VERSION}")`;
+    root?.setAttribute?.("data-kongjwi-tool", key);
   }
 
   function setPose(nextPose = "standing", { retrigger = true } = {}) {
@@ -230,12 +279,14 @@ export function mountKongjwiComposer(host, { root = document.documentElement, da
     expression = next;
     clearResetTimer();
     canvas.dataset.expression = next;
+    setFace(next);
     setPose(EXPRESSION_TO_POSE[next], { retrigger: next !== "neutral" });
     if (!persistent && next !== "neutral") {
       resetTimer = globalThis.setTimeout(() => {
         if (destroyed) return;
         expression = "neutral";
         canvas.dataset.expression = "neutral";
+        setFace("neutral");
         setPose("standing", { retrigger: false });
       }, Math.max(720, Number(duration) || 1120));
     }
@@ -243,7 +294,7 @@ export function mountKongjwiComposer(host, { root = document.documentElement, da
 
   function syncCosmetics() {
     if (destroyed) return;
-    canvas.dataset.outfit = root?.dataset?.kongjwiOutfit || "classic-red";
+    setOutfit(root?.dataset?.kongjwiOutfit || "classic-red");
     setTool(root?.dataset?.toolSkin || "wood");
     host.dataset.kongjwiParts = "ready";
   }
@@ -281,8 +332,10 @@ export function mountKongjwiComposer(host, { root = document.documentElement, da
     impact,
     get pose() { return pose; },
     get expression() { return expression; },
+    get outfit() { return outfit; },
     setPose,
     setExpression,
+    setOutfit,
     setTool,
     syncCosmetics,
     triggerHit,
@@ -306,4 +359,4 @@ export function mountKongjwiComposer(host, { root = document.documentElement, da
   return composer;
 }
 
-export { EXPRESSION_TO_POSE, POSES, TOOL_ROWS };
+export { EXPRESSION_FILES, EXPRESSION_TO_POSE, POSES, TOOL_ROWS };

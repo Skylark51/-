@@ -1,266 +1,239 @@
 {
-  "version": 1,
+  "version": 2,
   "character": "kongjwi",
-  "source": {
-    "file": "assets/art/photoreal/kongjwi-keyposes.png",
-    "sha256": "71ffbb086f0ec55d1b93368422bd35dc3e4f9f7282f25a5f63e3601a75decbaa",
-    "canvas": [
-      784,
-      1168
-    ],
-    "formatNote": "source extension is PNG but the authored bytes decode as JPEG; pixels are read without resampling"
+  "canvas": [
+    256,
+    384
+  ],
+  "sourcePolicy": {
+    "root": "assets/art/kongjwi/",
+    "pixelPolicy": "RGB pixels are copied from authored Kongjwi sources; only alpha masks and whole-pixel face translations are applied",
+    "backgroundPolicy": "committed foreground alpha from person/anime segmentation; source RGB is reapplied unchanged",
+    "redraw": false
   },
-  "cutPolicy": {
-    "method": "border-connected neutral-background mask plus largest-component cleanup",
-    "faceCut": "neckCutY=424 in source coordinates",
-    "pixelPolicy": "opaque RGB values are copied from the source; only alpha is added"
-  },
-  "parts": {
-    "standing-neutral": {
-      "file": "standing-neutral.png",
+  "outfits": {
+    "classic-red": {
+      "source": "assets/art/kongjwi/kongjwi-classic-red.webp",
+      "sourceSha256": "84f34cbf882502dcac3928127e62df52b99ad5dd333f3d78a55539f0d763f741",
       "canvas": [
-        784,
-        1168
+        256,
+        384
       ],
-      "sourceRect": [
-        0,
-        0,
-        784,
-        1168
-      ],
-      "anchors": {
-        "neckCutY": 424,
-        "headCenter": [
-          392,
-          238
-        ],
-        "feetBaseline": 1166
+      "cutout": "assets/art/kongjwi/kongjwi-classic-red-cutout.png",
+      "partsRoot": "assets/art/kongjwi-parts/classic-red/",
+      "parts": {
+        "torso": "torso.png",
+        "lowerBody": "lower-body.png",
+        "armLeft": "arm-left.png",
+        "armRight": "arm-right.png",
+        "hairNeck": "head-hair-neck.png"
       },
-      "note": "same source pixels with transparent masking; no repainting"
+      "expressions": {
+        "neutral": "face-neutral.png",
+        "focused": "face-focused.png",
+        "correct": "face-correct.png",
+        "wrong": "face-wrong.png",
+        "timeout": "face-timeout.png",
+        "celebrate": "face-celebrate.png"
+      },
+      "anchors": {
+        "face": [
+          128,
+          64
+        ],
+        "neckCutY": 95,
+        "shoulderLeft": [
+          94,
+          96
+        ],
+        "shoulderRight": [
+          162,
+          96
+        ],
+        "feetBaseline": 374,
+        "tool": [
+          184,
+          178
+        ]
+      }
     },
-    "body-base": {
-      "file": "body-base.png",
+    "blue-scholar": {
+      "source": "assets/art/kongjwi/kongjwi-blue-scholar.webp",
+      "sourceSha256": "572430b0bea03d446a1ce4e041019e99fa45d50ba99257140e2026217641f3dd",
       "canvas": [
-        784,
-        1168
+        256,
+        384
       ],
-      "sourceRect": [
-        0,
-        0,
-        784,
-        1168
-      ],
-      "anchors": {
-        "neckCutY": 424,
-        "headCenter": [
-          392,
-          238
-        ],
-        "feetBaseline": 1166
+      "cutout": "assets/art/kongjwi/kongjwi-blue-scholar-cutout.png",
+      "partsRoot": "assets/art/kongjwi-parts/blue-scholar/",
+      "parts": {
+        "torso": "torso.png",
+        "lowerBody": "lower-body.png",
+        "armLeft": "arm-left.png",
+        "armRight": "arm-right.png",
+        "hairNeck": "head-hair-neck.png"
       },
-      "note": "same source pixels with transparent masking; no repainting"
+      "expressions": {
+        "neutral": "face-neutral.png",
+        "focused": "face-focused.png",
+        "correct": "face-correct.png",
+        "wrong": "face-wrong.png",
+        "timeout": "face-timeout.png",
+        "celebrate": "face-celebrate.png"
+      },
+      "anchors": {
+        "face": [
+          128,
+          69
+        ],
+        "neckCutY": 100,
+        "shoulderLeft": [
+          94,
+          96
+        ],
+        "shoulderRight": [
+          162,
+          96
+        ],
+        "feetBaseline": 374,
+        "tool": [
+          184,
+          178
+        ]
+      }
     },
-    "head-neutral": {
-      "file": "head-neutral.png",
+    "field-green": {
+      "source": "assets/art/kongjwi/kongjwi-field-work.webp",
+      "sourceSha256": "5595ce6f5b4ba788d05537d3ac7877d89df9ccc8f294ad8a8f25c05d0df8c1ca",
       "canvas": [
-        784,
-        1168
+        256,
+        384
       ],
-      "sourceRect": [
-        0,
-        0,
-        784,
-        1168
-      ],
-      "anchors": {
-        "neckCutY": 424,
-        "headCenter": [
-          392,
-          238
-        ],
-        "feetBaseline": 1166
+      "cutout": "assets/art/kongjwi/kongjwi-field-work-cutout.png",
+      "partsRoot": "assets/art/kongjwi-parts/field-green/",
+      "parts": {
+        "torso": "torso.png",
+        "lowerBody": "lower-body.png",
+        "armLeft": "arm-left.png",
+        "armRight": "arm-right.png",
+        "hairNeck": "head-hair-neck.png"
       },
-      "note": "same source pixels with transparent masking; no repainting"
+      "expressions": {
+        "neutral": "face-neutral.png",
+        "focused": "face-focused.png",
+        "correct": "face-correct.png",
+        "wrong": "face-wrong.png",
+        "timeout": "face-timeout.png",
+        "celebrate": "face-celebrate.png"
+      },
+      "anchors": {
+        "face": [
+          128,
+          63
+        ],
+        "neckCutY": 94,
+        "shoulderLeft": [
+          94,
+          96
+        ],
+        "shoulderRight": [
+          162,
+          96
+        ],
+        "feetBaseline": 374,
+        "tool": [
+          184,
+          178
+        ]
+      }
     },
-    "head-hair-neck": {
-      "file": "head-hair-neck.png",
+    "royal-night": {
+      "source": "assets/art/kongjwi/kongjwi-night-court-decoded.png",
+      "sourceSha256": "143fbe44fe45a58e90c4b28cec917875b720a489b0f6369467e570eaaee46d07",
       "canvas": [
-        784,
-        1168
+        256,
+        384
       ],
-      "sourceRect": [
-        0,
-        0,
-        784,
-        1168
-      ],
-      "anchors": {
-        "neckCutY": 424,
-        "headCenter": [
-          392,
-          238
-        ],
-        "feetBaseline": 1166
+      "cutout": "assets/art/kongjwi/kongjwi-night-court-cutout.png",
+      "partsRoot": "assets/art/kongjwi-parts/royal-night/",
+      "parts": {
+        "torso": "torso.png",
+        "lowerBody": "lower-body.png",
+        "armLeft": "arm-left.png",
+        "armRight": "arm-right.png",
+        "hairNeck": "head-hair-neck.png"
       },
-      "note": "same source pixels with transparent masking; no repainting"
-    },
-    "face-neutral": {
-      "file": "face-neutral.png",
-      "canvas": [
-        784,
-        1168
-      ],
-      "sourceRect": [
-        0,
-        0,
-        784,
-        1168
-      ],
-      "anchors": {
-        "neckCutY": 424,
-        "headCenter": [
-          392,
-          238
-        ],
-        "feetBaseline": 1166
+      "expressions": {
+        "neutral": "face-neutral.png",
+        "focused": "face-focused.png",
+        "correct": "face-correct.png",
+        "wrong": "face-wrong.png",
+        "timeout": "face-timeout.png",
+        "celebrate": "face-celebrate.png"
       },
-      "note": "same source pixels with transparent masking; no repainting"
-    },
-    "torso": {
-      "file": "torso.png",
-      "canvas": [
-        784,
-        1168
-      ],
-      "sourceRect": [
-        0,
-        0,
-        784,
-        1168
-      ],
       "anchors": {
-        "neckCutY": 424,
-        "headCenter": [
-          392,
-          238
+        "face": [
+          128,
+          63
         ],
-        "feetBaseline": 1166
-      },
-      "note": "same source pixels with transparent masking; no repainting"
-    },
-    "arm-left": {
-      "file": "arm-left.png",
-      "canvas": [
-        784,
-        1168
-      ],
-      "sourceRect": [
-        0,
-        0,
-        784,
-        1168
-      ],
-      "anchors": {
-        "neckCutY": 424,
-        "headCenter": [
-          392,
-          238
+        "neckCutY": 94,
+        "shoulderLeft": [
+          94,
+          96
         ],
-        "feetBaseline": 1166
-      },
-      "note": "same source pixels with transparent masking; no repainting"
-    },
-    "arm-right": {
-      "file": "arm-right.png",
-      "canvas": [
-        784,
-        1168
-      ],
-      "sourceRect": [
-        0,
-        0,
-        784,
-        1168
-      ],
-      "anchors": {
-        "neckCutY": 424,
-        "headCenter": [
-          392,
-          238
+        "shoulderRight": [
+          162,
+          96
         ],
-        "feetBaseline": 1166
-      },
-      "note": "same source pixels with transparent masking; no repainting"
-    },
-    "lower-body": {
-      "file": "lower-body.png",
-      "canvas": [
-        784,
-        1168
-      ],
-      "sourceRect": [
-        0,
-        0,
-        784,
-        1168
-      ],
-      "anchors": {
-        "neckCutY": 424,
-        "headCenter": [
-          392,
-          238
-        ],
-        "feetBaseline": 1166
-      },
-      "note": "same source pixels with transparent masking; no repainting"
+        "feetBaseline": 374,
+        "tool": [
+          184,
+          178
+        ]
+      }
     }
   },
-  "faceReference": {
-    "file": "face-reference.png",
-    "source": "assets/art/photoreal/콩쥐와꾸.png",
-    "size": [
-      260,
-      326
-    ],
-    "purpose": "face reference for future expression variants; no repainting is performed"
-  },
-  "poses": {
-    "standing-neutral": {
-      "body": "body-base",
-      "head": "head-hair-neck",
-      "face": "face-neutral",
-      "expression": "face-neutral",
-      "toolAnchor": [
-        0.78,
-        0.51
-      ],
-      "transformPolicy": "move layers; do not repaint source pixels"
-    }
-  },
-  "expressions": {
-    "neutral": {
-      "part": "face-neutral",
-      "status": "authored"
-    },
+  "expressionSources": {
     "focused": {
-      "part": "face-neutral",
-      "status": "pose-only slot"
+      "source": "assets/art/kongjwi/kongjwi-blue-scholar.webp",
+      "anchor": [
+        128,
+        69
+      ],
+      "pixelPolicy": "whole-pixel translation only; no resampling or repainting"
     },
     "correct": {
-      "part": "face-neutral",
-      "status": "pose-only slot"
+      "source": "assets/art/kongjwi/kongjwi-ragged.webp",
+      "anchor": [
+        128,
+        63
+      ],
+      "pixelPolicy": "whole-pixel translation only; no resampling or repainting"
     },
     "wrong": {
-      "part": "face-neutral",
-      "status": "pose-only slot"
+      "source": "assets/art/kongjwi/kongjwi-night-court-decoded.png",
+      "anchor": [
+        128,
+        63
+      ],
+      "pixelPolicy": "whole-pixel translation only; no resampling or repainting"
     },
     "timeout": {
-      "part": "face-neutral",
-      "status": "pose-only slot"
+      "source": "assets/art/kongjwi/kongjwi-classic-red.webp",
+      "anchor": [
+        128,
+        64
+      ],
+      "pixelPolicy": "whole-pixel translation only; no resampling or repainting"
     },
     "celebrate": {
-      "part": "face-neutral",
-      "status": "pose-only slot"
+      "source": "assets/art/kongjwi/kongjwi-underlayer.webp",
+      "anchor": [
+        128,
+        63
+      ],
+      "pixelPolicy": "whole-pixel translation only; no resampling or repainting"
     }
-  }
+  },
+  "posePolicy": "runtime transforms coordinate-aligned parts; source pixels are not redrawn"
 }

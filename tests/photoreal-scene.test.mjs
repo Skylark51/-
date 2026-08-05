@@ -1,26 +1,48 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root=resolve(new URL("..",import.meta.url).pathname);
-const png=await readFile(resolve(root,"assets/art/photoreal/kongjwi-keyposes.png"));
-assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10],"key poses must be a real PNG");
-assert.equal(png.readUInt32BE(16),512,"PNG width must be 512");
-assert.equal(png.readUInt32BE(20),288,"PNG height must be 288");
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const read = path => readFile(resolve(root, path));
+const text = async path => String(await read(path));
+const manifest = JSON.parse(await text("assets/art/kongjwi-parts/manifest.json"));
 
-const animation=await readFile(resolve(root,"assets/js/photoreal-scene.js"),"utf8");
-assert.match(animation,/FRAME_COUNT=60/);
-assert.match(animation,/ATLAS_COLUMNS=10,ATLAS_ROWS=6/);
-assert.match(animation,/canvas\.toBlob\(resolve,"image\/png"\)/);
-assert.match(animation,/photoAtlas="60-frame-png"/);
-for(const event of ["answer:correct","answer:wrong","answer:timeout","game:clear","game:over"]){assert.ok(animation.includes(event),`${event} must control the PNG animation`)}
+assert.equal(manifest.version, 2);
+assert.equal(manifest.sourcePolicy.redraw, false);
+assert.deepEqual(Object.keys(manifest.outfits), [
+  "classic-red",
+  "blue-scholar",
+  "field-green",
+  "royal-night"
+]);
 
-const css=await readFile(resolve(root,"assets/css/photoreal-scene.css"),"utf8");
-assert.ok(css.includes("kongjwi-keyposes.png"));
-assert.ok(css.includes("background-size:1000% 600%"));
-assert.ok(css.includes(".jar-wrap"));
+for (const [outfit, config] of Object.entries(manifest.outfits)) {
+  assert.match(config.source, /^assets\/art\/kongjwi\//);
+  assert.doesNotMatch(config.source, /photoreal/i);
+  for (const filename of ["standing.png", ...Object.values(config.parts), ...Object.values(config.expressions)]) {
+    const png = await read(`${config.partsRoot}${filename}`);
+    assert.deepEqual([...png.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10], `${outfit}/${filename} must be PNG`);
+    assert.equal(png.readUInt32BE(16), 256, `${outfit}/${filename} width`);
+    assert.equal(png.readUInt32BE(20), 384, `${outfit}/${filename} height`);
+  }
+}
 
-const entry=await readFile(resolve(root,"assets/js/game-cosmetics-entry.js"),"utf8");
-assert.ok(entry.includes('import "./photoreal-scene.js"'));
-assert.ok(entry.includes('root.dataset.visualMode === "photoreal"'));
-console.log("photoreal-scene: all checks passed");
+const [composer, compatibility, entry, css] = await Promise.all([
+  text("assets/js/kongjwi-part-composer.js"),
+  text("assets/js/photoreal-scene.js"),
+  text("assets/js/game-cosmetics-entry.js"),
+  text("assets/css/kongjwi-parts.css")
+]);
+for (const event of ["answer:correct", "answer:wrong", "answer:timeout", "game:clear", "game:over"]) {
+  assert.ok(composer.includes(event), `${event} must control the part rig`);
+}
+assert.match(composer, /correct:\s*"pour"/);
+assert.match(composer, /setOutfit/);
+assert.match(composer, /triggerHit/);
+assert.doesNotMatch(composer, /assets\/art\/photoreal/);
+assert.match(compatibility, /authored-outfit-rig/);
+assert.match(compatibility, /coordinate-aligned-parts/);
+assert.match(entry, /photoreal-scene\.js\?v=20260805-outfit-rig1/);
+assert.match(css, /kongjwi-tools\/wood\.png/);
+console.log("kongjwi outfit rig: all checks passed");

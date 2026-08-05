@@ -1,4 +1,4 @@
-import { mountKongjwiComposer } from "./kongjwi-part-composer.js";
+import { mountKongjwiComposer } from "./kongjwi-part-composer.js?v=20260805-outfit-rig1";
 
 // Compatibility constants retained for the authored-frame contract.  The live
 // renderer now composes coordinate-aligned PNG parts instead of repainting a
@@ -6,7 +6,7 @@ import { mountKongjwiComposer } from "./kongjwi-part-composer.js";
 const FRAME_COUNT=60;
 const ATLAS_COLUMNS=10,ATLAS_ROWS=6;
 const CELL_WIDTH=160,CELL_HEIGHT=90;
-const KEYPOSE_URL="assets/art/kongjwi-parts/standing-neutral.png";
+const KEYPOSE_URL="assets/art/kongjwi-parts/classic-red/standing.png";
 const STATES=Object.freeze({
   idle:{start:0,end:14,duration:980,loop:true,hold:false},
   pour:{start:15,end:34,duration:1050,loop:false,hold:false},
@@ -67,8 +67,8 @@ export function mountPhotorealScene(root = document.getElementById("ui-gameApp")
   if (!root) return null;
   const host = root.querySelector(".scene-kongjwi-zone");
   if (!host) return null;
-  root.dataset.visualMode = "photoreal";
-  root.dataset.photoAtlas = "60-frame-png";
+  root.dataset.visualMode = "authored-outfit-rig";
+  root.dataset.photoAtlas = "coordinate-aligned-parts";
   return mountKongjwiComposer(host, { root });
 }
 
