@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" data-page="lobby" data-ui-version="20260805-home-square3">
+<html lang="ko" data-page="lobby" data-ui-version="20260805-home-square4">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -12,6 +12,21 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="콩쥐야 줘때써 - 화학편">
   <title>콩쥐야 줘때써 - 화학편</title>
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("kongjuiya-device-mode") || "auto";
+        const coarse = matchMedia("(pointer: coarse)").matches;
+        const detected = innerWidth <= 820 || (coarse && innerWidth < 1100) ? "mobile" : "desktop";
+        const resolved = stored === "mobile" || stored === "desktop" ? stored : detected;
+        document.documentElement.dataset.deviceMode = stored;
+        document.documentElement.dataset.deviceLayout = resolved;
+        if (innerWidth <= 760 || resolved === "mobile") document.documentElement.dataset.mobileUi = "shadcn";
+      } catch {
+        if (innerWidth <= 760) document.documentElement.dataset.mobileUi = "shadcn";
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="assets/css/lobby-scene.css?v=20260803-cohesive1">
   <link rel="stylesheet" href="assets/css/mobile-fixed-shell.css?v=20260805-fixed-shell5">
   <link rel="stylesheet" href="assets/css/lobby-hero-scene.css?v=20260805-home-square4">
@@ -114,7 +129,7 @@
             <div><dt>가장 많이 틀린 장독대</dt><dd id="dashboardMostMissed">—</dd></div>
             <div><dt>최근 플레이</dt><dd id="dashboardRecentPlayed">—</dd></div>
           </dl>
-          <h3 class="mode-progress-title">플레이핔 장독대</h3>
+          <h3 class="mode-progress-title">플레이한 장독대</h3>
           <div id="dashboardModeBars" class="dashboard-mode-list"></div>
         </aside>
       </section>
