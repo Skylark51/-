@@ -1,206 +1,95 @@
 /*
- * Fitted jar-hole seal.
- * The jar-only artwork stays fixed. The separate toad frame is enlarged inside
- * the opening and clipped by the hole, so the whole body reads as a tight plug
- * rather than a face peeking through or a toad standing beside the jar.
+ * Reference-fitted jar seal.
+ * The supplied finished jar+toad composition is used as the visual calibration
+ * patch, so the head, belly and forelegs fill the broken opening with almost no
+ * black gap. The jar-only image remains underneath for skin/pouring behavior.
  */
 
 .scene-jar-actor[data-seal-mode="fitted"] .scene-hole-anchor {
+  left: 62.5% !important;
+  top: 67.5% !important;
+  width: 52% !important;
+  height: 50% !important;
+  z-index: 5 !important;
   overflow: visible !important;
-  isolation: isolate;
-}
-
-/* Dark cavity behind the independent toad layer. */
-.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-anchor::before {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  inset: 3% 2% 4%;
-  border-radius: 50% 46% 52% 48%;
-  clip-path: ellipse(48% 46% at 50% 52%);
-  background:
-    radial-gradient(ellipse at 46% 55%, rgba(102, 60, 26, .22), transparent 54%),
-    rgba(4, 3, 2, .98);
-  box-shadow:
-    inset 0 8px 13px rgba(0, 0, 0, .82),
-    inset 0 -3px 5px rgba(153, 91, 37, .12),
-    0 0 3px rgba(0, 0, 0, .55);
-}
-
-/*
- * This is the actual opening. The oversized toad is clipped here; its body
- * reaches every edge of the hole and cannot look detached from the jar.
- */
-.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-mask {
-  position: absolute !important;
-  z-index: 2 !important;
-  inset: 2.5% 2% 3.5% !important;
-  display: block !important;
-  overflow: hidden !important;
-  border-radius: 50% 46% 52% 48% !important;
-  clip-path: ellipse(48% 46% at 50% 52%) !important;
-  background: transparent !important;
-  box-shadow:
-    inset 8px 0 8px rgba(0, 0, 0, .32),
-    inset -7px 0 8px rgba(0, 0, 0, .28),
-    inset 0 7px 8px rgba(0, 0, 0, .34) !important;
-}
-
-.scene-jar-actor[data-seal-mode="fitted"] .scene-toad-positioner {
-  position: absolute !important;
-  left: 50% !important;
-  top: 52% !important;
-  right: auto !important;
-  bottom: auto !important;
-  width: var(--seal-toad-width, 136%) !important;
-  height: auto !important;
-  aspect-ratio: 64 / 43;
-  transform:
-    translate(var(--seal-toad-shift-x, -50%), var(--seal-toad-shift-y, -50%))
-    rotate(var(--seal-toad-rotate, 0deg))
-    scale(var(--seal-toad-scale-x, 1.04), var(--seal-toad-scale-y, 1.1)) !important;
-  transform-origin: var(--seal-contact-x, 50%) var(--seal-contact-y, 58%) !important;
-  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .48));
-  will-change: transform;
-}
-
-.scene-jar-actor[data-seal-mode="fitted"] .scene-toad-sprite {
-  position: absolute !important;
-  z-index: 2 !important;
-  inset: 0 !important;
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  background-image: url("../images/toad-expressions/toad-expression-sprite.webp") !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-image: url("data:image/webp;base64,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") !important;
   background-repeat: no-repeat !important;
-  background-size: 200% 500% !important;
-  filter: brightness(1.12) contrast(1.08) saturate(1.1) !important;
-  animation: fitted-seal-breathe 1.9s ease-in-out infinite alternate !important;
-  transform-origin: 50% 64% !important;
-}
-
-.jar-game-shell[data-toad-skin="gold-worker"]
-  .scene-jar-actor[data-seal-mode="fitted"] .scene-toad-sprite {
-  filter: sepia(.68) saturate(1.75) hue-rotate(356deg) brightness(1.17) !important;
-}
-
-.jar-game-shell[data-toad-skin="jade-guard"]
-  .scene-jar-actor[data-seal-mode="fitted"] .scene-toad-sprite {
-  filter: hue-rotate(76deg) saturate(1.18) brightness(1.11) !important;
-}
-
-.jar-game-shell[data-toad-skin="star-night"]
-  .scene-jar-actor[data-seal-mode="fitted"] .scene-toad-sprite {
-  filter: hue-rotate(176deg) saturate(1.35) brightness(1.01) contrast(1.1) !important;
-}
-
-/* Side pressure shadows make the body look compressed into the opening. */
-.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-mask::before,
-.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-mask::after {
-  content: "";
-  position: absolute;
-  z-index: 3;
-  top: 8%;
-  bottom: 7%;
-  width: 14%;
-  border-radius: 50%;
+  background-position: center !important;
+  background-size: 100% 100% !important;
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, .46));
+  transform: translate(-50%, -50%) rotate(-2deg) scale(1.04);
+  transform-origin: 52% 58%;
   pointer-events: none;
-  opacity: .78;
+  will-change: transform, filter;
+  animation: reference-seal-breathe 2.2s ease-in-out infinite alternate;
 }
 
-.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-mask::before {
-  left: -3%;
-  background: linear-gradient(90deg, rgba(8, 5, 3, .78), transparent);
-}
-
-.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-mask::after {
-  right: -3%;
-  background: linear-gradient(270deg, rgba(8, 5, 3, .72), transparent);
-}
-
-/* Foreground ceramic lip: the belly is visibly wedged behind the jar wall. */
+/* The reference patch already contains the broken rim and the tightly wedged body. */
+.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-anchor::before,
+.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-anchor::after,
+.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-mask,
 .scene-jar-actor[data-seal-mode="fitted"] .scene-hole-rim {
-  position: absolute !important;
-  z-index: 4 !important;
-  inset: 0 !important;
-  display: block !important;
-  overflow: visible !important;
-  border: clamp(1.5px, .55vw, 2.6px) solid rgba(48, 27, 13, .96) !important;
-  border-radius: 50% 46% 52% 48% !important;
-  clip-path: ellipse(49% 47% at 50% 52%) !important;
-  background: transparent !important;
-  box-shadow:
-    inset 0 6px 8px rgba(0, 0, 0, .38),
-    inset 0 -3px 4px rgba(222, 159, 77, .14),
-    0 0 0 1px rgba(0, 0, 0, .2) !important;
+  display: none !important;
 }
 
-.scene-jar-actor[data-seal-mode="fitted"] .scene-hole-rim::after {
-  content: "";
-  position: absolute;
-  z-index: 5;
-  left: 4%;
-  right: 3%;
-  bottom: -3%;
-  height: 25%;
-  border-radius: 0 0 55% 49%;
-  clip-path: polygon(0 18%, 100% 0, 95% 100%, 6% 100%);
-  background: linear-gradient(180deg, rgba(89, 51, 23, .28), rgba(27, 15, 8, .94));
-  box-shadow: 0 -2px 3px rgba(0, 0, 0, .5);
+/* Approximate the same patch across the other jar skins without moving contact. */
+.scene-jar-actor[data-seal-mode="fitted"][data-jar-skin="celadon"] .scene-hole-anchor {
+  filter: hue-rotate(46deg) saturate(.72) brightness(1.08) drop-shadow(0 4px 5px rgba(0,0,0,.46));
+}
+.scene-jar-actor[data-seal-mode="fitted"][data-jar-skin="moon-white"] .scene-hole-anchor {
+  filter: grayscale(.62) sepia(.12) brightness(1.38) contrast(.9) drop-shadow(0 4px 5px rgba(0,0,0,.42));
+}
+.scene-jar-actor[data-seal-mode="fitted"][data-jar-skin="night-lacquer"] .scene-hole-anchor {
+  filter: hue-rotate(188deg) saturate(.7) brightness(.7) contrast(1.18) drop-shadow(0 4px 5px rgba(0,0,0,.55));
 }
 
-/* Reactions keep the seal engaged; only the compression changes. */
-.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="correct"]
-  .scene-toad-positioner,
-.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="combo"]
-  .scene-toad-positioner {
-  animation: fitted-seal-press 580ms cubic-bezier(.18, .78, .24, 1);
+.scene-jar-actor[data-seal-mode="fitted"][data-toad-expression="correct"] .scene-hole-anchor,
+.scene-jar-actor[data-seal-mode="fitted"][data-toad-expression="combo"] .scene-hole-anchor {
+  filter: brightness(1.13) saturate(1.12) drop-shadow(0 0 6px rgba(238,196,93,.34));
+}
+.scene-jar-actor[data-seal-mode="fitted"][data-toad-expression="wrong"] .scene-hole-anchor,
+.scene-jar-actor[data-seal-mode="fitted"][data-toad-expression="timeout"] .scene-hole-anchor {
+  filter: saturate(.62) brightness(.82) contrast(1.08) drop-shadow(0 4px 5px rgba(0,0,0,.5));
+}
+.scene-jar-actor[data-seal-mode="fitted"][data-toad-expression="angry"] .scene-hole-anchor,
+.scene-jar-actor[data-seal-mode="fitted"][data-toad-expression="rage"] .scene-hole-anchor {
+  filter: sepia(.35) saturate(1.42) hue-rotate(330deg) contrast(1.12) drop-shadow(0 0 7px rgba(192,65,48,.3));
+}
+.scene-jar-actor[data-seal-mode="fitted"][data-toad-expression="surprised"] .scene-hole-anchor {
+  filter: brightness(1.2) contrast(1.05) drop-shadow(0 0 7px rgba(111,212,235,.28));
+}
+.scene-jar-actor[data-seal-mode="fitted"][data-toad-expression="confused"] .scene-hole-anchor,
+.scene-jar-actor[data-seal-mode="fitted"][data-toad-expression="idle"] .scene-hole-anchor {
+  filter: saturate(.78) brightness(.9) drop-shadow(0 4px 5px rgba(0,0,0,.5));
 }
 
-.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="wrong"]
-  .scene-toad-positioner,
-.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="timeout"]
-  .scene-toad-positioner {
-  animation: fitted-seal-shake 620ms cubic-bezier(.25, .7, .28, 1);
+.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="correct"] .scene-hole-anchor,
+.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="combo"] .scene-hole-anchor {
+  animation: reference-seal-press 580ms cubic-bezier(.18,.78,.24,1);
+}
+.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="wrong"] .scene-hole-anchor,
+.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="timeout"] .scene-hole-anchor,
+.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="angry"] .scene-hole-anchor,
+.scene-jar-actor[data-seal-mode="fitted"].is-reacting[data-toad-expression="rage"] .scene-hole-anchor {
+  animation: reference-seal-shake 620ms cubic-bezier(.25,.7,.28,1);
 }
 
-@keyframes fitted-seal-breathe {
-  from { transform: translate3d(0, .5%, 0) scale(1.005, .998); }
-  to { transform: translate3d(0, -.5%, 0) scale(1.012, 1.004); }
+@keyframes reference-seal-breathe {
+  from { transform: translate(-50%, -50%) rotate(-2deg) scale(1.035, 1.02); }
+  to { transform: translate(-50%, -50%) rotate(-2deg) scale(1.055, 1.035); }
+}
+@keyframes reference-seal-press {
+  0%,100% { transform: translate(-50%, -50%) rotate(-2deg) scale(1.04); }
+  42% { transform: translate(-51.5%, -49%) rotate(-2.5deg) scale(1.085,.97); }
+}
+@keyframes reference-seal-shake {
+  0%,100% { transform: translate(-50%, -50%) rotate(-2deg) scale(1.04); }
+  28% { transform: translate(-48%, -50%) rotate(0deg) scale(1.02); }
+  58% { transform: translate(-52%, -50%) rotate(-4deg) scale(1.04); }
 }
 
-@keyframes fitted-seal-press {
-  0%, 100% {
-    transform: translate(var(--seal-toad-shift-x), var(--seal-toad-shift-y))
-      rotate(var(--seal-toad-rotate))
-      scale(var(--seal-toad-scale-x), var(--seal-toad-scale-y));
-  }
-  42% {
-    transform: translate(var(--seal-toad-shift-x), calc(var(--seal-toad-shift-y) + 1.5%))
-      rotate(var(--seal-toad-rotate))
-      scale(calc(var(--seal-toad-scale-x) + .045), calc(var(--seal-toad-scale-y) - .035));
-  }
-}
-
-@keyframes fitted-seal-shake {
-  0%, 100% {
-    transform: translate(var(--seal-toad-shift-x), var(--seal-toad-shift-y))
-      rotate(var(--seal-toad-rotate))
-      scale(var(--seal-toad-scale-x), var(--seal-toad-scale-y));
-  }
-  30% {
-    transform: translate(calc(var(--seal-toad-shift-x) - 1.8%), var(--seal-toad-shift-y))
-      rotate(calc(var(--seal-toad-rotate) - 1.5deg))
-      scale(var(--seal-toad-scale-x), var(--seal-toad-scale-y));
-  }
-  62% {
-    transform: translate(calc(var(--seal-toad-shift-x) + 1.8%), var(--seal-toad-shift-y))
-      rotate(calc(var(--seal-toad-rotate) + 1.5deg))
-      scale(var(--seal-toad-scale-x), var(--seal-toad-scale-y));
-  }
-}
-
-.reduce-motion .scene-jar-actor[data-seal-mode="fitted"] .scene-toad-positioner,
-.reduce-motion .scene-jar-actor[data-seal-mode="fitted"] .scene-toad-sprite {
+.reduce-motion .scene-jar-actor[data-seal-mode="fitted"] .scene-hole-anchor {
   animation: none !important;
 }
