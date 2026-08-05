@@ -23,26 +23,26 @@ const JAR_ASSETS = Object.freeze({
 });
 
 /*
- * Every jar uses its jar-only asset and the toad uses its own transparent
- * expression sheet. The coordinates below recreate the physical sealed pose:
- * the hole is fixed to the jar while the complete toad body sits outside it.
+ * The jar-only and toad-only assets are recombined at the original hole.
+ * The toad is deliberately wider and taller than the opening, then clipped by
+ * the ceramic rim so no empty gap remains around its body.
  */
 const JAR_LAYOUTS = Object.freeze({
   onggi: Object.freeze({
     hole: Object.freeze({ x: 61.8, y: 66.8, width: 27.4, height: 22.8, rotate: -6 }),
-    seal: Object.freeze({ width: 170, shiftX: -31, shiftY: -52, rotate: 3, contactX: 31, contactY: 59 })
+    seal: Object.freeze({ width: 136, shiftX: -50, shiftY: -50, rotate: 0, contactX: 50, contactY: 58, scaleX: 1.04, scaleY: 1.1 })
   }),
   celadon: Object.freeze({
     hole: Object.freeze({ x: 61.9, y: 66.9, width: 27.4, height: 22.8, rotate: -5.5 }),
-    seal: Object.freeze({ width: 169, shiftX: -31, shiftY: -52, rotate: 2.5, contactX: 31, contactY: 59 })
+    seal: Object.freeze({ width: 137, shiftX: -50, shiftY: -50, rotate: 0, contactX: 50, contactY: 58, scaleX: 1.04, scaleY: 1.1 })
   }),
   "moon-white": Object.freeze({
     hole: Object.freeze({ x: 61.8, y: 67.1, width: 27.8, height: 23.1, rotate: -5.5 }),
-    seal: Object.freeze({ width: 168, shiftX: -31.5, shiftY: -52, rotate: 2.5, contactX: 32, contactY: 59 })
+    seal: Object.freeze({ width: 140, shiftX: -50, shiftY: -50, rotate: 0, contactX: 50, contactY: 58, scaleX: 1.05, scaleY: 1.09 })
   }),
   "night-lacquer": Object.freeze({
     hole: Object.freeze({ x: 61.8, y: 66.8, width: 27.4, height: 22.8, rotate: -6 }),
-    seal: Object.freeze({ width: 170, shiftX: -31, shiftY: -52, rotate: 3, contactX: 31, contactY: 59 })
+    seal: Object.freeze({ width: 136, shiftX: -50, shiftY: -50, rotate: 0, contactX: 50, contactY: 58, scaleX: 1.04, scaleY: 1.1 })
   })
 });
 
@@ -75,10 +75,6 @@ function selectedJarSkin() {
   return Object.hasOwn(JAR_ASSETS, requested) ? requested : "onggi";
 }
 
-function selectedJarAssets() {
-  return JAR_ASSETS[selectedJarSkin()];
-}
-
 function applyJarLayout(jarSkin = selectedJarSkin()) {
   if (!actor) return;
 
@@ -96,6 +92,8 @@ function applyJarLayout(jarSkin = selectedJarSkin()) {
   actor.style.setProperty("--seal-toad-rotate", `${seal.rotate}deg`);
   actor.style.setProperty("--seal-contact-x", `${seal.contactX}%`);
   actor.style.setProperty("--seal-contact-y", `${seal.contactY}%`);
+  actor.style.setProperty("--seal-toad-scale-x", String(seal.scaleX));
+  actor.style.setProperty("--seal-toad-scale-y", String(seal.scaleY));
 }
 
 function syncCosmetics() {
@@ -112,7 +110,7 @@ function syncCosmetics() {
 
   actor.dataset.jarSkin = jarSkin;
   actor.dataset.toadSkin = toadSkin;
-  actor.dataset.sealMode = "external";
+  actor.dataset.sealMode = "fitted";
   applyJarLayout(jarSkin);
 }
 
