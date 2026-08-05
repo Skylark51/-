@@ -25,10 +25,10 @@ export const SHOP_ITEMS = Object.freeze([
   item("toad_jade_guard", "toad", "비취 수문장", 620, "청록빛 피부와 옥색 반점이 특징입니다.", "jade-guard", "희귀"),
   item("toad_star_night", "toad", "별밤 두꺼비", 920, "어두운 피부 위로 작은 별무늬가 반짝입니다.", "star-night", "영웅"),
 
-  item("jar_onggi", "jar", "전통 옹기", 0, "현재 장독대의 기본 갈색 옹기입니다.", "onggi", "기본"),
-  item("jar_celadon", "jar", "운학 청자", 400, "청자빛 몸체와 구름 문양을 사용합니다.", "celadon", "고급"),
-  item("jar_moon_white", "jar", "달항아리", 680, "둥근 백자와 은은한 푸른 그림자가 특징입니다.", "moon-white", "희귀"),
-  item("jar_night_lacquer", "jar", "흑칠 야광 항아리", 1050, "검은 칠 위에 보랏빛 문양이 흐르는 장독대입니다.", "night-lacquer", "영웅")
+  item("jar_onggi", "jar", "전통 옹기", 0, "세월이 깃든 전통 옹기입니다.", "onggi", "기본"),
+  item("jar_celadon", "jar", "운학 청자", 400, "구름과 학 문양을 사용한 전통 청자입니다. 한눈에 보아도 고급져 보입니다.", "celadon", "고급"),
+  item("jar_moon_white", "jar", "달항아리", 680, "둥근 백자에 깃든 은은한 푸른 그림자가 일품입니다.", "moon-white", "희귀"),
+  item("jar_night_lacquer", "jar", "흑칠 야광 항아리", 1050, "검은 칠 위에 보랏빛 문양이 흐르는 장독대입니다. 서역의 광물로 특수 제작한 항아리입니다.", "night-lacquer", "영웅")
 ]);
 
 export const SHOP_ITEM_MAP = Object.freeze(Object.fromEntries(SHOP_ITEMS.map(entry => [entry.id, entry])));
