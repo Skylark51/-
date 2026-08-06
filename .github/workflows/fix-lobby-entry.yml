@@ -18,8 +18,27 @@ jobs:
           ref: main
           fetch-depth: 0
       - name: Refresh lobby entry versions
-        run: python3 -c 'from pathlib import Path; p=Path("index.html"); s=p.read_text(encoding="utf-8"); pairs=[("data-ui-version=\"20260805-home-square4\"","data-ui-version=\"20260806-lobby-router1\""),("assets/css/lobby-hero-scene.css?v=20260805-home-square4","assets/css/lobby-hero-scene.css?v=20260806-lobby-router1"),("assets/js/lobby-actions.js?v=20260804-home-clean3","assets/js/lobby-actions.js?v=20260806-lobby-router1"),("assets/js/lobby-navigation.js?v=20260805-home-square4","assets/js/lobby-navigation.js?v=20260806-lobby-router1")]; [(lambda old,new: None)(old,new) for old,new in []]; [(_ for _ in ()).throw(SystemExit(f"missing anchor: {old}")) if old not in s else None for old,new in pairs]; [None for old,new in pairs if not (s:=s.replace(old,new,1))]; p.write_text(s,encoding="utf-8")'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("index.html")
+          text = path.read_text(encoding="utf-8")
+          replacements = [
+              ('data-ui-version="20260805-home-square4"', 'data-ui-version="20260806-lobby-router1"'),
+              ('assets/css/lobby-hero-scene.css?v=20260805-home-square4', 'assets/css/lobby-hero-scene.css?v=20260806-lobby-router1'),
+              ('assets/js/lobby-actions.js?v=20260804-home-clean3', 'assets/js/lobby-actions.js?v=20260806-lobby-router1'),
+              ('assets/js/lobby-navigation.js?v=20260805-home-square4', 'assets/js/lobby-navigation.js?v=20260806-lobby-router1'),
+          ]
+          for old, new in replacements:
+              if old not in text:
+                  raise SystemExit(f"missing replacement anchor: {old}")
+              text = text.replace(old, new, 1)
+          path.write_text(text, encoding="utf-8")
+          PY
       - name: Commit refreshed entry
+        shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
