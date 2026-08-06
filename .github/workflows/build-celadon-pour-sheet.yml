@@ -26,30 +26,26 @@ jobs:
       - name: Install Pillow
         run: python -m pip install --disable-pip-version-check pillow==11.3.0
 
-      - name: Restore valid celadon source
-        run: |
-          git show b04499ee69662ab46b94cbce12fda34bbc6a64c3:assets/art/kongjwi-tools/celadon.png > /tmp/celadon-source.png
-          test -s /tmp/celadon-source.png
-
       - name: Build lossless RGBA sprite sheet
         run: |
           python - <<'PY'
           from pathlib import Path
-          from PIL import Image
+          from PIL import Image, ImageFile
 
-          source_path = Path('/tmp/celadon-source.png')
+          ImageFile.LOAD_TRUNCATED_IMAGES = True
+          source_path = Path('assets/art/kongjwi-tools/celadon.png')
           output_path = Path('assets/art/game-scene/tools/celadon/pour-sheet.png')
           output_path.parent.mkdir(parents=True, exist_ok=True)
 
-          source = Image.open(source_path).convert('RGBA')
+          source = Image.open(source_path)
           source.load()
+          source = source.convert('RGBA')
           alpha = source.getchannel('A')
           bbox = alpha.getbbox()
           if bbox is None:
               raise RuntimeError('The celadon source image has no visible pixels.')
 
           ladle = source.crop(bbox)
-          # Preserve the authored source dimensions. No enlargement or color quantization is applied.
           poses = [
               (0, 0, 0),
               (1, 1, -2),
