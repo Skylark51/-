@@ -1,201 +1,215 @@
-import { SceneStateMachine } from "./scene-state-machine.js";
-import { preloadSceneFrames } from "./scene-art-loader.js?v=20260805-safe-jar1";
+import { createSceneStateController } from "./scene-state-machine.js?v=20260806-layered-scene1";
 
-const DEFAULT_VISUALS = Object.freeze({
-  tool: "wood",
-  outfit: "classic-red",
-  toad: "field-brown",
-  jar: "onggi"
-});
+const MANIFEST_URL = "assets/art/game-scene/manifest.json?v=20260806-layered-scene1";
+const ORDER = [
+  "scene-background", "scene-kongjwi", "scene-tool", "scene-water-stream",
+  "scene-jar-back", "scene-water-fill", "scene-toad-skin", "scene-toad-expression",
+  "scene-jar-front", "scene-water-splash", "scene-water-leak", "scene-foreground", "scene-ui"
+];
+const ALIAS = {
+  outfit: { classic: "classic-red", scholar: "blue-scholar", "field-green": "field-work", "royal-night": "night-court" },
+  jar: { clay: "onggi", moon: "moon-white", lacquer: "night-lacquer" },
+  toad: { brown: "field-brown", gold: "gold-worker", jade: "jade-guard", star: "star-night" }
+};
 
-const STATE_TO_FRAME = Object.freeze({
-  loading: "idle",
-  ready: "idle",
-  idle: "idle",
-  pour: "pour",
-  correctRecovery: "pour",
-  wrong: "wrong",
-  timeout: "wrong",
-  fever: "pour",
-  clear: "clear",
-  gameOver: "wrong"
-});
+const key = (value, aliases, fallback) => aliases?.[String(value || "").trim()] || String(value || "").trim() || fallback;
+const layer = (stack, name) => stack.querySelector(`.${name}`);
+const target = (manifest, primary, fallback = null) => manifest.availability?.[primary] === true
+  ? { url: primary, authored: true }
+  : fallback ? { url: fallback, authored: false } : { url: "", authored: false };
 
-const STATE_LABELS = Object.freeze({
-  loading: "장면 준비 중",
-  ready: "문제 준비",
-  idle: "두꺼비가 구멍을 막는 중",
-  pour: "콩쥐가 물을 붓는 중",
-  correctRecovery: "물결이 가라앉는 중",
-  wrong: "두꺼비가 밀렸습니다",
-  timeout: "시간 초과 · 물이 샙니다",
-  fever: "피버 · 누수 억제",
-  clear: "장독대 채우기 완료",
-  gameOver: "물이 모두 샜습니다",
-  paused: "잠시 멈춤"
-});
-
-function listen(target, type, handler) {
-  target.addEventListener(type, handler);
-  return () => target.removeEventListener(type, handler);
+function box(element, value, logical) {
+  if (!element || !value) return;
+  element.style.setProperty("--scene-x", `${value.x / logical.width * 100}%`);
+  element.style.setProperty("--scene-y", `${value.y / logical.height * 100}%`);
+  element.style.setProperty("--scene-width", `${value.width / logical.width * 100}%`);
+  element.style.setProperty("--scene-height", `${value.height / logical.height * 100}%`);
 }
 
-function configureSceneImage(image) {
-  image.alt = "";
-  image.draggable = false;
-  image.decoding = "async";
-  image.style.width = "100%";
-  image.style.height = "100%";
-  image.style.objectFit = "cover";
-  image.style.objectPosition = "center 60%";
-  image.style.background = "#120e0a";
-  image.style.filter = "brightness(.78) saturate(.92) contrast(1.04)";
+function createStack(host, manifest) {
+  host.querySelectorAll(".scene-background-layer,.scene-cinematic-shade,.quiz-scene-actors,.scene-leak-effect").forEach(node => { node.hidden = true; });
+  let stack = host.querySelector("#layeredScene");
+  if (!stack) {
+    stack = document.createElement("div");
+    stack.id = "layeredScene";
+    stack.className = "scene-layer-stack";
+    stack.setAttribute("aria-hidden", "true");
+    host.prepend(stack);
+  }
+  stack.replaceChildren(...ORDER.map(name => {
+    const node = document.createElement("div");
+    node.className = `scene-layer ${name}`;
+    node.style.zIndex = String(manifest.layers[name] ?? 0);
+    return node;
+  }));
+  return stack;
 }
 
-export function mountSceneRenderer(root, { cosmetics = DEFAULT_VISUALS } = {}) {
-  if (!root) throw new Error("SceneRenderer를 연결할 게임 루트가 없습니다.");
+function image(node, asset, cover = false) {
+  node.replaceChildren();
+  node.dataset.authored = String(asset.authored);
+  if (!asset.url) { node.hidden = true; return; }
+  const img = document.createElement("img");
+  img.className = `scene-layer-image${cover ? " is-cover" : ""}`;
+  img.alt = "";
+  img.draggable = false;
+  img.decoding = "async";
+  img.src = asset.url;
+  node.hidden = false;
+  node.append(img);
+}
 
-  const stage = root.querySelector("#visualStage");
-  const frameA = root.querySelector("#sceneFrameA");
-  const frameB = root.querySelector("#sceneFrameB");
-  const notice = root.querySelector("#sceneCosmeticNotice");
-  const waterText = root.querySelector("#waterValue");
-  const statusBadge = root.querySelector("#statusBadge");
-  const splash = root.querySelector("#splash");
+function sprite(node, asset, spec, frame = 0) {
+  node.replaceChildren();
+  node.dataset.authored = String(asset.authored);
+  if (!asset.url) { node.hidden = true; return; }
+  if (!asset.authored) { image(node, asset); node.dataset.spriteMode = "static"; return; }
+  const span = document.createElement("span");
+  span.className = "scene-sprite";
+  span.style.backgroundImage = `url("${asset.url}")`;
+  span.style.setProperty("--scene-frame-count", String(spec.frames || 1));
+  node.dataset.spriteMode = "sheet";
+  node.hidden = false;
+  node.append(span);
+  frameOf(node, frame);
+}
 
-  if (!stage || !(frameA instanceof HTMLImageElement) || !(frameB instanceof HTMLImageElement)) {
-    throw new Error("SceneRenderer 필수 이미지 DOM이 없습니다.");
+function frameOf(node, frame) {
+  const sprite = node?.querySelector(".scene-sprite");
+  if (!sprite || node.dataset.spriteMode !== "sheet") return;
+  const count = Math.max(1, Number(sprite.style.getPropertyValue("--scene-frame-count")) || 1);
+  const next = Math.max(0, Math.min(count - 1, Number(frame) || 0));
+  sprite.style.backgroundPosition = `${count <= 1 ? 0 : next / (count - 1) * 100}% center`;
+}
+
+function preload(urls) {
+  for (const url of new Set(urls.filter(Boolean))) {
+    const img = new Image();
+    img.decoding = "async";
+    img.src = url;
   }
+}
 
-  configureSceneImage(frameA);
-  configureSceneImage(frameB);
+export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
+  if (!root) throw new Error("장면 렌더러 루트가 없습니다.");
+  if (root.__layeredSceneRenderer) return root.__layeredSceneRenderer;
 
-  let frontFrame = frameA;
-  let backFrame = frameB;
-  let currentState = "loading";
-  let frameUrls = null;
-  let destroyed = false;
-  const removeListeners = [];
+  const host = root.querySelector(".scene-animation-zone") || root.querySelector("#visualStage") || root;
+  let manifest;
+  let stack;
+  let controller;
+  let disposed = false;
+  let current = { ...cosmetics };
+  let expression = "default";
+  let water = 70;
+  let revision = 0;
 
-  function showArtwork(state) {
-    if (!frameUrls || destroyed) return;
-    const frameName = STATE_TO_FRAME[state] || "idle";
-    const nextSource = frameUrls[frameName] || frameUrls.idle;
-    if (frontFrame.dataset.sceneFrame === frameName && frontFrame.classList.contains("is-visible")) return;
-
-    backFrame.src = nextSource;
-    backFrame.dataset.sceneFrame = frameName;
-    backFrame.classList.add("is-visible");
-    frontFrame.classList.remove("is-visible");
-    [frontFrame, backFrame] = [backFrame, frontFrame];
-  }
-
-  function setWaterRatio(value) {
-    const percentage = Math.max(0, Math.min(100, Number(value) || 0));
-    root.style.setProperty("--water-ratio", String(percentage / 100));
-    stage.dataset.waterBand = percentage <= 10 ? "critical" : percentage <= 50 ? "warning" : "normal";
-  }
-
-  function readWater() {
-    setWaterRatio(waterText?.textContent);
-  }
-
-  function renderState(state, detail = {}) {
-    currentState = state;
-    root.dataset.sceneState = state;
-    stage.dataset.sceneState = state;
-    if (state !== "paused") showArtwork(state);
-    if (statusBadge) statusBadge.textContent = STATE_LABELS[state] || STATE_LABELS.idle;
-    if (state === "pour" && splash && detail.waterGain != null) {
-      splash.textContent = `물 +${Math.round(detail.waterGain)}`;
-    }
-  }
-
-  function setCosmetics(visuals) {
-    const next = { ...DEFAULT_VISUALS, ...(visuals || {}) };
-    const pendingCategories = Object.entries(DEFAULT_VISUALS)
-      .filter(([category, defaultValue]) => next[category] !== defaultValue)
-      .map(([category]) => category);
-
-    root.dataset.sceneCosmetics = pendingCategories.length ? "pending" : "default-ready";
-    if (notice) {
-      notice.hidden = true;
-      notice.textContent = "";
-    }
-  }
-
-  const machine = new SceneStateMachine({ onChange: renderState });
-  const eventMap = [
-    ["game:start", event => machine.markReady(event.detail)],
-    ["answer:correct", event => machine.correct(event.detail)],
-    ["answer:wrong", event => machine.wrong(event.detail)],
-    ["answer:timeout", event => machine.timeout(event.detail)],
-    ["fever:start", event => machine.startFever(event.detail)],
-    ["fever:extend", event => machine.startFever(event.detail)],
-    ["fever:end", event => machine.endFever(event.detail)],
-    ["game:clear", event => machine.clear(event.detail)],
-    ["game:over", event => machine.gameOver(event.detail)],
-    ["game:pause", event => machine.pause(event.detail)],
-    ["game:resume", event => machine.resume(event.detail)]
-  ];
-
-  for (const [type, handler] of eventMap) {
-    removeListeners.push(listen(window, type, handler));
-  }
-
-  const waterObserver = waterText ? new MutationObserver(readWater) : null;
-  waterObserver?.observe(waterText, { childList: true, characterData: true, subtree: true });
-
-  root.dataset.sceneRenderer = "cover-image-renderer";
-  root.dataset.sceneAuthoredFrames = "4";
-  root.dataset.sceneAssets = "loading";
-  readWater();
-  setCosmetics(cosmetics);
-  renderState("loading");
-
-  preloadSceneFrames()
-    .then(result => {
-      if (destroyed) return;
-      frameUrls = result.frames;
-      root.dataset.sceneSourceSize = `${result.atlasWidth}x${result.atlasHeight}`;
-      root.dataset.sceneFrameSize = `${result.frameWidth}x${result.frameHeight}`;
-      root.dataset.sceneAssets = "ready";
-      frontFrame.src = frameUrls[STATE_TO_FRAME[currentState] || "idle"];
-      frontFrame.dataset.sceneFrame = STATE_TO_FRAME[currentState] || "idle";
-      frontFrame.classList.add("is-visible");
-      machine.markReady();
-    })
-    .catch(error => {
-      console.error(error);
-      root.dataset.sceneAssets = "failed";
-      machine.markReady({ failedAssets: 1 });
-    });
-
-  const controller = {
-    machine,
-    setCosmetics,
-    setWaterRatio,
-    setState(state, detail = {}) {
-      return machine.enter(state, detail, { schedule: false });
+  const renderer = {
+    ready: null,
+    setCosmetics(next = {}) { current = { ...current, ...next }; if (manifest) load(); },
+    setFrame(name, frame) {
+      const map = { kongjwi: "scene-kongjwi", tool: "scene-tool", waterStream: "scene-water-stream", waterSplash: "scene-water-splash", waterLeak: "scene-water-leak" };
+      frameOf(layer(stack, name.startsWith("scene-") ? name : map[name]), frame);
     },
-    resize() {
-      // The cover image follows its container automatically.
+    setExpression(next = "default") {
+      expression = manifest?.frames?.toadExpression?.[next] == null ? "default" : next;
+      const node = layer(stack, "scene-toad-expression");
+      if (node?.dataset.spriteMode === "sheet") frameOf(node, manifest.frames.toadExpression[expression]);
+      else { const img = node?.querySelector("img"); if (img) img.src = manifest.assets.toadFallback[expression]; }
+      if (stack) stack.dataset.toadExpression = expression;
     },
-    destroy() {
-      if (destroyed) return;
-      destroyed = true;
-      machine.destroy();
-      waterObserver?.disconnect();
-      removeListeners.splice(0).forEach(remove => remove());
-      delete root.dataset.sceneRenderer;
-      if (globalThis.__KONGJWI_SCENE_RENDERER__ === controller) {
-        delete globalThis.__KONGJWI_SCENE_RENDERER__;
-      }
-    }
+    setWaterLevel(value) {
+      water = Math.max(0, Math.min(100, Number(value) || 0));
+      stack?.style.setProperty("--scene-water-level", `${water}%`);
+      stack?.setAttribute("data-water-level", String(Math.round(water)));
+    },
+    setState(next = "idle") { if (stack) stack.dataset.sceneState = next; root.dataset.sceneState = next; },
+    destroy() { disposed = true; revision += 1; controller?.destroy(); root.__layeredSceneRenderer = null; }
   };
 
-  globalThis.__KONGJWI_SCENE_RENDERER__ = controller;
-  return controller;
-}
+  async function load() {
+    const token = ++revision;
+    const a = manifest.assets;
+    const s = manifest.sprites;
+    const logical = manifest.logicalSize;
+    const outfit = key(current.kongjwiOutfit || current.outfit || root.dataset.kongjwiOutfit, ALIAS.outfit, "classic-red");
+    const toolKey = key(current.toolSkin || current.tool || root.dataset.toolSkin, null, "wood");
+    const jarKey = key(current.jarSkin || current.jar || root.dataset.jarSkin, ALIAS.jar, "onggi");
+    const toadKey = key(current.toadSkin || current.toad || root.dataset.toadSkin, ALIAS.toad, "field-brown");
 
-export { DEFAULT_VISUALS, STATE_TO_FRAME };
+    const chosen = {
+      background: target(manifest, a.background.path, a.background.fallback),
+      foreground: target(manifest, a.foreground.path, a.foreground.fallback),
+      kongjwi: target(manifest, a.kongjwi[outfit].sheet, a.kongjwi[outfit].fallback),
+      tool: target(manifest, a.tools[toolKey].sheet, a.tools[toolKey].fallback),
+      jar: target(manifest, a.jars[jarKey].layers, a.jars[jarKey].fallback),
+      toad: target(manifest, a.toads[toadKey].skin),
+      expression: target(manifest, a.effects.toadExpression, a.toadFallback.default),
+      stream: target(manifest, a.effects.waterStream),
+      splash: target(manifest, a.effects.waterSplash),
+      leak: target(manifest, a.effects.waterLeak),
+      surface: target(manifest, a.effects.waterSurface)
+    };
+    preload(Object.values(chosen).map(item => item.url));
+    if (disposed || token !== revision) return;
+
+    image(layer(stack, "scene-background"), chosen.background, true);
+    image(layer(stack, "scene-foreground"), chosen.foreground, true);
+    sprite(layer(stack, "scene-kongjwi"), chosen.kongjwi, s.kongjwi);
+    sprite(layer(stack, "scene-tool"), chosen.tool, s.tool);
+    sprite(layer(stack, "scene-water-stream"), chosen.stream, s.waterStream);
+    sprite(layer(stack, "scene-jar-back"), chosen.jar, s.jar, 0);
+    if (chosen.jar.authored) sprite(layer(stack, "scene-jar-front"), chosen.jar, s.jar, 1);
+    else layer(stack, "scene-jar-front").hidden = true;
+    image(layer(stack, "scene-toad-skin"), chosen.toad);
+    sprite(layer(stack, "scene-toad-expression"), chosen.expression, s.toadExpression);
+    sprite(layer(stack, "scene-water-splash"), chosen.splash, s.waterSplash);
+    sprite(layer(stack, "scene-water-leak"), chosen.leak, s.waterLeak);
+
+    const fill = layer(stack, "scene-water-fill");
+    fill.replaceChildren();
+    const texture = document.createElement("span");
+    texture.className = "scene-water-fill-texture";
+    if (chosen.surface.url) texture.style.backgroundImage = `url("${chosen.surface.url}")`;
+    fill.append(texture);
+    fill.hidden = !chosen.jar.authored;
+
+    const placements = manifest.placements;
+    box(layer(stack, "scene-kongjwi"), placements.kongjwi, logical);
+    box(layer(stack, "scene-tool"), placements.tool, logical);
+    box(layer(stack, "scene-water-stream"), placements.waterStream, logical);
+    for (const name of ["scene-jar-back", "scene-jar-front"]) box(layer(stack, name), placements.jar, logical);
+    box(fill, placements.waterFill, logical);
+    for (const name of ["scene-toad-skin", "scene-toad-expression"]) box(layer(stack, name), placements.toad, logical);
+    box(layer(stack, "scene-water-splash"), placements.waterSplash, logical);
+    box(layer(stack, "scene-water-leak"), placements.waterLeak, logical);
+
+    root.dataset.kongjwiOutfit = outfit;
+    root.dataset.toolSkin = toolKey;
+    root.dataset.jarSkin = jarKey;
+    root.dataset.toadSkin = toadKey;
+    stack.dataset.assetMode = Object.values(chosen).every(item => !item.url || item.authored) ? "authored" : "png-fallback";
+    renderer.setWaterLevel(water);
+    renderer.setExpression(expression);
+  }
+
+  renderer.ready = (async () => {
+    const response = await fetch(MANIFEST_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error(`장면 매니페스트 로드 실패 (${response.status})`);
+    manifest = await response.json();
+    if (manifest.logicalSize?.width !== 2048 || manifest.logicalSize?.height !== 1152) throw new Error("장면 논리 해상도 불일치");
+    stack = createStack(host, manifest);
+    await load();
+    if (disposed) return renderer;
+    controller = createSceneStateController(renderer, manifest);
+    root.dataset.sceneRenderer = "layered-png";
+    return renderer;
+  })().catch(error => {
+    root.dataset.sceneRenderer = "error";
+    console.error("레이어 기반 장면 렌더러 초기화 실패", error);
+    throw error;
+  });
+
+  root.__layeredSceneRenderer = renderer;
+  return renderer;
+}

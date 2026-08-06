@@ -1,345 +1,225 @@
-.game-asset-animation {
+/*
+ * Quiz scene renderer: one 2048×1152 logical coordinate system, one layer
+ * stack, PNG-only runtime art. Actor placement is driven by manifest.json.
+ */
+
+.scene-animation-zone {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.scene-layer-stack {
+  --scene-water-level: 70%;
   position: absolute;
-  z-index: 9;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
   contain: layout paint;
-  --toad-filter: none;
+  transform: translateZ(0);
 }
 
-.game-reaction-dock {
+.scene-layer {
   position: absolute;
-  right: 14px;
-  bottom: 12px;
-  width: 154px;
-  height: 92px;
-}
-
-.game-asset-floor {
-  position: absolute;
-  left: 4px;
-  right: 0;
-  bottom: 0;
-  height: 27px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(5, 4, 3, 0.66), transparent 70%);
-  filter: blur(4px);
-}
-
-.game-jar-wrap {
-  position: absolute;
-  right: 0;
-  bottom: 1px;
-  width: 76px;
-  height: 76px;
-  transform-origin: 50% 84%;
-  will-change: transform;
-}
-
-.game-jar-art {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 8px 7px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
   user-select: none;
+  -webkit-user-select: none;
+}
+
+.scene-layer:not(.scene-background):not(.scene-foreground):not(.scene-ui) {
+  left: var(--scene-x, 0);
+  top: var(--scene-y, 0);
+  width: var(--scene-width, 100%);
+  height: var(--scene-height, 100%);
+  transform-origin: center bottom;
+}
+
+.scene-background,
+.scene-foreground,
+.scene-ui {
+  inset: 0;
+}
+
+.scene-layer-image {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  transform: translateX(-50%);
+  image-rendering: auto;
+  backface-visibility: hidden;
   -webkit-user-drag: none;
 }
 
-.game-jar-ripple {
-  position: absolute;
-  left: 10px;
-  right: 8px;
-  bottom: -2px;
-  height: 17px;
-  border: 2px solid rgba(128, 226, 242, 0.5);
-  border-radius: 50%;
-  opacity: 0;
-}
-
-.game-toad-wrap {
-  position: absolute;
-  z-index: 2;
-  left: 0;
-  bottom: 7px;
-  width: 88px;
-  aspect-ratio: 64 / 43;
-  transform-origin: 50% 88%;
-  will-change: transform, filter;
-}
-
-.game-toad-sprite {
-  position: absolute;
-  z-index: 2;
+.scene-layer-image.is-cover {
   inset: 0;
-  background-repeat: no-repeat;
-  background-size: 200% 500%;
-  background-position: 0 0;
-  filter: var(--toad-filter);
-  transition: filter 180ms ease;
-}
-
-.game-toad-shadow {
-  position: absolute;
-  z-index: 1;
-  left: 10%;
-  right: 4%;
-  bottom: -3px;
-  height: 16px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
-  filter: blur(5px);
-  transform: scaleY(0.45);
-}
-
-.game-toad-aura {
-  position: absolute;
-  z-index: 0;
-  inset: -16%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(246, 199, 82, 0.34), transparent 68%);
-  opacity: 0;
-  transform: scale(0.76);
-}
-
-.game-reaction-badge {
-  position: absolute;
-  right: 13px;
-  bottom: 103px;
-  max-width: 190px;
-  padding: 7px 10px;
-  border: 1px solid rgba(246, 220, 165, 0.4);
-  border-radius: 999px;
-  background: rgba(12, 14, 16, 0.84);
-  color: #fff4dd;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(9px);
-  opacity: 0;
-  transform: translateY(6px) scale(0.96);
-  transition: opacity 160ms ease, transform 160ms ease;
-}
-
-.game-asset-animation[data-badge="visible"] .game-reaction-badge {
-  opacity: 1;
+  left: 0;
+  bottom: auto;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
   transform: none;
+  object-fit: cover;
 }
 
-.game-asset-animation[data-fever="true"] .game-toad-aura {
-  opacity: 1;
-  animation: assetAura 900ms ease-in-out infinite alternate;
+.scene-foreground .scene-layer-image {
+  object-position: center bottom;
 }
 
-.game-asset-animation[data-reaction="correct"] .game-toad-wrap {
-  animation: assetHappy 650ms cubic-bezier(0.2, 0.85, 0.25, 1);
+.scene-sprite {
+  --scene-frame-count: 1;
+  --scene-frame: 0;
+  position: absolute;
+  inset: 0;
+  display: block;
+  background-repeat: no-repeat;
+  background-size: calc(var(--scene-frame-count) * 100%) 100%;
+  background-position: 0 center;
+  image-rendering: auto;
+  backface-visibility: hidden;
 }
 
-.game-asset-animation[data-reaction="correct"] .game-jar-wrap {
-  animation: assetJarNod 650ms ease-out;
+.scene-kongjwi,
+.scene-tool,
+.scene-water-stream,
+.scene-water-splash,
+.scene-water-leak {
+  will-change: transform;
 }
 
-.game-asset-animation[data-reaction="correct"] .game-jar-ripple {
-  animation: assetRipple 720ms ease-out;
+.scene-jar-back,
+.scene-jar-front {
+  transform:
+    translate(
+      calc(var(--jar-offset-x, 0) * 1px),
+      calc(var(--jar-offset-y, 0) * 1px)
+    )
+    scale(var(--jar-offset-scale, 1));
 }
 
-.game-asset-animation[data-reaction="combo"] .game-toad-wrap,
-.game-asset-animation[data-reaction="fever"] .game-toad-wrap {
-  animation: assetCombo 820ms cubic-bezier(0.2, 0.82, 0.2, 1);
+.scene-layer-stack > .scene-water-fill {
+  overflow: hidden;
+  clip-path: polygon(18% 8%, 82% 8%, 92% 24%, 88% 84%, 72% 98%, 28% 98%, 12% 84%, 8% 24%);
+  opacity: 0.82;
 }
 
-.game-asset-animation[data-reaction="combo"] .game-toad-aura,
-.game-asset-animation[data-reaction="fever"] .game-toad-aura {
-  opacity: 1;
-  animation: assetBurst 760ms ease-out;
+.scene-layer-stack .scene-water-fill-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
 }
 
-.game-asset-animation[data-reaction="wrong"] .game-toad-wrap {
-  animation: assetWrong 680ms ease-in-out;
+.scene-layer-stack .scene-water-fill-texture {
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  bottom: 0;
+  height: var(--scene-water-level);
+  min-height: 0;
+  background:
+    linear-gradient(to bottom, rgba(170, 242, 255, 0.78), rgba(18, 112, 143, 0.66));
+  background-repeat: repeat-x;
+  background-position: center top;
+  background-size: auto 64px;
+  border-top: 2px solid rgba(210, 250, 255, 0.82);
+  transition: height 300ms ease;
 }
 
-.game-asset-animation[data-reaction="wrong"] .game-jar-wrap,
-.game-asset-animation[data-reaction="angry"] .game-jar-wrap,
-.game-asset-animation[data-reaction="rage"] .game-jar-wrap {
-  animation: assetShake 480ms ease-in-out;
+.scene-toad-skin,
+.scene-toad-expression {
+  transform-origin: center 76%;
 }
 
-.game-asset-animation[data-reaction="angry"] .game-toad-wrap {
-  animation: assetAngry 580ms ease-in-out 2;
+.scene-ui {
+  z-index: 120;
 }
 
-.game-asset-animation[data-reaction="rage"] .game-toad-wrap {
-  animation: assetRage 340ms ease-in-out 4;
+.scene-ui > * {
+  pointer-events: auto;
 }
 
-.game-asset-animation[data-reaction="surprised"] .game-toad-wrap {
-  animation: assetSurprised 650ms cubic-bezier(0.15, 0.85, 0.25, 1);
+.scene-layer-stack[data-scene-state="correct"] .scene-kongjwi,
+.scene-layer-stack[data-scene-state="correct"] .scene-tool {
+  animation: layered-pour-settle 940ms ease-out both;
 }
 
-.game-asset-animation[data-reaction="timeout"] .game-toad-wrap {
-  animation: assetTimeout 900ms ease-out;
+.scene-layer-stack[data-scene-state="wrong"] .scene-toad-expression,
+.scene-layer-stack[data-scene-state="critical"] .scene-toad-expression {
+  animation: layered-toad-shake 460ms ease-in-out both;
 }
 
-.game-asset-animation[data-reaction="clear"] .game-toad-wrap {
-  animation: assetCombo 950ms ease-in-out infinite alternate;
+.scene-layer-stack[data-scene-state="fever"] .scene-toad-skin,
+.scene-layer-stack[data-scene-state="fever"] .scene-toad-expression,
+.scene-layer-stack[data-scene-state="clear"] .scene-toad-skin,
+.scene-layer-stack[data-scene-state="clear"] .scene-toad-expression {
+  animation: layered-toad-cheer 820ms ease-in-out infinite alternate;
 }
 
-.game-asset-animation[data-reaction="clear"] .game-jar-wrap {
-  animation: assetClear 1050ms ease-in-out infinite alternate;
+.scene-layer-stack[data-scene-state="pause"] {
+  animation-play-state: paused;
 }
 
-.game-asset-animation[data-reaction="gameover"] .game-toad-wrap {
-  transform: translateY(5px) scale(0.94);
-  filter: grayscale(0.35) brightness(0.72);
+.scene-layer-stack[data-asset-mode="png-fallback"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 119;
+  pointer-events: none;
+  border: 0;
 }
 
-.game-asset-animation[data-toad-state="idle"] .game-toad-wrap {
-  animation: assetIdle 2.8s ease-in-out infinite;
+@keyframes layered-pour-settle {
+  0%, 100% { transform: translateY(0); }
+  45% { transform: translateY(-0.8%); }
 }
 
-.game-asset-animation[data-toad-state="confused"] .game-toad-wrap {
-  animation: assetThink 1.9s ease-in-out infinite;
+@keyframes layered-toad-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-1.4%); }
+  55% { transform: translateX(1.4%); }
+  78% { transform: translateX(-0.6%); }
 }
 
-/* Authored scene frames already include the stream and leak. */
-.scene-leak-effect,
-.scene-pour-arc {
-  display: none !important;
-}
-
-@keyframes assetHappy {
-  35% { transform: translateY(-10px) scale(1.06, 0.95); }
-  64% { transform: translateY(1px) scale(0.98, 1.03); }
-}
-
-@keyframes assetCombo {
-  32% { transform: translateY(-14px) rotate(-5deg) scale(1.08); }
-  62% { transform: translateY(-5px) rotate(6deg) scale(1.05); }
-}
-
-@keyframes assetWrong {
-  24% { transform: translate(-5px, 2px) rotate(-3deg); }
-  50% { transform: translate(5px, 3px) rotate(3deg); }
-  78% { transform: translate(-2px, 2px); }
-}
-
-@keyframes assetAngry {
-  25% { transform: translateX(-4px) scale(1.03); }
-  50% { transform: translateX(4px) scale(1.05); }
-  75% { transform: translateX(-2px) scale(1.03); }
-}
-
-@keyframes assetRage {
-  25% { transform: translate(-4px, -1px) rotate(-2deg); }
-  50% { transform: translate(4px, 1px) rotate(2deg); }
-  75% { transform: translate(-2px, 2px) rotate(-1deg); }
-}
-
-@keyframes assetSurprised {
-  38% { transform: translateY(-9px) scale(1.12); }
-  70% { transform: translateY(1px) scale(0.97); }
-}
-
-@keyframes assetTimeout {
-  38% { transform: translateY(5px) rotate(-3deg); }
-  72% { transform: translateY(4px) rotate(2deg); }
-}
-
-@keyframes assetIdle {
-  50% { transform: translateY(2px) scale(1.01, 0.99); }
-}
-
-@keyframes assetThink {
-  50% { transform: translateY(-2px) rotate(2deg); }
-}
-
-@keyframes assetJarNod {
-  35% { transform: rotate(-2deg) scale(1.02); }
-  70% { transform: rotate(1deg); }
-}
-
-@keyframes assetShake {
-  25% { transform: translateX(-4px) rotate(-1deg); }
-  50% { transform: translateX(4px) rotate(1deg); }
-  75% { transform: translateX(-2px); }
-}
-
-@keyframes assetRipple {
-  0% { opacity: 0.78; transform: scale(0.62); }
-  100% { opacity: 0; transform: scale(1.35); }
-}
-
-@keyframes assetAura {
-  to { opacity: 0.66; transform: scale(1.12); }
-}
-
-@keyframes assetBurst {
-  0% { opacity: 0.9; transform: scale(0.45); }
-  100% { opacity: 0; transform: scale(1.35); }
-}
-
-@keyframes assetClear {
-  to { transform: translateY(-2px) scale(1.025); }
+@keyframes layered-toad-cheer {
+  to { transform: translateY(-2.2%) scale(1.025); }
 }
 
 @media (max-width: 900px), (pointer: coarse) {
-  .game-reaction-dock {
-    right: 8px;
-    bottom: 7px;
-    width: 128px;
-    height: 72px;
+  .scene-layer-stack {
+    /* The full logical stage remains visible; no actor receives a separate crop. */
+    inset: 0;
   }
 
-  .game-jar-wrap {
-    width: 60px;
-    height: 60px;
-  }
-
-  .game-toad-wrap {
-    width: 72px;
-    bottom: 5px;
-  }
-
-  .game-reaction-badge {
-    right: 8px;
-    bottom: 81px;
-    max-width: 150px;
-    padding: 5px 8px;
-    font-size: 8px;
+  .scene-layer-image.is-cover {
+    object-position: center bottom;
   }
 }
 
-@media (max-width: 900px) and (max-height: 590px),
-       (pointer: coarse) and (max-height: 590px) {
-  .game-reaction-dock {
-    width: 112px;
-    height: 62px;
-  }
-
-  .game-jar-wrap {
-    width: 52px;
-    height: 52px;
-  }
-
-  .game-toad-wrap {
-    width: 62px;
-  }
-
-  .game-reaction-badge {
-    bottom: 69px;
+@media (orientation: portrait) and (max-width: 900px) {
+  .scene-layer-stack {
+    /*
+     * The scene panel already owns the portrait viewport. Keep one coordinate
+     * system and bias the stage upward so the jar base and Kongjwi feet remain
+     * above the answer controls.
+     */
+    transform-origin: center bottom;
   }
 }
 
-.reduce-motion .game-asset-animation * {
+.reduce-motion .scene-layer-stack *,
+.reduce-motion .scene-layer-stack {
   animation: none !important;
   transition: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .game-asset-animation * {
+  .scene-layer-stack *,
+  .scene-layer-stack {
     animation: none !important;
     transition: none !important;
   }

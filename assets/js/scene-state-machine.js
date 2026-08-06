@@ -1,1 +1,213 @@
-export const SCENE_STATES=Object.freeze(["loading","ready","idle","pour","correctRecovery","wrong","timeout","fever","clear","gameOver","paused"]);const TERMINAL=new Set(["clear","gameOver"]);const TRANSIENT=Object.freeze({ready:260,pour:920,correctRecovery:260,wrong:900,timeout:900});export class SceneStateMachine{constructor({onChange=()=>{},timers=globalThis}={}){this.onChange=onChange;this.timers=timers;this.state="loading";this.previousState="loading";this.feverActive=false;this.terminal=false;this.timer=0;this.destroyed=false}snapshot(){return Object.freeze({state:this.state,previousState:this.previousState,feverActive:this.feverActive,terminal:this.terminal})}baseState(){return this.feverActive?"fever":"idle"}clearTimer(){if(this.timer)this.timers.clearTimeout(this.timer);this.timer=0}enter(next,detail={},{schedule=true}={}){if(this.destroyed||!SCENE_STATES.includes(next))return false;if(this.terminal&&!TERMINAL.has(next))return false;if(this.state===next&&!detail.restart)return false;this.clearTimer();this.previousState=this.state;this.state=next;if(TERMINAL.has(next))this.terminal=true;this.onChange(next,detail,this.snapshot());if(schedule&&TRANSIENT[next])this.timer=this.timers.setTimeout(()=>this.completeTransient(next),TRANSIENT[next]);return true}completeTransient(completedState){if(this.destroyed||this.state!==completedState||this.terminal)return;if(completedState==="pour"){this.enter("correctRecovery");return}this.enter(this.baseState(),{source:completedState},{schedule:false})}markReady(detail={}){if(this.terminal)return false;return this.enter("ready",detail)}markIdle(detail={}){if(this.terminal)return false;return this.enter(this.baseState(),detail,{schedule:false})}correct(detail={}){return this.enter("pour",detail)}wrong(detail={}){return this.enter("wrong",detail)}timeout(detail={}){return this.enter("timeout",detail)}startFever(detail={}){if(this.terminal)return false;this.feverActive=true;if(["idle","ready","fever"].includes(this.state))return this.enter("fever",detail,{schedule:false});return true}endFever(detail={}){this.feverActive=false;if(this.state==="fever")return this.enter("idle",detail,{schedule:false});return true}clear(detail={}){return this.enter("clear",detail,{schedule:false})}gameOver(detail={}){return this.enter("gameOver",detail,{schedule:false})}pause(detail={}){if(this.terminal||this.state==="paused")return false;this.clearTimer();return this.enter("paused",detail,{schedule:false})}resume(detail={}){if(this.state!=="paused"||this.terminal)return false;const next=["loading","paused"].includes(this.previousState)?this.baseState():this.previousState;return this.enter(next,detail,{schedule:false})}destroy(){this.destroyed=true;this.clearTimer()}}
+const EVENT_TARGET = globalThis;
+
+const EVENT_TO_STATE = Object.freeze({
+  "game:start": "idle",
+  "question:changed": "question",
+  "answer:correct": "correct",
+  "answer:wrong": "wrong",
+  "answer:timeout": "timeout",
+  "water:warning": "warning",
+  "water:critical": "critical",
+  "fever:start": "fever",
+  "game:clear": "clear",
+  "game:over": "over",
+  "game:pause": "pause",
+  "game:resume": "resume"
+});
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, Number(value) || 0));
+}
+
+function reducedMotionRequested() {
+  return Boolean(
+    document.documentElement.classList.contains("reduce-motion") ||
+    globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
+  );
+}
+
+export class LayeredSceneStateController {
+  constructor(renderer, manifest) {
+    this.renderer = renderer;
+    this.manifest = manifest;
+    this.state = "idle";
+    this.wrongStreak = 0;
+    this.disposed = false;
+    this.animationToken = 0;
+    this.timers = new Set();
+    this.removers = [];
+    this.bindEvents();
+    this.apply("idle");
+  }
+
+  bindEvents() {
+    for (const [eventName, state] of Object.entries(EVENT_TO_STATE)) {
+      const handler = event => this.apply(state, event?.detail || {});
+      EVENT_TARGET.addEventListener(eventName, handler);
+      this.removers.push(() => EVENT_TARGET.removeEventListener(eventName, handler));
+    }
+
+    for (const eventName of ["water:changed", "water:change", "game:tick"]) {
+      const handler = event => this.syncWater(event?.detail || {});
+      EVENT_TARGET.addEventListener(eventName, handler);
+      this.removers.push(() => EVENT_TARGET.removeEventListener(eventName, handler));
+    }
+  }
+
+  syncWater(detail = {}) {
+    const value =
+      detail.water ??
+      detail.waterLevel ??
+      detail.state?.water ??
+      detail.gameState?.water;
+    if (Number.isFinite(Number(value))) this.renderer.setWaterLevel(clamp(value, 0, 100));
+  }
+
+  clearTimers() {
+    for (const timer of this.timers) globalThis.clearTimeout(timer);
+    this.timers.clear();
+    this.animationToken += 1;
+  }
+
+  schedule(callback, delay) {
+    const timer = globalThis.setTimeout(() => {
+      this.timers.delete(timer);
+      if (!this.disposed) callback();
+    }, Math.max(0, delay));
+    this.timers.add(timer);
+    return timer;
+  }
+
+  playSequence(layerName, frames, duration, { loop = false, hold = false } = {}) {
+    if (!Array.isArray(frames) || !frames.length) return;
+    const reduced = reducedMotionRequested();
+    if (reduced || frames.length === 1) {
+      this.renderer.setFrame(layerName, frames.at(-1));
+      return;
+    }
+
+    const token = this.animationToken;
+    const interval = Math.max(32, duration / frames.length);
+    frames.forEach((frame, index) => {
+      this.schedule(() => {
+        if (token !== this.animationToken) return;
+        this.renderer.setFrame(layerName, frame);
+      }, index * interval);
+    });
+
+    if (loop) {
+      this.schedule(() => {
+        if (token !== this.animationToken) return;
+        this.playSequence(layerName, frames, duration, { loop, hold });
+      }, duration);
+    } else if (!hold) {
+      this.schedule(() => {
+        if (token !== this.animationToken) return;
+        this.renderer.setFrame(layerName, 0);
+      }, duration + 16);
+    }
+  }
+
+  apply(nextState, detail = {}) {
+    if (this.disposed) return;
+    this.clearTimers();
+    this.state = nextState;
+    this.renderer.setState(nextState);
+    this.syncWater(detail);
+
+    const sequences = this.manifest.frames?.sequences || {};
+    switch (nextState) {
+      case "idle":
+      case "resume":
+        this.wrongStreak = 0;
+        this.renderer.setExpression("default");
+        this.playSequence("kongjwi", sequences.idle?.kongjwi || [0, 1, 0], 1800, { loop: true });
+        this.playSequence("tool", [0, 1, 0], 1800, { loop: true });
+        break;
+
+      case "question":
+        this.renderer.setExpression("idle-blink");
+        this.playSequence("kongjwi", [0, 1, 0], 620);
+        this.playSequence("tool", [0, 1, 0], 620);
+        this.schedule(() => this.renderer.setExpression("default"), 680);
+        break;
+
+      case "correct": {
+        this.wrongStreak = 0;
+        const combo = Number(detail.combo || detail.streak || 0);
+        this.renderer.setExpression(combo >= 3 ? "combo" : "correct");
+        const plan = sequences.answerCorrect || {};
+        this.playSequence("kongjwi", plan.kongjwi || [2, 3, 4, 5, 6], 940);
+        this.playSequence("tool", plan.tool || [2, 3, 4, 5, 6], 940);
+        this.playSequence("waterStream", plan.waterStream || [1, 2, 3, 4, 5, 6, 7], 760);
+        this.playSequence("waterSplash", plan.waterSplash || [1, 2, 3, 4, 5], 650);
+        this.schedule(() => this.renderer.setExpression("default"), 1100);
+        break;
+      }
+
+      case "wrong":
+        this.wrongStreak += 1;
+        this.renderer.setExpression(
+          this.wrongStreak >= 3 ? "rage" : this.wrongStreak === 2 ? "angry" : "wrong"
+        );
+        this.playSequence("kongjwi", sequences.answerWrong?.kongjwi || [7], 520, { hold: true });
+        this.playSequence("tool", [7], 520, { hold: true });
+        break;
+
+      case "timeout":
+        this.wrongStreak += 1;
+        this.renderer.setExpression("timeout");
+        this.playSequence("kongjwi", [7], 760, { hold: true });
+        this.playSequence("tool", [7], 760, { hold: true });
+        break;
+
+      case "warning":
+        this.renderer.setExpression("confused");
+        break;
+
+      case "critical":
+        this.renderer.setExpression(this.wrongStreak >= 2 ? "rage" : "angry");
+        break;
+
+      case "fever":
+        this.wrongStreak = 0;
+        this.renderer.setExpression("combo");
+        break;
+
+      case "clear":
+        this.wrongStreak = 0;
+        this.renderer.setWaterLevel(100);
+        this.renderer.setExpression(Number(detail.combo || 0) >= 3 ? "combo" : "correct");
+        this.playSequence("kongjwi", [2, 3, 4, 5, 6], 980, { hold: true });
+        this.playSequence("tool", [2, 3, 4, 5, 6], 980, { hold: true });
+        break;
+
+      case "over":
+        this.renderer.setExpression(detail.reason === "timeout" ? "timeout" : "wrong");
+        this.playSequence("kongjwi", [7], 700, { hold: true });
+        this.playSequence("tool", [7], 700, { hold: true });
+        break;
+
+      case "pause":
+        this.renderer.setExpression("idle-blink");
+        this.renderer.setFrame("kongjwi", 1);
+        this.renderer.setFrame("tool", 1);
+        break;
+
+      default:
+        this.renderer.setExpression("default");
+        break;
+    }
+  }
+
+  destroy() {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.clearTimers();
+    this.removers.splice(0).forEach(remove => remove());
+  }
+}
+
+export function createSceneStateController(renderer, manifest) {
+  return new LayeredSceneStateController(renderer, manifest);
+}

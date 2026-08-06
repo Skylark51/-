@@ -1,0 +1,56 @@
+name: Validate layered quiz scene
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "콩쥐야_줘때써.html"
+      - "assets/art/game-scene/**"
+      - "assets/js/scene-renderer.js"
+      - "assets/js/scene-state-machine.js"
+      - "assets/js/game-cosmetics-entry.js"
+      - "assets/js/quiz-shell-controls.js"
+      - "assets/js/quiz-scene-actors.js"
+      - "assets/css/game-asset-animation.css"
+      - "assets/css/quiz-scene-actors.css"
+      - "scripts/validate-layered-scene.mjs"
+      - "scripts/smoke-layered-scene.mjs"
+      - "tests/layered-scene.test.mjs"
+      - ".github/workflows/validate-layered-scene.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Static architecture checks
+        run: |
+          node --check assets/js/scene-renderer.js
+          node --check assets/js/scene-state-machine.js
+          node --test tests/layered-scene.test.mjs
+          node scripts/validate-layered-scene.mjs
+      - name: Install browser smoke-test runtime
+        run: |
+          npm init -y
+          npm install --no-save --ignore-scripts playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/layered-scene-http.log 2>&1 &
+          echo $! > /tmp/layered-scene-http.pid
+      - name: Responsive browser smoke test
+        run: node scripts/smoke-layered-scene.mjs
+      - name: Upload server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: layered-scene-http-log
+          path: /tmp/layered-scene-http.log
