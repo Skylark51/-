@@ -15,14 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Inspect source
-        run: |
-          file assets/art/jars/onggi/lid-open.png
-          python - <<'PY'
-          from PIL import Image
-          p='assets/art/jars/onggi/lid-open.png'
-          im=Image.open(p)
-          print(im.size, im.mode)
-          PY
+        run: file assets/art/jars/onggi/lid-open.png
       - name: Upload source image
         uses: actions/upload-artifact@v4
         with:
