@@ -1,0 +1,34 @@
+name: Temporary Moon White Asset Job
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.asset-jobs/moon-white.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  export-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify reference PNG
+        run: |
+          file assets/art/jars/moon-white/lid-open.png
+          python - <<'PY'
+          from PIL import Image
+          p = 'assets/art/jars/moon-white/lid-open.png'
+          im = Image.open(p)
+          print(im.size, im.mode)
+          PY
+
+      - name: Upload reference PNG
+        uses: actions/upload-artifact@v4
+        with:
+          name: moon-white-reference
+          path: assets/art/jars/moon-white/lid-open.png
+          if-no-files-found: error
