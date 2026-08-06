@@ -1,0 +1,39 @@
+name: Export celadon reference
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/export-celadon-reference.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Inspect reference
+        run: |
+          file assets/art/jars/celadon/lid-open.png
+          sha256sum assets/art/jars/celadon/lid-open.png
+          python - <<'PY'
+          from PIL import Image
+          p = 'assets/art/jars/celadon/lid-open.png'
+          im = Image.open(p)
+          print('format=', im.format)
+          print('size=', im.size)
+          print('mode=', im.mode)
+          print('info=', im.info)
+          PY
+      - name: Upload reference
+        uses: actions/upload-artifact@v4
+        with:
+          name: celadon-reference
+          path: assets/art/jars/celadon/lid-open.png
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
