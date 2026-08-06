@@ -3,6 +3,37 @@
  * Legacy scene markup is retained temporarily for compatibility, but it must
  * never be revived by older !important composition rules.
  */
+.scene-stage-layout {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0;
+  min-height: 0;
+}
+
+.scene-question-zone {
+  position: absolute !important;
+  z-index: 10;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none;
+}
+
+.scene-animation-zone {
+  position: absolute !important;
+  z-index: 1;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
 .scene-animation-zone > .scene-background-layer[hidden],
 .scene-animation-zone > .scene-cinematic-shade[hidden],
 .scene-animation-zone > .quiz-scene-actors[hidden],
@@ -13,6 +44,12 @@
 
 .scene-animation-zone > #layeredScene {
   display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0;
+  min-height: 0;
   z-index: 1;
 }
 
