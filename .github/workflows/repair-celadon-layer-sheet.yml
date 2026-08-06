@@ -34,12 +34,16 @@ jobs:
           mkdir -p "$(dirname "$TARGET")"
           git show 8305c2d85f42abbaf7683364a7e3576204dd6eb8:"$TARGET" > /tmp/celadon-source.png
           python3 - <<'PY'
+          import json
           from pathlib import Path
           from PIL import Image, ImageChops
 
           source_path = Path('/tmp/celadon-source.png')
           target_path = Path('assets/art/game-scene/jars/celadon/layers.png')
           repaired_path = Path('/tmp/celadon-repaired.png')
+          manifest_path = Path('assets/art/game-scene/manifest.json')
+          repaired_manifest_path = Path('/tmp/manifest-repaired.json')
+
           image = Image.open(source_path)
           image.load()
           if image.mode != 'RGBA' or image.size != (1536, 1024):
@@ -64,9 +68,22 @@ jobs:
           check.load()
           if check.size != (2048, 1024) or check.mode != 'RGBA':
               raise SystemExit(f'Invalid repaired PNG: size={check.size}, mode={check.mode}')
+
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          celadon = manifest['assets']['jars']['celadon']
+          celadon['available'] = True
+          celadon['path'] = 'assets/art/game-scene/jars/celadon/layers.png'
+          celadon['size'] = [2048, 1024]
+          celadon['cellSize'] = [1024, 1024]
+          celadon['frames'] = 2
+          repaired_manifest = json.dumps(manifest, ensure_ascii=False, indent=2) + '\n'
+          manifest_path.write_text(repaired_manifest, encoding='utf-8')
+          repaired_manifest_path.write_text(repaired_manifest, encoding='utf-8')
+
           print(f'left alpha bbox={left.getchannel("A").getbbox()}')
           print(f'right alpha bbox={right.getchannel("A").getbbox()}')
           print(f'Repaired PNG: 2048x1024, RGBA, bytes={target_path.stat().st_size}')
+          print('Manifest celadon availability restored to true.')
           PY
 
       - name: Validate layered scene assets
@@ -77,6 +94,7 @@ jobs:
         run: |
           set -euo pipefail
           TARGET='assets/art/game-scene/jars/celadon/layers.png'
+          MANIFEST='assets/art/game-scene/manifest.json'
           WORKFLOW='.github/workflows/repair-celadon-layer-sheet.yml'
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -84,8 +102,9 @@ jobs:
           stage_repair() {
             mkdir -p "$(dirname "$TARGET")"
             cp /tmp/celadon-repaired.png "$TARGET"
+            cp /tmp/manifest-repaired.json "$MANIFEST"
             rm -f "$WORKFLOW"
-            git add "$TARGET"
+            git add "$TARGET" "$MANIFEST"
             git add -u -- "$WORKFLOW" || true
           }
 
