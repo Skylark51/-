@@ -38,7 +38,19 @@ jobs:
       - name: Layer architecture tests
         run: node --test tests/layered-scene.test.mjs
       - name: PNG and legacy-path validation
-        run: node scripts/validate-layered-scene.mjs
+        shell: bash
+        run: |
+          set +e
+          node scripts/validate-layered-scene.mjs > /tmp/layered-validation.out 2> /tmp/layered-validation.err
+          status=$?
+          cat /tmp/layered-validation.out
+          cat /tmp/layered-validation.err >&2
+          if [ "$status" -ne 0 ]; then
+            grep -E '^(AVAILABILITY|INVALID|FORBIDDEN|OBSOLETE)' /tmp/layered-validation.err | head -20 | while IFS= read -r line; do
+              echo "::error title=Layered scene validation::$line"
+            done
+            exit "$status"
+          fi
       - name: Install browser smoke-test runtime
         run: |
           npm init -y
