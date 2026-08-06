@@ -1,17 +1,15 @@
 import { GameStorage } from "./storage.js";
-import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical2";
-import { installLobbyHeroScene } from "./lobby-hero-scene.js?v=20260805-home-square4";
 
 const VALID_VIEWS = new Set(["home", "jars", "records"]);
 const viewNodes = [...document.querySelectorAll("[data-app-view]")];
 const controls = [...document.querySelectorAll("[data-view-target]")];
 const storage = new GameStorage();
-const bgm = mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ?? 0.5 });
+let bgm = { setVolume() {} };
 
 const MOBILE_UI_BREAKPOINT = 760;
-const MOBILE_UI_STYLESHEET = "assets/css/mobile-unified-shell.css?v=20260805-unified4";
-const MOBILE_FIXED_SHELL_STYLESHEET = "assets/css/mobile-fixed-shell.css?v=20260805-fixed-shell5";
-const MOBILE_SETTINGS_STYLESHEET = "assets/css/mobile-settings-dialog.css?v=20260804-settings1";
+const MOBILE_UI_STYLESHEET = "assets/css/mobile-unified-shell.css?v=20260806-lobby-router1";
+const MOBILE_FIXED_SHELL_STYLESHEET = "assets/css/mobile-fixed-shell.css?v=20260806-lobby-router1";
+const MOBILE_SETTINGS_STYLESHEET = "assets/css/mobile-settings-dialog.css?v=20260806-lobby-router1";
 const MOBILE_NAV_ICONS = [
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9 20v-7h6v7"/></svg>',
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5c0-1.7 2.2-3 5-3s5 1.3 5 3"/><path d="M6 6h12l-1 14H7L6 6Z"/><path d="M8 9h8"/><path d="M15 15c1.2.4 2 1.3 2 2.4"/></svg>',
@@ -37,11 +35,8 @@ function installMobileUi() {
   const media = matchMedia(`(max-width: ${MOBILE_UI_BREAKPOINT}px)`);
   const syncMobileFlag = () => {
     const forcedMobile = document.documentElement.dataset.deviceLayout === "mobile";
-    if (media.matches || forcedMobile) {
-      document.documentElement.dataset.mobileUi = "shadcn";
-    } else {
-      delete document.documentElement.dataset.mobileUi;
-    }
+    if (media.matches || forcedMobile) document.documentElement.dataset.mobileUi = "shadcn";
+    else delete document.documentElement.dataset.mobileUi;
   };
 
   syncMobileFlag();
@@ -73,13 +68,25 @@ function syncBeans() {
   if (node) node.textContent = value.toLocaleString("ko-KR");
 }
 
-function showView(nextView, { historyMode = "push", focus = true } = {}) {
+function updateUrl(view, historyMode) {
+  if (historyMode === "none") return;
+  const url = new URL(location.href);
+  url.searchParams.set("view", view);
+  url.hash = "";
+  const state = { view };
+  if (historyMode === "replace") history.replaceState(state, "", url);
+  else history.pushState(state, "", url);
+}
+
+export function setLobbyScreen(nextView, { historyMode = "push", focus = true } = {}) {
   const view = normalizedView(nextView);
+
   for (const node of viewNodes) {
     const active = node.dataset.appView === view;
     node.hidden = !active;
     node.setAttribute("aria-hidden", String(!active));
   }
+
   for (const control of controls) {
     const active = control.dataset.viewTarget === view;
     if (active) control.setAttribute("aria-current", "page");
@@ -87,37 +94,80 @@ function showView(nextView, { historyMode = "push", focus = true } = {}) {
   }
 
   document.documentElement.dataset.lobbyView = view;
-  const url = new URL(location.href);
-  url.searchParams.set("view", view);
-  url.hash = "";
-  if (historyMode === "replace") history.replaceState({ view }, "", url);
-  else if (historyMode === "push") history.pushState({ view }, "", url);
+  document.body.dataset.lobbyScreen = view;
+  updateUrl(view, historyMode);
 
   if (focus) {
     const activeView = viewNodes.find(node => node.dataset.appView === view);
-    activeView?.scrollIntoView({ block: "start", behavior: "auto" });
     const heading = activeView?.querySelector("h1,h2");
     if (heading) {
       heading.setAttribute("tabindex", "-1");
       heading.focus({ preventScroll: true });
     }
   }
+
+  dispatchEvent(new CustomEvent("lobby:view-change", { detail: { view } }));
+  return view;
 }
 
-installMobileUi();
-installLobbyHeroScene();
+function bindViewControls() {
+  for (const control of controls) {
+    control.addEventListener("click", event => {
+      const view = control.dataset.viewTarget;
+      if (!VALID_VIEWS.has(view)) return;
+      event.preventDefault();
+      setLobbyScreen(view);
+    });
+  }
+}
 
-for (const control of controls) {
-  control.addEventListener("click", event => {
-    const view = control.dataset.viewTarget;
-    if (!VALID_VIEWS.has(view)) return;
-    event.preventDefault();
-    showView(view);
+function installMainCtaFallback() {
+  const button = document.getElementById("mainCta");
+  if (!button) return;
+
+  button.addEventListener("click", () => {
+    const before = location.href;
+    queueMicrotask(() => {
+      if (location.href !== before) return;
+      const difficulty = ["easy", "normal", "hard"].includes(storage.data.settings?.difficulty)
+        ? storage.data.settings.difficulty
+        : "normal";
+      try {
+        sessionStorage.setItem("kongjuiya-training-selection", JSON.stringify({
+          trainingId: "atomic_number",
+          difficulty,
+          resume: false
+        }));
+      } catch {
+        // Query string remains a complete fallback when session storage is blocked.
+      }
+      location.assign("콩쥐야_줘때써.html?training=atomic_number");
+    });
   });
 }
 
+async function installOptionalEnhancements() {
+  try {
+    const { mountHistoricalBgm } = await import("./historical-bgm.js?v=20260806-lobby-router1");
+    bgm = mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ?? 0.5 });
+  } catch (error) {
+    console.warn("로비 배경음 초기화를 건너뜁니다.", error);
+  }
+
+  try {
+    const { installLobbyHeroScene } = await import("./lobby-hero-scene.js?v=20260806-lobby-router1");
+    installLobbyHeroScene();
+  } catch (error) {
+    console.warn("로비 배경 장식을 건너뜁니다.", error);
+  }
+}
+
+installMobileUi();
+bindViewControls();
+installMainCtaFallback();
+
 addEventListener("popstate", event => {
-  showView(event.state?.view || currentViewFromUrl(), { historyMode: "none", focus: false });
+  setLobbyScreen(event.state?.view || currentViewFromUrl(), { historyMode: "none", focus: false });
 });
 
 addEventListener("storage", event => {
@@ -135,5 +185,8 @@ document.getElementById("missionClaimButton")?.addEventListener("click", () => {
   });
 });
 
-showView(currentViewFromUrl(), { historyMode: "replace", focus: false });
+setLobbyScreen(currentViewFromUrl(), { historyMode: "replace", focus: false });
 syncBeans();
+document.documentElement.dataset.lobbyRouterReady = "true";
+globalThis.KongJuiYaLobby = Object.freeze({ setLobbyScreen });
+installOptionalEnhancements();
