@@ -62,10 +62,25 @@ jobs:
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/layered-scene-http.log 2>&1 &
           echo $! > /tmp/layered-scene-http.pid
       - name: Responsive browser smoke test
-        run: node scripts/smoke-layered-scene.mjs
-      - name: Upload server log on failure
-        if: failure() && hashFiles('/tmp/layered-scene-http.log') != ''
+        shell: bash
+        run: |
+          set +e
+          node scripts/smoke-layered-scene.mjs > /tmp/layered-smoke.out 2> /tmp/layered-smoke.err
+          status=$?
+          cat /tmp/layered-smoke.out
+          cat /tmp/layered-smoke.err >&2
+          if [ "$status" -ne 0 ]; then
+            message=$(tail -40 /tmp/layered-smoke.err | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g')
+            echo "::error title=Layered browser smoke::$message"
+            exit "$status"
+          fi
+      - name: Upload smoke diagnostics on failure
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: layered-scene-http-log
-          path: /tmp/layered-scene-http.log
+          name: layered-scene-diagnostics
+          path: |
+            /tmp/layered-scene-http.log
+            /tmp/layered-smoke.out
+            /tmp/layered-smoke.err
+          if-no-files-found: ignore
