@@ -1,0 +1,21 @@
+/*
+ * Runtime isolation for the layered PNG quiz scene.
+ * Legacy scene markup is retained temporarily for compatibility, but it must
+ * never be revived by older !important composition rules.
+ */
+.scene-animation-zone > .scene-background-layer[hidden],
+.scene-animation-zone > .scene-cinematic-shade[hidden],
+.scene-animation-zone > .quiz-scene-actors[hidden],
+.scene-animation-zone > .scene-leak-effect[hidden] {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+.scene-animation-zone > #layeredScene {
+  display: block !important;
+  z-index: 1;
+}
+
+.scene-animation-zone > #layeredScene > .scene-layer[hidden] {
+  display: none !important;
+}
