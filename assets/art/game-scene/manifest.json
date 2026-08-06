@@ -1,58 +1,371 @@
 {
   "version": "2026.08.06-layered-scene-1",
-  "logicalSize": {"width": 2048, "height": 1152},
-  "runtimePolicy": {"format": "png", "base64": false, "webpFallback": false, "canvasExport": false, "cssSkinFilters": false, "loadStrategy": "selected-cosmetics-first"},
-  "layers": {"scene-background": 0, "scene-kongjwi": 10, "scene-tool": 20, "scene-water-stream": 30, "scene-jar-back": 40, "scene-water-fill": 50, "scene-toad-skin": 60, "scene-toad-expression": 70, "scene-jar-front": 80, "scene-water-splash": 90, "scene-water-leak": 100, "scene-foreground": 110, "scene-ui": 120},
+  "logicalSize": {
+    "width": 2048,
+    "height": 1152
+  },
+  "runtimePolicy": {
+    "format": "png",
+    "base64": false,
+    "webpFallback": false,
+    "canvasExport": false,
+    "cssSkinFilters": false,
+    "loadStrategy": "selected-cosmetics-first"
+  },
+  "layers": {
+    "scene-background": 0,
+    "scene-kongjwi": 10,
+    "scene-tool": 20,
+    "scene-water-stream": 30,
+    "scene-jar-back": 40,
+    "scene-water-fill": 50,
+    "scene-toad-skin": 60,
+    "scene-toad-expression": 70,
+    "scene-jar-front": 80,
+    "scene-water-splash": 90,
+    "scene-water-leak": 100,
+    "scene-foreground": 110,
+    "scene-ui": 120
+  },
   "assets": {
-    "background": {"path": "assets/art/game-scene/background/courtyard-night-bg.png", "fallback": "assets/images/background/courtyard-night.png"},
-    "foreground": {"path": "assets/art/game-scene/background/courtyard-night-fg.png", "fallback": null},
+    "background": {
+      "path": "assets/art/game-scene/background/courtyard-night-bg.png",
+      "fallback": "assets/images/background/courtyard-night.png"
+    },
+    "foreground": {
+      "path": "assets/art/game-scene/background/courtyard-night-fg.png",
+      "fallback": null
+    },
     "kongjwi": {
-      "underlayer": {"sheet": "assets/art/game-scene/kongjwi/underlayer/pour-sheet.png", "fallback": "assets/art/kongjwi/kongjwi-underlayer-cutout.png"},
-      "classic-red": {"sheet": "assets/art/game-scene/kongjwi/classic-red/pour-sheet.png", "fallback": "assets/art/kongjwi/kongjwi-classic-red-cutout.png"},
-      "blue-scholar": {"sheet": "assets/art/game-scene/kongjwi/blue-scholar/pour-sheet.png", "fallback": "assets/art/kongjwi/kongjwi-blue-scholar-cutout.png"},
-      "field-work": {"sheet": "assets/art/game-scene/kongjwi/field-work/pour-sheet.png", "fallback": "assets/art/kongjwi/kongjwi-field-work-cutout.png"},
-      "ragged": {"sheet": "assets/art/game-scene/kongjwi/ragged/pour-sheet.png", "fallback": "assets/art/kongjwi/kongjwi-ragged-cutout.png"},
-      "night-court": {"sheet": "assets/art/game-scene/kongjwi/night-court/pour-sheet.png", "fallback": "assets/art/kongjwi/kongjwi-night-court-cutout.png"}
+      "underlayer": {
+        "sheet": "assets/art/game-scene/kongjwi/underlayer/pour-sheet.png",
+        "fallback": "assets/art/kongjwi/kongjwi-underlayer-cutout.png"
+      },
+      "classic-red": {
+        "sheet": "assets/art/game-scene/kongjwi/classic-red/pour-sheet.png",
+        "fallback": "assets/art/kongjwi/kongjwi-classic-red-cutout.png"
+      },
+      "blue-scholar": {
+        "sheet": "assets/art/game-scene/kongjwi/blue-scholar/pour-sheet.png",
+        "fallback": "assets/art/kongjwi/kongjwi-blue-scholar-cutout.png"
+      },
+      "field-work": {
+        "sheet": "assets/art/game-scene/kongjwi/field-work/pour-sheet.png",
+        "fallback": "assets/art/kongjwi/kongjwi-field-work-cutout.png"
+      },
+      "ragged": {
+        "sheet": "assets/art/game-scene/kongjwi/ragged/pour-sheet.png",
+        "fallback": "assets/art/kongjwi/kongjwi-ragged-cutout.png"
+      },
+      "night-court": {
+        "sheet": "assets/art/game-scene/kongjwi/night-court/pour-sheet.png",
+        "fallback": "assets/art/kongjwi/kongjwi-night-court-cutout.png"
+      }
     },
     "tools": {
-      "wood": {"sheet": "assets/art/game-scene/tools/wood/pour-sheet.png", "fallback": "assets/art/kongjwi-tools/wood.png"},
-      "brass": {"sheet": "assets/art/game-scene/tools/brass/pour-sheet.png", "fallback": "assets/art/kongjwi-tools/brass.png"},
-      "celadon": {"sheet": "assets/art/game-scene/tools/celadon/pour-sheet.png", "fallback": "assets/art/kongjwi-tools/celadon.png"},
-      "moon": {"sheet": "assets/art/game-scene/tools/moon/pour-sheet.png", "fallback": "assets/art/kongjwi-tools/moon.png"}
+      "wood": {
+        "sheet": "assets/art/game-scene/tools/wood/pour-sheet.png",
+        "fallback": "assets/art/kongjwi-tools/wood.png"
+      },
+      "brass": {
+        "sheet": "assets/art/game-scene/tools/brass/pour-sheet.png",
+        "fallback": "assets/art/kongjwi-tools/brass.png"
+      },
+      "celadon": {
+        "sheet": "assets/art/game-scene/tools/celadon/pour-sheet.png",
+        "fallback": "assets/art/kongjwi-tools/celadon.png"
+      },
+      "moon": {
+        "sheet": "assets/art/game-scene/tools/moon/pour-sheet.png",
+        "fallback": "assets/art/kongjwi-tools/moon.png"
+      }
     },
     "jars": {
-      "onggi": {"layers": "assets/art/game-scene/jars/onggi/layers.png", "fallback": "assets/art/jars/onggi/lid-open.png"},
-      "celadon": {"layers": "assets/art/game-scene/jars/celadon/layers.png", "fallback": "assets/art/jars/celadon/lid-open.png"},
-      "moon-white": {"layers": "assets/art/game-scene/jars/moon-white/layers.png", "fallback": "assets/art/jars/moon-white/lid-open.png"},
-      "night-lacquer": {"layers": "assets/art/game-scene/jars/night-lacquer/layers.png", "fallback": "assets/art/jars/night-lacquer/lid-open.png"}
+      "onggi": {
+        "layers": "assets/art/game-scene/jars/onggi/layers.png",
+        "fallback": "assets/art/jars/onggi/lid-open.png"
+      },
+      "celadon": {
+        "layers": "assets/art/game-scene/jars/celadon/layers.png",
+        "fallback": "assets/art/jars/celadon/lid-open.png"
+      },
+      "moon-white": {
+        "layers": "assets/art/game-scene/jars/moon-white/layers.png",
+        "fallback": "assets/art/jars/moon-white/lid-open.png"
+      },
+      "night-lacquer": {
+        "layers": "assets/art/game-scene/jars/night-lacquer/layers.png",
+        "fallback": "assets/art/jars/night-lacquer/lid-open.png"
+      }
     },
     "toads": {
-      "field-brown": {"skin": "assets/art/game-scene/toad/skins/field-brown.png"},
-      "gold-worker": {"skin": "assets/art/game-scene/toad/skins/gold-worker.png"},
-      "jade-guard": {"skin": "assets/art/game-scene/toad/skins/jade-guard.png"},
-      "star-night": {"skin": "assets/art/game-scene/toad/skins/star-night.png"}
+      "field-brown": {
+        "skin": "assets/art/game-scene/toad/skins/field-brown.png"
+      },
+      "gold-worker": {
+        "skin": "assets/art/game-scene/toad/skins/gold-worker.png"
+      },
+      "jade-guard": {
+        "skin": "assets/art/game-scene/toad/skins/jade-guard.png"
+      },
+      "star-night": {
+        "skin": "assets/art/game-scene/toad/skins/star-night.png"
+      }
     },
-    "toadFallback": {"default": "assets/images/toad-expressions/기본.png", "correct": "assets/images/toad-expressions/기쁨.png", "combo": "assets/images/toad-expressions/존나기쁨.png", "wrong": "assets/images/toad-expressions/슬픔.png", "angry": "assets/images/toad-expressions/화남.png", "rage": "assets/images/toad-expressions/화남.png", "surprised": "assets/images/toad-expressions/놀람.png", "confused": "assets/images/toad-expressions/심오함.png", "timeout": "assets/images/toad-expressions/눈물.png", "idle-blink": "assets/images/toad-expressions/지루함.png"},
-    "effects": {"toadExpression": "assets/art/game-scene/toad/expression-overlay-sheet.png", "waterStream": "assets/art/game-scene/effects/water-pour-sheet.png", "waterSplash": "assets/art/game-scene/effects/water-splash-sheet.png", "waterLeak": "assets/art/game-scene/effects/water-leak-sheet.png", "waterSurface": "assets/art/game-scene/effects/water-surface-tile.png"}
+    "toadFallback": {
+      "default": "assets/images/toad-expressions/기본.png",
+      "correct": "assets/images/toad-expressions/기쁨.png",
+      "combo": "assets/images/toad-expressions/존나기쁨.png",
+      "wrong": "assets/images/toad-expressions/슬픔.png",
+      "angry": "assets/images/toad-expressions/화남.png",
+      "rage": "assets/images/toad-expressions/화남.png",
+      "surprised": "assets/images/toad-expressions/놀람.png",
+      "confused": "assets/images/toad-expressions/심오함.png",
+      "timeout": "assets/images/toad-expressions/눈물.png",
+      "idle-blink": "assets/images/toad-expressions/지루함.png"
+    },
+    "effects": {
+      "toadExpression": "assets/art/game-scene/toad/expression-overlay-sheet.png",
+      "waterStream": "assets/art/game-scene/effects/water-pour-sheet.png",
+      "waterSplash": "assets/art/game-scene/effects/water-splash-sheet.png",
+      "waterLeak": "assets/art/game-scene/effects/water-leak-sheet.png",
+      "waterSurface": "assets/art/game-scene/effects/water-surface-tile.png"
+    }
   },
   "sprites": {
-    "kongjwi": {"cell": {"width": 512, "height": 768}, "frames": 8},
-    "tool": {"cell": {"width": 512, "height": 512}, "frames": 8},
-    "jar": {"cell": {"width": 1024, "height": 1024}, "frames": 2, "states": {"back": 0, "front": 1}},
-    "toadExpression": {"cell": {"width": 512, "height": 384}, "frames": 10},
-    "waterStream": {"cell": {"width": 512, "height": 512}, "frames": 8},
-    "waterSplash": {"cell": {"width": 512, "height": 512}, "frames": 6},
-    "waterLeak": {"cell": {"width": 512, "height": 512}, "frames": 8}
+    "kongjwi": {
+      "cell": {
+        "width": 512,
+        "height": 768
+      },
+      "frames": 8
+    },
+    "tool": {
+      "cell": {
+        "width": 512,
+        "height": 512
+      },
+      "frames": 8
+    },
+    "jar": {
+      "cell": {
+        "width": 1024,
+        "height": 1024
+      },
+      "frames": 2,
+      "states": {
+        "back": 0,
+        "front": 1
+      }
+    },
+    "toadExpression": {
+      "cell": {
+        "width": 512,
+        "height": 384
+      },
+      "frames": 10
+    },
+    "waterStream": {
+      "cell": {
+        "width": 512,
+        "height": 512
+      },
+      "frames": 8
+    },
+    "waterSplash": {
+      "cell": {
+        "width": 512,
+        "height": 512
+      },
+      "frames": 6
+    },
+    "waterLeak": {
+      "cell": {
+        "width": 512,
+        "height": 512
+      },
+      "frames": 8
+    }
   },
   "frames": {
-    "kongjwi": {"idle": 0, "idle-blink": 1, "prepare": 2, "lift": 3, "tilt": 4, "pour": 5, "return": 6, "wrong": 7},
-    "toadExpression": {"default": 0, "correct": 1, "combo": 2, "wrong": 3, "angry": 4, "rage": 5, "surprised": 6, "confused": 7, "timeout": 8, "idle-blink": 9},
-    "sequences": {"answerCorrect": {"kongjwi": [2,3,4,5,6], "tool": [2,3,4,5,6], "waterStream": [1,2,3,4,5,6,7], "waterSplash": [1,2,3,4,5]}, "answerWrong": {"kongjwi": [7]}, "idle": {"kongjwi": [0,1,0]}}
+    "kongjwi": {
+      "idle": 0,
+      "idle-blink": 1,
+      "prepare": 2,
+      "lift": 3,
+      "tilt": 4,
+      "pour": 5,
+      "return": 6,
+      "wrong": 7
+    },
+    "toadExpression": {
+      "default": 0,
+      "correct": 1,
+      "combo": 2,
+      "wrong": 3,
+      "angry": 4,
+      "rage": 5,
+      "surprised": 6,
+      "confused": 7,
+      "timeout": 8,
+      "idle-blink": 9
+    },
+    "sequences": {
+      "answerCorrect": {
+        "kongjwi": [
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "tool": [
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "waterStream": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "waterSplash": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "answerWrong": {
+        "kongjwi": [
+          7
+        ]
+      },
+      "idle": {
+        "kongjwi": [
+          0,
+          1,
+          0
+        ]
+      }
+    }
   },
-  "anchors": {"kongjwiFeet": {"x": 472, "y": 1016}, "toolHandle": {"x": 663, "y": 607}, "waterStart": {"x": 760, "y": 548}, "jarMouthCenter": {"x": 1465, "y": 430}, "jarHoleCenter": {"x": 1612, "y": 776}, "toadFace": {"x": 1612, "y": 719}},
-  "placements": {"kongjwi": {"x": 170, "y": 260, "width": 620, "height": 820}, "tool": {"x": 430, "y": 405, "width": 430, "height": 430}, "waterStream": {"x": 660, "y": 340, "width": 820, "height": 560}, "jar": {"x": 1080, "y": 175, "width": 900, "height": 900}, "waterFill": {"x": 1270, "y": 455, "width": 470, "height": 410}, "toad": {"x": 1450, "y": 630, "width": 330, "height": 248}, "waterSplash": {"x": 1210, "y": 245, "width": 512, "height": 512}, "waterLeak": {"x": 1435, "y": 600, "width": 512, "height": 512}},
-  "jarOffsets": {"onggi": {"x": 0, "y": 0, "scale": 1}, "celadon": {"x": 0, "y": 0, "scale": 1}, "moon-white": {"x": 0, "y": 0, "scale": 1}, "night-lacquer": {"x": 0, "y": 0, "scale": 1}},
-  "responsive": {"coordinateSystem": "shared-2048x1152", "mobile": {"safeInset": 24, "scaleMode": "contain"}, "desktop": {"safeInset": 0, "scaleMode": "contain"}},
+  "anchors": {
+    "kongjwiFeet": {
+      "x": 472,
+      "y": 1016
+    },
+    "toolHandle": {
+      "x": 663,
+      "y": 607
+    },
+    "waterStart": {
+      "x": 760,
+      "y": 548
+    },
+    "jarMouthCenter": {
+      "x": 1465,
+      "y": 430
+    },
+    "jarHoleCenter": {
+      "x": 1612,
+      "y": 776
+    },
+    "toadFace": {
+      "x": 1612,
+      "y": 719
+    }
+  },
+  "placements": {
+    "kongjwi": {
+      "x": 170,
+      "y": 260,
+      "width": 620,
+      "height": 820
+    },
+    "tool": {
+      "x": 430,
+      "y": 405,
+      "width": 430,
+      "height": 430
+    },
+    "waterStream": {
+      "x": 660,
+      "y": 340,
+      "width": 820,
+      "height": 560
+    },
+    "jar": {
+      "x": 1080,
+      "y": 175,
+      "width": 900,
+      "height": 900
+    },
+    "waterFill": {
+      "x": 1270,
+      "y": 455,
+      "width": 470,
+      "height": 410
+    },
+    "toad": {
+      "x": 1450,
+      "y": 630,
+      "width": 330,
+      "height": 248
+    },
+    "waterSplash": {
+      "x": 1210,
+      "y": 245,
+      "width": 512,
+      "height": 512
+    },
+    "waterLeak": {
+      "x": 1435,
+      "y": 600,
+      "width": 512,
+      "height": 512
+    }
+  },
+  "jarOffsets": {
+    "onggi": {
+      "x": 0,
+      "y": 0,
+      "scale": 1
+    },
+    "celadon": {
+      "x": 0,
+      "y": 0,
+      "scale": 1
+    },
+    "moon-white": {
+      "x": 0,
+      "y": 0,
+      "scale": 1
+    },
+    "night-lacquer": {
+      "x": 0,
+      "y": 0,
+      "scale": 1
+    }
+  },
+  "responsive": {
+    "coordinateSystem": "shared-2048x1152",
+    "mobile": {
+      "safeInset": 24,
+      "scaleMode": "contain"
+    },
+    "desktop": {
+      "safeInset": 0,
+      "scaleMode": "contain"
+    }
+  },
   "availability": {
     "assets/art/game-scene/background/courtyard-night-bg.png": false,
     "assets/art/game-scene/background/courtyard-night-fg.png": true,
@@ -67,7 +380,7 @@
     "assets/art/game-scene/tools/celadon/pour-sheet.png": true,
     "assets/art/game-scene/tools/moon/pour-sheet.png": true,
     "assets/art/game-scene/jars/onggi/layers.png": false,
-    "assets/art/game-scene/jars/celadon/layers.png": false,
+    "assets/art/game-scene/jars/celadon/layers.png": true,
     "assets/art/game-scene/jars/moon-white/layers.png": false,
     "assets/art/game-scene/jars/night-lacquer/layers.png": true,
     "assets/art/game-scene/toad/skins/field-brown.png": false,
