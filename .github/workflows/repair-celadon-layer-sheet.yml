@@ -26,72 +26,83 @@ jobs:
       - name: Install lossless PNG tooling
         run: python3 -m pip install --disable-pip-version-check pillow
 
-      - name: Reframe equal source panels without resampling
+      - name: Recover and reframe source panels without resampling
         shell: bash
         run: |
           set -euo pipefail
+          TARGET='assets/art/game-scene/jars/celadon/layers.png'
+          mkdir -p "$(dirname "$TARGET")"
+          git show 8305c2d85f42abbaf7683364a7e3576204dd6eb8:"$TARGET" > /tmp/celadon-source.png
           python3 - <<'PY'
           from pathlib import Path
           from PIL import Image, ImageChops
 
-          path = Path('assets/art/game-scene/jars/celadon/layers.png')
-          image = Image.open(path)
+          source_path = Path('/tmp/celadon-source.png')
+          target_path = Path('assets/art/game-scene/jars/celadon/layers.png')
+          repaired_path = Path('/tmp/celadon-repaired.png')
+          image = Image.open(source_path)
           image.load()
-          if image.mode != 'RGBA':
-              raise SystemExit(f'Expected RGBA, got {image.mode}')
-          if image.size == (2048, 1024):
-              print('Celadon layer sheet is already 2048x1024; no reframing needed.')
-          else:
-              if image.size != (1536, 1024):
-                  raise SystemExit(f'Unexpected source dimensions: {image.size[0]}x{image.size[1]}')
+          if image.mode != 'RGBA' or image.size != (1536, 1024):
+              raise SystemExit(f'Unexpected source: size={image.size}, mode={image.mode}')
 
-              # The authored source contains two equal 768x1024 panels. Preserve every
-              # source pixel and add transparent side gutters so each panel occupies a
-              # standards-compliant 1024x1024 sprite cell. No resize or resampling occurs.
-              left = image.crop((0, 0, 768, 1024))
-              right = image.crop((768, 0, 1536, 1024))
-              output = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-              output.alpha_composite(left, (128, 0))
-              output.alpha_composite(right, (1152, 0))
+          # The source has two equal 768x1024 authored panels. Every source pixel is
+          # retained verbatim inside a 1024x1024 cell; only transparent gutters are added.
+          left = image.crop((0, 0, 768, 1024))
+          right = image.crop((768, 0, 1536, 1024))
+          output = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
+          output.alpha_composite(left, (128, 0))
+          output.alpha_composite(right, (1152, 0))
 
-              if ImageChops.difference(output.crop((128, 0, 896, 1024)), left).getbbox() is not None:
-                  raise SystemExit('Left panel pixel-integrity check failed')
-              if ImageChops.difference(output.crop((1152, 0, 1920, 1024)), right).getbbox() is not None:
-                  raise SystemExit('Right panel pixel-integrity check failed')
+          if ImageChops.difference(output.crop((128, 0, 896, 1024)), left).getbbox() is not None:
+              raise SystemExit('Left panel pixel-integrity check failed')
+          if ImageChops.difference(output.crop((1152, 0, 1920, 1024)), right).getbbox() is not None:
+              raise SystemExit('Right panel pixel-integrity check failed')
 
-              print(f'left alpha bbox={left.getchannel("A").getbbox()}')
-              print(f'right alpha bbox={right.getchannel("A").getbbox()}')
-              output.save(path, format='PNG', compress_level=9, optimize=False)
-
-          check = Image.open(path)
+          output.save(repaired_path, format='PNG', compress_level=9, optimize=False)
+          target_path.write_bytes(repaired_path.read_bytes())
+          check = Image.open(target_path)
           check.load()
           if check.size != (2048, 1024) or check.mode != 'RGBA':
               raise SystemExit(f'Invalid repaired PNG: size={check.size}, mode={check.mode}')
-          print(f'Repaired PNG: {check.size[0]}x{check.size[1]}, mode={check.mode}, bytes={path.stat().st_size}')
+          print(f'left alpha bbox={left.getchannel("A").getbbox()}')
+          print(f'right alpha bbox={right.getchannel("A").getbbox()}')
+          print(f'Repaired PNG: 2048x1024, RGBA, bytes={target_path.stat().st_size}')
           PY
 
       - name: Validate layered scene assets
         run: node scripts/validate-layered-scene.mjs
 
-      - name: Commit repaired original PNG
+      - name: Commit and push repaired PNG
         shell: bash
         run: |
           set -euo pipefail
+          TARGET='assets/art/game-scene/jars/celadon/layers.png'
+          WORKFLOW='.github/workflows/repair-celadon-layer-sheet.yml'
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git rm .github/workflows/repair-celadon-layer-sheet.yml
-          git add assets/art/game-scene/jars/celadon/layers.png
-          if git diff --cached --quiet; then
-            echo 'No repair changes required.'
-            exit 0
-          fi
+
+          stage_repair() {
+            mkdir -p "$(dirname "$TARGET")"
+            cp /tmp/celadon-repaired.png "$TARGET"
+            rm -f "$WORKFLOW"
+            git add "$TARGET"
+            git add -u -- "$WORKFLOW" || true
+          }
+
+          stage_repair
           git commit -m 'fix: restore celadon jar layer sheet dimensions'
-          for attempt in 1 2 3; do
+          for attempt in 1 2 3 4 5; do
             if git push origin HEAD:main; then
               exit 0
             fi
             git fetch origin main
-            git rebase origin/main
+            git reset --hard origin/main
+            stage_repair
+            if git diff --cached --quiet; then
+              echo 'Repair is already present on main.'
+              exit 0
+            fi
+            git commit -m 'fix: restore celadon jar layer sheet dimensions'
             sleep 2
           done
           exit 1
