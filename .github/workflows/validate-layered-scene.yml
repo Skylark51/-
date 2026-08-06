@@ -1,5 +1,6 @@
 name: Validate layered quiz scene
 
+# Missing planned assets are reported for follow-up; authored files and availability mismatches fail the build.
 on:
   workflow_dispatch:
   push:
