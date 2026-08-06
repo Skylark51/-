@@ -38,8 +38,9 @@ jobs:
           from pathlib import Path
           from PIL import Image, ImageChops
 
+          target = 'assets/art/game-scene/jars/celadon/layers.png'
           source_path = Path('/tmp/celadon-source.png')
-          target_path = Path('assets/art/game-scene/jars/celadon/layers.png')
+          target_path = Path(target)
           repaired_path = Path('/tmp/celadon-repaired.png')
           manifest_path = Path('assets/art/game-scene/manifest.json')
           repaired_manifest_path = Path('/tmp/manifest-repaired.json')
@@ -70,12 +71,7 @@ jobs:
               raise SystemExit(f'Invalid repaired PNG: size={check.size}, mode={check.mode}')
 
           manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-          celadon = manifest['assets']['jars']['celadon']
-          celadon['available'] = True
-          celadon['path'] = 'assets/art/game-scene/jars/celadon/layers.png'
-          celadon['size'] = [2048, 1024]
-          celadon['cellSize'] = [1024, 1024]
-          celadon['frames'] = 2
+          manifest['availability'][target] = True
           repaired_manifest = json.dumps(manifest, ensure_ascii=False, indent=2) + '\n'
           manifest_path.write_text(repaired_manifest, encoding='utf-8')
           repaired_manifest_path.write_text(repaired_manifest, encoding='utf-8')
@@ -83,7 +79,7 @@ jobs:
           print(f'left alpha bbox={left.getchannel("A").getbbox()}')
           print(f'right alpha bbox={right.getchannel("A").getbbox()}')
           print(f'Repaired PNG: 2048x1024, RGBA, bytes={target_path.stat().st_size}')
-          print('Manifest celadon availability restored to true.')
+          print('Manifest availability map restored to true.')
           PY
 
       - name: Validate layered scene assets
