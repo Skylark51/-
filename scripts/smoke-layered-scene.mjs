@@ -19,6 +19,14 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
   const page = await context.newPage();
   const consoleErrors = [];
   const failedResponses = [];
+  const staleRequestInitiators = [];
+  const cdp = await context.newCDPSession(page);
+  await cdp.send("Network.enable");
+  cdp.on("Network.requestWillBeSent", event => {
+    if (/scene-photo|toad-expression-sprite\.webp/.test(event.request.url)) {
+      staleRequestInitiators.push({ url: event.request.url, initiator: event.initiator });
+    }
+  });
 
   page.on("console", message => {
     if (message.type() === "error") consoleErrors.push(message.text());
@@ -95,6 +103,9 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
     assert(animation === "none", `${name}: reduced motion animation is ${animation}`);
   }
 
+  if (staleRequestInitiators.length) {
+    console.error(`STALE_REQUEST_INITIATORS ${name}\n${JSON.stringify(staleRequestInitiators, null, 2)}`);
+  }
   assert(failedResponses.length === 0, `${name}: HTTP failures\n${failedResponses.join("\n")}`);
   assert(consoleErrors.length === 0, `${name}: console errors\n${consoleErrors.join("\n")}`);
   await context.close();
