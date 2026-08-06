@@ -17,51 +17,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download lossless source
+      - name: Download and verify original PNG
         run: |
           set -euo pipefail
-          curl --fail --location --retry 3 \
-            'https://drive.usercontent.google.com/download?id=1z5LvLj1VDW9pg_fNy9VeD74ZB6m_OjHY&export=download&confirm=t' \
-            --output /tmp/jade-guard-source
-          file /tmp/jade-guard-source
-          sha256sum /tmp/jade-guard-source
-
-      - name: Restore exact RGBA PNG
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y libjxl-tools
-          python -m pip install --disable-pip-version-check 'Pillow==12.2.0' 'zopfli==0.4.2'
-
-          if head -c 8 /tmp/jade-guard-source | grep -q $'\x89PNG\r\n\x1a\n'; then
-            cp /tmp/jade-guard-source /tmp/decoded.png
-          else
-            djxl /tmp/jade-guard-source /tmp/decoded.png
-          fi
-
+          python -m pip install --disable-pip-version-check 'gdown==5.2.0' 'Pillow==12.2.0'
+          mkdir -p assets/art/game-scene/toad/skins
+          gdown --fuzzy \
+            'https://drive.google.com/file/d/1z5LvLj1VDW9pg_fNy9VeD74ZB6m_OjHY/view?usp=drivesdk' \
+            --output assets/art/game-scene/toad/skins/jade-guard.png
+          file assets/art/game-scene/toad/skins/jade-guard.png
+          echo '9c59c52ceba078fd6bb248d2f264bc795eb4a73a8310bc3a2dd70b160cf57254  assets/art/game-scene/toad/skins/jade-guard.png' | sha256sum --check --strict
           python - <<'PY'
-          from hashlib import sha256
           from pathlib import Path
           from PIL import Image
-          import zopfli.png
-
-          source = Path('/tmp/decoded.png')
-          target = Path('assets/art/game-scene/toad/skins/jade-guard.png')
-          target.parent.mkdir(parents=True, exist_ok=True)
-
-          with Image.open(source) as opened:
-              image = opened.convert('RGBA')
+          path = Path('assets/art/game-scene/toad/skins/jade-guard.png')
+          with Image.open(path) as image:
+              assert image.format == 'PNG', image.format
               assert image.size == (1024, 768), image.size
               assert image.mode == 'RGBA', image.mode
               assert image.getextrema()[3] == (0, 255), image.getextrema()[3]
-              pre = Path('/tmp/jade-guard-pre.png')
-              image.save(pre, format='PNG', optimize=True, compress_level=9)
-
-          target.write_bytes(zopfli.png.optimize(pre.read_bytes()))
-          digest = sha256(target.read_bytes()).hexdigest()
-          assert target.stat().st_size == 1208719, target.stat().st_size
-          assert digest == '9c59c52ceba078fd6bb248d2f264bc795eb4a73a8310bc3a2dd70b160cf57254', digest
-          print(f'{target}: 1024x768 RGBA, {target.stat().st_size} bytes, sha256={digest}')
+          assert path.stat().st_size == 1208719, path.stat().st_size
+          print(f'{path}: 1024x768 RGBA, {path.stat().st_size} bytes')
           PY
 
       - name: Commit and push final asset
