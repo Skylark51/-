@@ -31,6 +31,12 @@
     height: var(--mobile-scene-height);
   }
 
+  /* The HUD already exposes water level. Removing the miniature duplicate
+   * from the scene leaves the actors unobstructed and reduces visual noise. */
+  .scene-animation-zone .scene-water-meter {
+    display: none !important;
+  }
+
   /* Keep the question readable without turning it into an opaque scene cover. */
   .scene-question-bubble {
     top: 7px;

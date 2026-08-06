@@ -1,0 +1,92 @@
+# 기존 두꺼비 PNG를 이용한 퀴즈 장면 합성 복구 프롬프트
+
+## 목적
+
+새 두꺼비·장독대 이미지를 생성하지 않는다. 저장소에 이미 업로드된 원본 RGBA PNG를 그대로 사용해 퀴즈 장면의 두꺼비가 깨진 조각처럼 보이는 문제와, 콩쥐·바가지·장독대가 배경 위에 떠 있는 것처럼 보이는 문제를 해결한다.
+
+## 확인된 원인
+
+1. 기본 상품인 `field-brown`은 존재하지 않는 `assets/art/game-scene/toad/skins/field-brown.png`를 요청한다.
+2. 기본 두꺼비가 누락되면 렌더러가 `assets/images/toad-expressions/*.png`의 완성형 두꺼비 PNG를 작은 표정 오버레이처럼 취급한다.
+3. 완성형 PNG 전체가 장독대 구멍용 작은 박스 안에 `contain`으로 들어가면서 얼굴·몸통 대신 이미지 일부만 노출된다.
+4. 황금·비취·별밤 스킨은 원본 PNG가 존재하지만 공통 표정 오버레이 시트가 없으므로, 없는 시트를 전제로 한 합성 구조를 사용하면 안 된다.
+5. 장독대 종류별 구멍 위치와 형태가 다른데도 공통 두꺼비 좌표와 크롭을 사용한다.
+6. 접지 그림자와 공통 야간 광량 보정이 없어 배우와 장독대가 배경에 붙인 스티커처럼 보인다.
+7. 모바일에서는 상단 HUD에 물 수치가 있는데 장면 내부에도 작은 물 게이지가 중복 표시된다.
+
+## 구현 지시
+
+### 자산 사용 원칙
+
+- 신규 그림을 만들지 않는다.
+- PNG 원본을 리사이징·재압축·Canvas 재출력하지 않는다.
+- Base64, WebP fallback, CSS 색상 필터 재착색을 사용하지 않는다.
+- 투명 배경과 원본 해상도를 유지한다.
+
+### 기본 두꺼비
+
+`field-brown`을 `full-expression` 자산으로 표시하되, 기존 렌더러의 검증된 `full-fallback` 상태 교체 경로를 사용해 상태마다 기존 완성형 PNG를 직접 교체한다.
+
+- 기본: `assets/images/toad-expressions/기본.png`
+- 정답: `assets/images/toad-expressions/기쁨.png`
+- 콤보: `assets/images/toad-expressions/존나기쁨.png`
+- 오답: `assets/images/toad-expressions/슬픔.png`
+- 화남·격노: `assets/images/toad-expressions/화남.png`
+- 놀람: `assets/images/toad-expressions/놀람.png`
+- 고민: `assets/images/toad-expressions/심오함.png`
+- 시간 초과: `assets/images/toad-expressions/눈물.png`
+- 대기 눈깜빡임: `assets/images/toad-expressions/지루함.png`
+
+완성형 PNG는 표정 오버레이가 아니다. 장독대 구멍용 ellipse viewport 안에서 확대·이동하여 얼굴과 상체가 식별되게 하고, 앞쪽 장독대 레이어 또는 구멍 테두리가 이미지 가장자리를 가리게 한다.
+
+### 특수 스킨
+
+다음 원본 PNG는 `skin-motion` 방식으로 사용한다.
+
+- `gold-worker.png`
+- `jade-guard.png`
+- `star-night.png`
+
+공통 표정 오버레이를 합성하지 않는다. 정답·오답·시간 초과·피버 상태는 PNG 교체가 아니라 transform 애니메이션으로 표현한다.
+
+### 장독대별 합성값
+
+`onggi`, `celadon`, `moon-white`, `night-lacquer` 각각에 다음 값을 별도로 둔다.
+
+- 두꺼비 viewport의 x/y/width/height
+- 완성형 표정 PNG 확대율과 x/y 오프셋
+- 특수 스킨 확대율과 x/y 오프셋
+- ellipse mask의 반경과 중심
+
+레이어 순서는 반드시 다음을 유지한다.
+
+`jar-back → water-fill → toad-skin/toad-expression → jar-front → leak/effects`
+
+### 장면 일체감
+
+- 콩쥐와 장독대 아래에 별도 접지 그림자를 추가한다.
+- 개별 스킨의 색을 변형하지 말고 장면 전체에만 매우 약한 공통 야간 ambient pass를 적용한다.
+- 콩쥐·바가지·장독대 크기와 위치를 2048×1152 공통 좌표에서 보정한다.
+- 모바일에서는 중복되는 장면 내부 물 게이지를 숨기고 HUD의 물 수치만 유지한다.
+
+## 수정 대상
+
+- `assets/art/game-scene/manifest.json`
+- 기존 `assets/js/scene-renderer.js`의 `full-fallback`·`skin-only` 분기를 유지하고 manifest/CSS가 올바른 자산을 공급하도록 구성
+- `assets/css/toad-composition-fix.css`
+- `assets/css/mobile-quiz-balance.css`
+- 캐시 무효화를 위한 HTML 버전 문자열과 명시적 런타임 CSS 링크
+- 레이어 검증 스크립트 및 회귀 테스트
+
+## 완료 조건
+
+1. 기본 두꺼비가 더 이상 존재하지 않는 `field-brown.png`를 요청하지 않는다.
+2. 기본 두꺼비의 얼굴과 상체가 장독대 구멍 안에서 즉시 식별된다.
+3. 상태 변경 시 기존 고화질 표정 PNG가 정확히 교체된다.
+4. 특수 스킨은 원본 PNG를 유지하면서 상태별 움직임을 보인다.
+5. 네 장독대 모두 각자의 합성 좌표를 사용한다.
+6. 두꺼비가 장독대 위에 붙은 스티커가 아니라 구멍 안쪽에 들어간 것처럼 보인다.
+7. 배우와 장독대가 바닥에 접지되어 보인다.
+8. 모바일 물 정보가 중복 표시되지 않는다.
+9. 기존 구매·장착·저장 형식과 정답 입력 로직은 변경하지 않는다.
+10. 정적 테스트, PNG 검증, 브라우저 smoke test가 통과한다.

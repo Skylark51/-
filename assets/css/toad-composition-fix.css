@@ -1,0 +1,218 @@
+/*
+ * Existing authored toad PNG composition.
+ * No source PNG is resized, recolored or re-encoded. This layer only calibrates
+ * complete expression art and premium skin art inside each jar opening.
+ */
+
+.scene-layer-stack {
+  --toad-image-scale: 1;
+  --toad-image-x: 0%;
+  --toad-image-y: 0%;
+  --toad-image-origin-y: 54%;
+  --toad-mask-rx: 48%;
+  --toad-mask-ry: 45%;
+  --toad-mask-cx: 50%;
+  --toad-mask-cy: 51%;
+}
+
+/* A restrained whole-scene grade unifies the night lighting without changing a skin. */
+.scene-layer-stack::after {
+  content: "";
+  position: absolute;
+  z-index: 115;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 64% 70%, rgba(31, 18, 7, 0.05), transparent 44%),
+    linear-gradient(180deg, rgba(3, 9, 18, 0.08), transparent 38%, rgba(8, 5, 2, 0.11));
+  mix-blend-mode: multiply;
+}
+
+/* Ground the authored cutouts on the courtyard instead of letting them float. */
+.scene-kongjwi::before,
+.scene-jar-back::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 15%;
+  right: 15%;
+  bottom: 3%;
+  height: 8%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.46), rgba(0, 0, 0, 0) 72%);
+  transform: scaleY(.62);
+}
+
+.scene-jar-back::before {
+  left: 18%;
+  right: 18%;
+  bottom: 4%;
+  height: 10%;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.52), rgba(0, 0, 0, 0) 73%);
+}
+
+/*
+ * The default brown toad uses complete state PNGs already in the repository.
+ * Premium skins use their uploaded PNG and receive transform-only reactions.
+ */
+.scene-layer-stack[data-toad-mode="full-fallback"] {
+  --toad-image-scale: 2.15;
+  --toad-image-y: 13%;
+  --toad-image-origin-y: 48%;
+}
+
+.scene-layer-stack[data-toad-mode="skin-only"] {
+  --toad-image-scale: 1.16;
+  --toad-image-y: 3%;
+  --toad-image-origin-y: 58%;
+}
+
+/* Jar-specific hole calibration overrides the shared inline placement box. */
+#ui-gameApp[data-jar-skin="celadon"] .scene-toad-skin,
+#ui-gameApp[data-jar-skin="celadon"] .scene-toad-expression,
+#ui-gameApp[data-jar-skin="night-lacquer"] .scene-toad-skin,
+#ui-gameApp[data-jar-skin="night-lacquer"] .scene-toad-expression {
+  --scene-x: 68.84765625% !important;
+  --scene-y: 54.25347222% !important;
+  --scene-width: 18.06640625% !important;
+  --scene-height: 25.17361111% !important;
+}
+
+#ui-gameApp[data-jar-skin="moon-white"] .scene-toad-skin,
+#ui-gameApp[data-jar-skin="moon-white"] .scene-toad-expression {
+  --scene-x: 69.23828125% !important;
+  --scene-y: 54.51388889% !important;
+  --scene-width: 17.3828125% !important;
+  --scene-height: 24.13194444% !important;
+}
+
+#ui-gameApp[data-jar-skin="celadon"] .scene-layer-stack[data-toad-mode="full-fallback"],
+#ui-gameApp[data-jar-skin="night-lacquer"] .scene-layer-stack[data-toad-mode="full-fallback"] {
+  --toad-image-scale: 2.22;
+  --toad-image-y: 14%;
+  --toad-mask-rx: 48%;
+  --toad-mask-ry: 45%;
+}
+
+#ui-gameApp[data-jar-skin="celadon"] .scene-layer-stack[data-toad-mode="skin-only"],
+#ui-gameApp[data-jar-skin="night-lacquer"] .scene-layer-stack[data-toad-mode="skin-only"] {
+  --toad-image-scale: 1.18;
+}
+
+#ui-gameApp[data-jar-skin="moon-white"] .scene-layer-stack[data-toad-mode="full-fallback"] {
+  --toad-image-scale: 2.18;
+}
+
+/* The jar-front layer sits above this ellipse and hides the character edge. */
+.scene-toad-skin,
+.scene-toad-expression {
+  overflow: hidden;
+  border-radius: 50%;
+  clip-path: ellipse(
+    var(--toad-mask-rx) var(--toad-mask-ry)
+    at var(--toad-mask-cx) var(--toad-mask-cy)
+  );
+  transform-origin: center 76%;
+  background:
+    radial-gradient(ellipse at 50% 58%, rgba(26, 15, 8, 0.78), rgba(5, 4, 3, 0.94) 72%);
+}
+
+.scene-toad-skin::before,
+.scene-toad-expression::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 8px 14px rgba(0, 0, 0, 0.58),
+    inset 0 -4px 8px rgba(181, 121, 58, 0.12);
+}
+
+.scene-toad-skin::after,
+.scene-toad-expression::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 2%;
+  border: 1px solid rgba(35, 20, 10, 0.72);
+  border-radius: inherit;
+  box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.34);
+}
+
+.scene-toad-skin .scene-layer-image,
+.scene-toad-expression .scene-layer-image {
+  object-position: center center;
+  transform:
+    translate(var(--toad-image-x), var(--toad-image-y))
+    scale(var(--toad-image-scale));
+  transform-origin: 50% var(--toad-image-origin-y);
+}
+
+/* State changes remain visible even when a premium skin has no expression sheet. */
+.scene-layer-stack[data-scene-state="correct"] .scene-toad-skin,
+.scene-layer-stack[data-scene-state="correct"] .scene-toad-expression {
+  animation: existing-toad-correct 620ms cubic-bezier(.2,.75,.25,1) both !important;
+}
+
+.scene-layer-stack[data-scene-state="wrong"] .scene-toad-skin,
+.scene-layer-stack[data-scene-state="wrong"] .scene-toad-expression,
+.scene-layer-stack[data-scene-state="critical"] .scene-toad-skin,
+.scene-layer-stack[data-scene-state="critical"] .scene-toad-expression {
+  animation: existing-toad-shake 460ms ease-in-out both !important;
+}
+
+.scene-layer-stack[data-scene-state="timeout"] .scene-toad-skin,
+.scene-layer-stack[data-scene-state="timeout"] .scene-toad-expression,
+.scene-layer-stack[data-scene-state="over"] .scene-toad-skin,
+.scene-layer-stack[data-scene-state="over"] .scene-toad-expression {
+  animation: existing-toad-droop 720ms ease-out both !important;
+}
+
+.scene-layer-stack[data-scene-state="fever"] .scene-toad-skin,
+.scene-layer-stack[data-scene-state="fever"] .scene-toad-expression,
+.scene-layer-stack[data-scene-state="clear"] .scene-toad-skin,
+.scene-layer-stack[data-scene-state="clear"] .scene-toad-expression {
+  animation: existing-toad-cheer 820ms ease-in-out infinite alternate !important;
+}
+
+@keyframes existing-toad-correct {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  42% { transform: translate3d(0, -3.6%, 0) scale(1.035, .98); }
+  72% { transform: translate3d(0, .8%, 0) scale(.99, 1.015); }
+}
+
+@keyframes existing-toad-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2.2%); }
+  55% { transform: translateX(2.2%); }
+  78% { transform: translateX(-.8%); }
+}
+
+@keyframes existing-toad-droop {
+  0% { transform: translateY(0) scaleY(1); }
+  100% { transform: translateY(4.2%) scaleY(.96); }
+}
+
+@keyframes existing-toad-cheer {
+  to { transform: translateY(-2.8%) scale(1.035); }
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  .scene-kongjwi::before,
+  .scene-jar-back::before {
+    opacity: .9;
+  }
+}
+
+.reduce-motion .scene-toad-skin,
+.reduce-motion .scene-toad-expression {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-toad-skin,
+  .scene-toad-expression {
+    animation: none !important;
+  }
+}

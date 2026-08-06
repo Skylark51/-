@@ -12,13 +12,19 @@ const expected = [
   ...Object.entries(manifest.assets.kongjwi).map(([name, value]) => [`kongjwi:${name}`, value.sheet, 4096, 768]),
   ...Object.entries(manifest.assets.tools).map(([name, value]) => [`tool:${name}`, value.sheet, 4096, 512]),
   ...Object.entries(manifest.assets.jars).map(([name, value]) => [`jar:${name}`, value.layers, 2048, 1024]),
-  ...Object.entries(manifest.assets.toads).map(([name, value]) => [`toad:${name}`, value.skin, 1024, 768]),
-  ["toad-expression", manifest.assets.effects.toadExpression, 5120, 384],
+  ...Object.entries(manifest.assets.toads)
+    .filter(([, value]) => value.mode === "skin-motion")
+    .map(([name, value]) => [`toad-skin:${name}`, value.skin, 1024, 768]),
   ["water-stream", manifest.assets.effects.waterStream, 4096, 512],
   ["water-splash", manifest.assets.effects.waterSplash, 3072, 512],
   ["water-leak", manifest.assets.effects.waterLeak, 4096, 512],
   ["water-surface", manifest.assets.effects.waterSurface, 1024, 256]
 ];
+
+const expressionEntries = [...new Map(
+  Object.entries(manifest.assets.toadFallback || {})
+    .map(([state, pathname]) => [pathname, [`toad-expression:${state}`, pathname]])
+).values()];
 
 function readPng(pathname) {
   const buffer = fs.readFileSync(pathname);
@@ -51,6 +57,36 @@ for (const [label, relative, width, height] of expected) {
   }
 }
 
+let expressionCanvas = null;
+for (const [label, relative] of expressionEntries) {
+  const absolute = path.join(root, relative);
+  const exists = fs.existsSync(absolute);
+  if (manifest.availability[relative] !== exists) {
+    failures += 1;
+    console.error(`AVAILABILITY MISMATCH ${label}: manifest=${manifest.availability[relative]} disk=${exists}`);
+  }
+  if (!exists) { missing += 1; console.warn(`MISSING ${label}: ${relative}`); continue; }
+  try {
+    const png = readPng(absolute);
+    if (!expressionCanvas) expressionCanvas = { width: png.width, height: png.height };
+    const sameCanvas = png.width === expressionCanvas.width && png.height === expressionCanvas.height;
+    const valid = png.width >= 512 && png.height >= 384 && sameCanvas && png.colorType === 6 && png.bitDepth >= 8;
+    console.log(`${valid ? "OK" : "INVALID"} ${label}: ${png.width}x${png.height}, bit=${png.bitDepth}, colorType=${png.colorType}, bytes=${png.size}`);
+    if (!valid) failures += 1;
+  } catch (error) {
+    failures += 1;
+    console.error(`INVALID ${label}: ${relative}: ${error.message}`);
+  }
+}
+
+for (const jarKey of Object.keys(manifest.assets.jars)) {
+  const composition = manifest.jarCompositions?.[jarKey];
+  if (!composition?.toad || !composition?.fullExpression || !composition?.skinMotion || !composition?.mask) {
+    failures += 1;
+    console.error(`INVALID jar composition: ${jarKey}`);
+  }
+}
+
 const runtimeFiles = [
   "콩쥐야_줘때써.html",
   "assets/js/scene-renderer.js",
@@ -59,6 +95,7 @@ const runtimeFiles = [
   "assets/js/quiz-shell-controls.js",
   "assets/js/quiz-scene-actors.js",
   "assets/css/game-asset-animation.css",
+  "assets/css/toad-composition-fix.css",
   "assets/css/quiz-scene-actors.css"
 ];
 const forbidden = [
@@ -91,5 +128,6 @@ if (fs.existsSync(photoDir) && fs.readdirSync(photoDir).some(name => /^jar-photo
   console.error("OBSOLETE FILES assets/js/scene-photo/jar-photo-*.js");
 }
 
-console.log(`Layered scene validation: ${expected.length - missing}/${expected.length} authored PNG files present; ${failures} invalid checks.`);
+const total = expected.length + expressionEntries.length;
+console.log(`Layered scene validation: ${total - missing}/${total} authored PNG files present; ${failures} invalid checks.`);
 if (failures || (strictAssets && missing)) process.exitCode = 1;

@@ -14,11 +14,15 @@ on:
       - "assets/js/quiz-shell-controls.js"
       - "assets/js/quiz-scene-actors.js"
       - "assets/css/game-asset-animation.css"
+      - "assets/css/toad-composition-fix.css"
+      - "assets/css/mobile-quiz-balance.css"
       - "assets/css/quiz-scene-actors.css"
       - "assets/css/layered-scene-runtime.css"
       - "scripts/validate-layered-scene.mjs"
       - "scripts/smoke-layered-scene.mjs"
       - "tests/layered-scene.test.mjs"
+      - "tests/mobile-scene-regression.test.mjs"
+      - "tests/toad-composition-regression.test.mjs"
       - ".github/workflows/validate-layered-scene.yml"
 
 permissions:
@@ -37,8 +41,14 @@ jobs:
         run: |
           node --check assets/js/scene-renderer.js
           node --check assets/js/scene-state-machine.js
+          node --check assets/js/game-cosmetics-entry.js
+          node --check assets/js/quiz-scene-actors.js
       - name: Layer architecture tests
-        run: node --test tests/layered-scene.test.mjs
+        run: >-
+          node --test
+          tests/layered-scene.test.mjs
+          tests/mobile-scene-regression.test.mjs
+          tests/toad-composition-regression.test.mjs
       - name: PNG and legacy-path validation
         shell: bash
         run: |
