@@ -8,6 +8,7 @@ import { mountSceneRenderer } from "./scene-renderer.js?v=20260806-layered-scene
  */
 export function mountGameScene(root, { storage = null } = {}) {
   if (!root) throw new Error("게임 장면을 연결할 루트가 없습니다.");
+  if (root.__mountedGameScene) return root.__mountedGameScene;
 
   const gameStorage = storage || new GameStorage();
   const cosmetics = new CosmeticSystem(gameStorage);
@@ -32,7 +33,7 @@ export function mountGameScene(root, { storage = null } = {}) {
   addEventListener("cosmetic:equipped", applyLatestCosmetics);
   addEventListener("storage", handleStorage);
 
-  return {
+  const mounted = {
     renderer,
     cosmetics,
     ready: renderer.ready,
@@ -41,6 +42,10 @@ export function mountGameScene(root, { storage = null } = {}) {
       removeEventListener("cosmetic:equipped", applyLatestCosmetics);
       removeEventListener("storage", handleStorage);
       renderer.destroy();
+      root.__mountedGameScene = null;
     }
   };
+
+  root.__mountedGameScene = mounted;
+  return mounted;
 }
