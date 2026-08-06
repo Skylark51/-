@@ -1,16 +1,18 @@
 /*
- * Final mobile quiz balance.
- * Keeps the keypad within roughly 45–50% of the portrait viewport while
- * preserving readable question text and non-overlapping touch targets.
+ * Mobile quiz visibility balance.
+ * The animation is the primary play surface: reserve enough vertical room for
+ * Kongjwi, the equipped tool, the complete jar and the toad before allocating
+ * the remaining viewport to feedback and the keypad.
  */
 
 @media (max-width: 900px), (pointer: coarse) {
   :root {
-    --mobile-scene-height: clamp(248px, 34dvh, 300px);
+    --mobile-scene-height: clamp(284px, 42dvh, 348px);
   }
 
   .jar-game-layout {
     grid-template-rows: 40px var(--mobile-scene-height) minmax(0, 1fr);
+    gap: 5px;
     padding-left: 5px;
     padding-right: 5px;
   }
@@ -23,101 +25,72 @@
     padding: 4px 7px;
   }
 
+  .scene-panel,
+  .game-stage {
+    min-height: var(--mobile-scene-height);
+    height: var(--mobile-scene-height);
+  }
+
+  /* Keep the question readable without turning it into an opaque scene cover. */
   .scene-question-bubble {
-    top: 34px;
-    left: 5px;
-    width: calc(100% - 10px);
-    padding: 8px 11px 10px;
+    top: 7px;
+    left: 6px;
+    width: calc(100% - 12px);
+    min-height: 76px;
+    padding: 6px 10px 8px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(22, 22, 19, 0.76), rgba(5, 10, 14, 0.68));
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.27), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    backdrop-filter: blur(8px) saturate(1.03);
+    -webkit-backdrop-filter: blur(8px) saturate(1.03);
   }
 
-  .scene-question-bubble h1,
-  .jar-game-shell[data-question-length="short"] .scene-question-bubble h1 {
-    min-height: 52px;
-    font-size: clamp(22px, 6.1vw, 31px) !important;
+  .scene-question-bubble::after {
+    display: none;
   }
 
-  .jar-game-shell[data-question-length="medium"] .scene-question-bubble h1 {
-    font-size: clamp(19px, 5.2vw, 26px) !important;
-  }
-
-  .jar-game-shell[data-question-length="long"] .scene-question-bubble h1 {
-    max-height: 3.7em;
-    font-size: clamp(15px, 4.2vw, 21px) !important;
-    line-height: 1.24;
-  }
-
-  .question-answer-card,
-  .question-panel:not(.has-mobile-keypad) .question-answer-card {
-    padding-top: 3px;
-  }
-
-  .question-answer-card .feedback {
-    min-height: 22px;
-    margin-inline: 6px;
-    padding: 3px 7px;
-    font-size: 8px;
-    line-height: 15px;
-  }
-
-  .mobile-keypad[data-input-mode="integer_keypad"],
-  .mobile-keypad[data-input-mode="numeric_keypad"],
-  .mobile-keypad[data-input-mode="signed_numeric_keypad"],
-  .mobile-keypad[data-input-mode="coefficient_keypad"] {
-    grid-template-rows: 36px minmax(0, 1fr) !important;
-  }
-
-  .keypad-display-row,
-  .keypad-display {
-    height: 36px;
-  }
-
-  .mobile-keypad button,
-  .keypad-actions button {
-    min-height: clamp(38px, 5.2dvh, 46px) !important;
-  }
-
-  .scene-animation-zone .toad-bubble {
-    right: auto !important;
-    left: 4% !important;
-    bottom: 18% !important;
-    max-width: min(64%, 280px) !important;
-    padding: 8px 10px;
-    font-size: clamp(9px, 2.5vw, 11px);
-    line-height: 1.35;
-  }
-}
-
-@media (max-width: 900px) and (max-height: 700px),
-       (pointer: coarse) and (max-height: 700px) {
-  :root {
-    --mobile-scene-height: clamp(198px, 32dvh, 224px);
-  }
-
-  .jar-game-layout {
-    grid-template-rows: 36px var(--mobile-scene-height) minmax(0, 1fr);
-  }
-
-  .game-hud {
-    height: 36px;
-  }
-
-  .scene-question-bubble {
-    top: 30px;
-    min-height: 82px;
+  .scene-question-topline {
+    margin-bottom: 3px;
   }
 
   .scene-question-bubble h1,
   .jar-game-shell[data-question-length="short"] .scene-question-bubble h1 {
     min-height: 44px;
-    font-size: clamp(19px, 5.5vw, 26px) !important;
+    max-height: 2.35em;
+    font-size: clamp(21px, 5.8vw, 30px) !important;
+    line-height: 1.16;
   }
 
   .jar-game-shell[data-question-length="medium"] .scene-question-bubble h1 {
-    font-size: clamp(17px, 4.8vw, 23px) !important;
+    font-size: clamp(18px, 4.9vw, 25px) !important;
   }
 
   .jar-game-shell[data-question-length="long"] .scene-question-bubble h1 {
-    font-size: clamp(14px, 3.9vw, 19px) !important;
+    max-height: 3.45em;
+    font-size: clamp(14px, 3.9vw, 20px) !important;
+    line-height: 1.2;
+  }
+
+  .scene-question-bubble .timer-track {
+    margin-top: 3px;
+  }
+
+  .question-answer-card,
+  .question-panel:not(.has-mobile-keypad) .question-answer-card {
+    padding-top: 2px;
+  }
+
+  .question-answer-card .feedback {
+    min-height: 20px;
+    margin-inline: 6px;
+    padding: 2px 7px;
+    font-size: 8px;
+    line-height: 14px;
+  }
+
+  .mobile-keypad {
+    gap: 4px;
+    padding: 4px;
   }
 
   .mobile-keypad[data-input-mode="integer_keypad"],
@@ -134,39 +107,133 @@
 
   .mobile-keypad button,
   .keypad-actions button {
-    min-height: 36px !important;
+    min-height: clamp(40px, 5.4dvh, 48px) !important;
+  }
+
+  .scene-animation-zone .toad-bubble {
+    right: auto !important;
+    left: 4% !important;
+    bottom: 15% !important;
+    max-width: min(60%, 270px) !important;
+    padding: 7px 9px;
+    font-size: clamp(9px, 2.5vw, 11px);
+    line-height: 1.32;
   }
 }
 
-@media (max-width: 900px) and (max-height: 590px),
-       (pointer: coarse) and (max-height: 590px) {
+/* The supplied 384 × 668 capture lands here. Do not collapse the scene. */
+@media (max-width: 900px) and (max-height: 700px),
+       (pointer: coarse) and (max-height: 700px) {
   :root {
-    --mobile-scene-height: clamp(168px, 30dvh, 178px);
+    --mobile-scene-height: clamp(268px, 43dvh, 296px);
   }
 
   .jar-game-layout {
-    grid-template-rows: 30px var(--mobile-scene-height) minmax(0, 1fr);
+    grid-template-rows: 34px var(--mobile-scene-height) minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .game-hud {
+    height: 34px;
+  }
+
+  .hud-card {
+    padding-block: 2px;
   }
 
   .scene-question-bubble {
-    top: 27px;
+    top: 5px;
+    min-height: 70px;
+    padding: 5px 9px 6px;
+  }
+
+  .scene-question-bubble h1,
+  .jar-game-shell[data-question-length="short"] .scene-question-bubble h1 {
+    min-height: 40px;
+    font-size: clamp(19px, 5.25vw, 26px) !important;
+  }
+
+  .jar-game-shell[data-question-length="medium"] .scene-question-bubble h1 {
+    font-size: clamp(17px, 4.55vw, 22px) !important;
+  }
+
+  .jar-game-shell[data-question-length="long"] .scene-question-bubble h1 {
+    font-size: clamp(13px, 3.7vw, 18px) !important;
   }
 
   .mobile-keypad[data-input-mode="integer_keypad"],
   .mobile-keypad[data-input-mode="numeric_keypad"],
   .mobile-keypad[data-input-mode="signed_numeric_keypad"],
   .mobile-keypad[data-input-mode="coefficient_keypad"] {
-    grid-template-rows: 29px minmax(0, 1fr) !important;
+    grid-template-rows: 30px minmax(0, 1fr) !important;
   }
 
   .keypad-display-row,
   .keypad-display {
-    height: 29px;
+    height: 30px;
   }
 
   .mobile-keypad button,
   .keypad-actions button {
-    min-height: 36px !important;
+    min-height: 38px !important;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 590px),
+       (pointer: coarse) and (max-height: 590px) {
+  :root {
+    --mobile-scene-height: clamp(220px, 40dvh, 244px);
+  }
+
+  .jar-game-layout {
+    grid-template-rows: 30px var(--mobile-scene-height) minmax(0, 1fr);
+    gap: 3px;
+  }
+
+  .scene-question-bubble {
+    top: 4px;
+    min-height: 62px;
+    padding: 4px 8px 5px;
+  }
+
+  .scene-question-topline {
+    margin-bottom: 1px;
+  }
+
+  .scene-question-bubble h1,
+  .jar-game-shell[data-question-length="short"] .scene-question-bubble h1 {
+    min-height: 34px;
+    font-size: clamp(16px, 4.55vw, 21px) !important;
+  }
+
+  .jar-game-shell[data-question-length="medium"] .scene-question-bubble h1 {
+    font-size: clamp(14px, 4vw, 19px) !important;
+  }
+
+  .jar-game-shell[data-question-length="long"] .scene-question-bubble h1 {
+    max-height: 2.65em;
+    font-size: clamp(12px, 3.35vw, 16px) !important;
+  }
+
+  .scene-question-bubble .timer-track {
+    margin-top: 1px;
+  }
+
+  .mobile-keypad[data-input-mode="integer_keypad"],
+  .mobile-keypad[data-input-mode="numeric_keypad"],
+  .mobile-keypad[data-input-mode="signed_numeric_keypad"],
+  .mobile-keypad[data-input-mode="coefficient_keypad"] {
+    grid-template-rows: 27px minmax(0, 1fr) !important;
+  }
+
+  .keypad-display-row,
+  .keypad-display {
+    height: 27px;
+  }
+
+  .mobile-keypad button,
+  .keypad-actions button {
+    min-height: 34px !important;
     font-size: 11px;
   }
 
@@ -184,6 +251,12 @@
   .jar-game-layout {
     grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
     grid-template-rows: 34px minmax(0, 1fr);
+  }
+
+  .scene-panel,
+  .game-stage {
+    min-height: 0;
+    height: 100%;
   }
 
   .mobile-keypad button,

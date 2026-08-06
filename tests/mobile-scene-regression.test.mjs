@@ -43,3 +43,16 @@ test("static fallback actors use explicit shared-coordinate placements", () => {
   assert.match(css, /layered-static-tool-pour/);
   assert.match(css, /layered-fallback-water/);
 });
+
+test("portrait quiz reserves a visible animation stage before sizing the keypad", () => {
+  const css = read("assets/css/mobile-quiz-balance.css");
+
+  assert.match(css, /--mobile-scene-height:\s*clamp\(284px,\s*42dvh,\s*348px\)/);
+  assert.match(css, /max-height:\s*700px[\s\S]*--mobile-scene-height:\s*clamp\(268px,\s*43dvh,\s*296px\)/);
+  assert.match(css, /max-height:\s*590px[\s\S]*--mobile-scene-height:\s*clamp\(220px,\s*40dvh,\s*244px\)/);
+  assert.match(css, /\.scene-panel,\s*\n\s*\.game-stage\s*\{[^}]*height:\s*var\(--mobile-scene-height\)/s);
+  assert.match(css, /\.scene-question-bubble\s*\{[^}]*top:\s*7px;[^}]*min-height:\s*76px;/s);
+  assert.match(css, /\.scene-question-bubble::after\s*\{\s*display:\s*none;/s);
+  assert.match(css, /\.mobile-keypad\s*\{[^}]*gap:\s*4px;[^}]*padding:\s*4px;/s);
+  assert.match(css, /max-height:\s*700px[\s\S]*\.mobile-keypad button,[\s\S]*min-height:\s*38px\s*!important/);
+});
