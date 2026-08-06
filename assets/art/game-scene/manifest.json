@@ -355,6 +355,112 @@
       "height": 280
     }
   },
+  "jarCompositions": {
+    "onggi": {
+      "toad": {
+        "x": 1415,
+        "y": 630,
+        "width": 360,
+        "height": 280
+      },
+      "fullExpression": {
+        "scale": 2.15,
+        "x": 0,
+        "y": 13,
+        "originY": 48
+      },
+      "skinMotion": {
+        "scale": 1.16,
+        "x": 0,
+        "y": 3,
+        "originY": 58
+      },
+      "mask": {
+        "radiusX": 47,
+        "radiusY": 44,
+        "centerX": 50,
+        "centerY": 51
+      }
+    },
+    "celadon": {
+      "toad": {
+        "x": 1410,
+        "y": 625,
+        "width": 370,
+        "height": 290
+      },
+      "fullExpression": {
+        "scale": 2.22,
+        "x": 0,
+        "y": 14,
+        "originY": 48
+      },
+      "skinMotion": {
+        "scale": 1.18,
+        "x": 0,
+        "y": 3,
+        "originY": 58
+      },
+      "mask": {
+        "radiusX": 48,
+        "radiusY": 45,
+        "centerX": 50,
+        "centerY": 51
+      }
+    },
+    "moon-white": {
+      "toad": {
+        "x": 1418,
+        "y": 628,
+        "width": 356,
+        "height": 278
+      },
+      "fullExpression": {
+        "scale": 2.18,
+        "x": 0,
+        "y": 13,
+        "originY": 48
+      },
+      "skinMotion": {
+        "scale": 1.16,
+        "x": 0,
+        "y": 3,
+        "originY": 58
+      },
+      "mask": {
+        "radiusX": 47,
+        "radiusY": 44,
+        "centerX": 50,
+        "centerY": 51
+      }
+    },
+    "night-lacquer": {
+      "toad": {
+        "x": 1410,
+        "y": 625,
+        "width": 370,
+        "height": 290
+      },
+      "fullExpression": {
+        "scale": 2.2,
+        "x": 0,
+        "y": 14,
+        "originY": 48
+      },
+      "skinMotion": {
+        "scale": 1.18,
+        "x": 0,
+        "y": 3,
+        "originY": 58
+      },
+      "mask": {
+        "radiusX": 48,
+        "radiusY": 45,
+        "centerX": 50,
+        "centerY": 51
+      }
+    }
+  },
   "jarOffsets": {
     "onggi": {
       "x": 0,
