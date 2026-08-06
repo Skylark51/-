@@ -29,7 +29,7 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
   page.on("pageerror", error => consoleErrors.push(error.message));
 
   await page.goto(`${baseUrl}${path}`, { waitUntil: "networkidle" });
-  await page.waitForSelector("#layeredScene");
+  await page.waitForSelector("#layeredScene", { state: "attached" });
   await page.waitForFunction(() => {
     const app = document.getElementById("ui-gameApp");
     return app?.dataset.sceneRenderer === "layered-png";
@@ -45,13 +45,15 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
       return { className: element.className, left: box.left, top: box.top, right: box.right, bottom: box.bottom };
     });
     return {
-      stage: { left: stage.left, top: stage.top, right: stage.right, bottom: stage.bottom },
-      stack: { left: stack.left, top: stack.top, right: stack.right, bottom: stack.bottom },
+      stage: { left: stage.left, top: stage.top, right: stage.right, bottom: stage.bottom, width: stage.width, height: stage.height },
+      stack: { left: stack.left, top: stack.top, right: stack.right, bottom: stack.bottom, width: stack.width, height: stack.height },
       visible
     };
   });
 
   const tolerance = 2;
+  assert(geometry.stage.width > 0 && geometry.stage.height > 0, `${name}: visual stage has no layout box`);
+  assert(geometry.stack.width > 0 && geometry.stack.height > 0, `${name}: layered scene has no layout box`);
   assert(geometry.stack.left >= geometry.stage.left - tolerance, `${name}: stack left crop`);
   assert(geometry.stack.right <= geometry.stage.right + tolerance, `${name}: stack right crop`);
   assert(geometry.stack.top >= geometry.stage.top - tolerance, `${name}: stack top crop`);
