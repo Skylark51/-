@@ -27,6 +27,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
+          import re
           from pathlib import Path
 
           path = Path('콩쥐야_줘때써.html')
@@ -39,22 +40,21 @@ jobs:
                   raise SystemExit('Could not locate final quiz stylesheet anchor')
               text = text.replace(css_anchor, css_anchor + css_line, 1)
 
-          duplicate_bootstrap = '''  <script type="module">
-    import { mountGameScene } from "./assets/js/game-cosmetics-entry.js?v=20260806-layered-scene1";
-    const gameRoot = document.getElementById("ui-gameApp");
-    if (gameRoot) {
-      const mountedScene = mountGameScene(gameRoot);
-      mountedScene.ready.catch(error => console.error("레이어 장면 마운트 실패", error));
-    }
-  </script>
-'''
-          text = text.replace(duplicate_bootstrap, '', 1)
+          text, inline_count = re.subn(
+              r'\n  <script type="module">\n    import \{ mountGameScene \} from "\./assets/js/game-cosmetics-entry\.js\?v=20260806-layered-scene1";.*?\n  </script>\n',
+              '\n',
+              text,
+              count=1,
+              flags=re.S,
+          )
           text = text.replace(
               '  <script type="module" src="assets/js/quiz-scene-actors.js?v=20260805-fitted-seal1"></script>\n',
               '',
               1,
           )
 
+          if inline_count != 1:
+              raise SystemExit(f'Expected one inline scene bootstrap, removed {inline_count}')
           if text.count('game-cosmetics-entry.js?v=20260806-layered-scene1'):
               raise SystemExit('Duplicate inline layered-scene bootstrap remains')
           if 'quiz-scene-actors.js?v=20260805-fitted-seal1' in text:
