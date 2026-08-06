@@ -1,0 +1,48 @@
+name: Publish jade guard toad asset
+
+on:
+  push:
+    paths:
+      - ".github/workflows/publish-jade-guard.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download and validate original PNG
+        run: |
+          set -euo pipefail
+          mkdir -p assets/art/game-scene/toad/skins
+          curl --fail --location --retry 3 \
+            'https://drive.usercontent.google.com/download?id=1z5LvLj1VDW9pg_fNy9VeD74ZB6m_OjHY&export=download&confirm=t' \
+            --output assets/art/game-scene/toad/skins/jade-guard.png
+          echo '9c59c52ceba078fd6bb248d2f264bc795eb4a73a8310bc3a2dd70b160cf57254  assets/art/game-scene/toad/skins/jade-guard.png' | sha256sum --check --strict
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          path = Path('assets/art/game-scene/toad/skins/jade-guard.png')
+          with Image.open(path) as image:
+              assert image.format == 'PNG'
+              assert image.size == (1024, 768)
+              assert image.mode == 'RGBA'
+              assert image.getextrema()[3] == (0, 255)
+          assert path.stat().st_size == 1208719
+          PY
+
+      - name: Commit original PNG
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/publish-jade-guard.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A assets/art/game-scene/toad/skins/jade-guard.png .github/workflows/publish-jade-guard.yml
+          git commit -m 'feat: add jade guard toad skin'
+          git push origin HEAD:main
