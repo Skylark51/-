@@ -46,9 +46,10 @@ jobs:
           cat /tmp/layered-validation.out
           cat /tmp/layered-validation.err >&2
           if [ "$status" -ne 0 ]; then
-            grep -E '^(AVAILABILITY|INVALID|FORBIDDEN|OBSOLETE)' /tmp/layered-validation.err | head -20 | while IFS= read -r line; do
-              echo "::error title=Layered scene validation::$line"
-            done
+            cat /tmp/layered-validation.out /tmp/layered-validation.err \
+              | grep -E '^(AVAILABILITY|INVALID|FORBIDDEN|OBSOLETE)' \
+              | head -20 \
+              | while IFS= read -r line; do echo "::error title=Layered scene validation::$line"; done
             exit "$status"
           fi
       - name: Install browser smoke-test runtime
