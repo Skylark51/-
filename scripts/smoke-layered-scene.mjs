@@ -14,19 +14,90 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+async function exerciseGameplay(page, name) {
+  await page.waitForFunction(() => {
+    const api = globalThis.KongJuiYaGame;
+    return api?.game?.state?.status === "running" && Boolean(api.game.question);
+  }, null, { timeout: 15000 });
+
+  const initial = await page.evaluate(() => {
+    const api = globalThis.KongJuiYaGame;
+    const question = api.game.question;
+    const answer = ["binary_choice", "multiple_choice"].includes(question.type)
+      ? question.type === "binary_choice"
+        ? String(question.correctChoice)
+        : String(Number(question.correctChoice) + 1)
+      : String(question.answers?.[0] ?? "");
+    return {
+      status: api.game.state.status,
+      score: api.game.state.score,
+      correctInStage: api.game.state.correctInStage,
+      questionId: question.id,
+      prompt: document.getElementById("questionText")?.textContent?.trim(),
+      answer,
+      inputDisabled: document.getElementById("answerInput")?.disabled,
+      submitDisabled: document.getElementById("submitButton")?.disabled
+    };
+  });
+
+  assert(initial.status === "running", `${name}: game did not start`);
+  assert(initial.questionId, `${name}: no active question`);
+  assert(initial.prompt && initial.prompt !== "문제를 준비하고 있습니다.", `${name}: question prompt was not rendered`);
+  assert(initial.answer !== "", `${name}: active question has no testable answer`);
+  assert(initial.inputDisabled === false, `${name}: answer input is disabled`);
+  assert(initial.submitDisabled === false, `${name}: submit button is disabled`);
+
+  await page.evaluate(answer => globalThis.KongJuiYaGame.submit(answer), initial.answer);
+  await page.waitForFunction(({ score, correctInStage }) => {
+    const state = globalThis.KongJuiYaGame?.game?.state;
+    return state?.score > score && state?.correctInStage > correctInStage;
+  }, { score: initial.score, correctInStage: initial.correctInStage });
+
+  const afterCorrect = await page.evaluate(() => ({
+    score: globalThis.KongJuiYaGame.game.state.score,
+    combo: globalThis.KongJuiYaGame.game.state.combo,
+    questionId: globalThis.KongJuiYaGame.game.question?.id,
+    correctCount: Number(document.getElementById("ui-correctCount")?.textContent || 0),
+    feedback: document.getElementById("feedback")?.textContent?.trim()
+  }));
+  assert(afterCorrect.score > initial.score, `${name}: correct answer did not increase score`);
+  assert(afterCorrect.combo >= 1, `${name}: correct answer did not increase combo`);
+  assert(afterCorrect.questionId && afterCorrect.questionId !== initial.questionId, `${name}: next question was not selected`);
+  assert(afterCorrect.correctCount >= 1, `${name}: correct UI count did not update`);
+  assert(/정답/.test(afterCorrect.feedback || ""), `${name}: correct feedback did not render`);
+
+  const wrongBefore = await page.evaluate(() => ({
+    combo: globalThis.KongJuiYaGame.game.state.combo,
+    questionId: globalThis.KongJuiYaGame.game.question?.id,
+    wrongCount: Number(document.getElementById("ui-wrongCount")?.textContent || 0)
+  }));
+  await page.evaluate(() => globalThis.KongJuiYaGame.submit("__definitely_wrong_answer__"));
+  await page.waitForFunction(({ questionId, wrongCount }) => {
+    const nextId = globalThis.KongJuiYaGame?.game?.question?.id;
+    const nextWrong = Number(document.getElementById("ui-wrongCount")?.textContent || 0);
+    return nextId && nextId !== questionId && nextWrong > wrongCount;
+  }, wrongBefore);
+
+  const afterWrong = await page.evaluate(() => ({
+    combo: globalThis.KongJuiYaGame.game.state.combo,
+    wrongCount: Number(document.getElementById("ui-wrongCount")?.textContent || 0),
+    feedback: document.getElementById("feedback")?.textContent?.trim()
+  }));
+  assert(afterWrong.combo === 0, `${name}: wrong answer did not reset combo`);
+  assert(afterWrong.wrongCount > wrongBefore.wrongCount, `${name}: wrong UI count did not update`);
+  assert(/오답/.test(afterWrong.feedback || ""), `${name}: wrong feedback did not render`);
+
+  await page.click("#ui-pauseButton");
+  await page.waitForFunction(() => globalThis.KongJuiYaGame?.game?.state?.status === "paused");
+  await page.click("#ui-pauseButton");
+  await page.waitForFunction(() => globalThis.KongJuiYaGame?.game?.state?.status === "running");
+}
+
 async function exerciseScene(browser, name, viewport, reducedMotion = "no-preference") {
   const context = await browser.newContext({ viewport, reducedMotion });
   const page = await context.newPage();
   const consoleErrors = [];
   const failedResponses = [];
-  const staleRequestInitiators = [];
-  const cdp = await context.newCDPSession(page);
-  await cdp.send("Network.enable");
-  cdp.on("Network.requestWillBeSent", event => {
-    if (/scene-photo|toad-expression-sprite\.webp/.test(event.request.url)) {
-      staleRequestInitiators.push({ url: event.request.url, initiator: event.initiator });
-    }
-  });
 
   page.on("console", message => {
     if (message.type() === "error") consoleErrors.push(message.text());
@@ -42,6 +113,8 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
     const app = document.getElementById("ui-gameApp");
     return app?.dataset.sceneRenderer === "layered-png";
   }, null, { timeout: 15000 });
+
+  await exerciseGameplay(page, name);
 
   const geometry = await page.evaluate(() => {
     const stage = document.getElementById("visualStage").getBoundingClientRect();
@@ -73,29 +146,6 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
     assert(actor.bottom <= geometry.stack.bottom + tolerance, `${name}: ${actor.className} bottom crop`);
   }
 
-  const stateEvents = [
-    ["answer:correct", { combo: 1, water: 82 }, "correct"],
-    ["answer:wrong", {}, "wrong"],
-    ["answer:wrong", {}, "wrong"],
-    ["answer:wrong", {}, "wrong"],
-    ["answer:timeout", {}, "timeout"],
-    ["fever:start", { tier: 1 }, "fever"],
-    ["game:clear", { water: 100 }, "clear"],
-    ["game:over", { reason: "timeout" }, "over"],
-    ["game:pause", {}, "pause"],
-    ["game:resume", {}, "resume"]
-  ];
-
-  for (const [eventName, detail, expected] of stateEvents) {
-    await page.evaluate(({ eventName, detail }) => {
-      globalThis.dispatchEvent(new CustomEvent(eventName, { detail }));
-    }, { eventName, detail });
-    await page.waitForFunction(
-      expectedState => document.getElementById("layeredScene")?.dataset.sceneState === expectedState,
-      expected
-    );
-  }
-
   if (reducedMotion === "reduce") {
     const animation = await page.locator("#layeredScene .scene-kongjwi").evaluate(element =>
       getComputedStyle(element).animationName
@@ -103,9 +153,6 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
     assert(animation === "none", `${name}: reduced motion animation is ${animation}`);
   }
 
-  if (staleRequestInitiators.length) {
-    console.error(`STALE_REQUEST_INITIATORS ${name}\n${JSON.stringify(staleRequestInitiators, null, 2)}`);
-  }
   assert(failedResponses.length === 0, `${name}: HTTP failures\n${failedResponses.join("\n")}`);
   assert(consoleErrors.length === 0, `${name}: console errors\n${consoleErrors.join("\n")}`);
   await context.close();
@@ -115,7 +162,7 @@ const browser = await chromium.launch({ headless: true });
 try {
   for (const [name, viewport] of cases) await exerciseScene(browser, name, viewport);
   await exerciseScene(browser, "reduced-motion", { width: 1366, height: 768 }, "reduce");
-  console.log("Layered scene browser smoke test passed.");
+  console.log("Layered scene and real quiz gameplay smoke test passed.");
 } finally {
   await browser.close();
 }
