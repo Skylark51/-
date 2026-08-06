@@ -15,6 +15,7 @@ on:
       - "assets/js/quiz-scene-actors.js"
       - "assets/css/game-asset-animation.css"
       - "assets/css/quiz-scene-actors.css"
+      - "assets/css/layered-scene-runtime.css"
       - "scripts/validate-layered-scene.mjs"
       - "scripts/smoke-layered-scene.mjs"
       - "tests/layered-scene.test.mjs"
@@ -57,7 +58,7 @@ jobs:
         run: |
           npm init -y
           npm install --no-save --ignore-scripts playwright@1.55.0
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Start static server
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/layered-scene-http.log 2>&1 &
