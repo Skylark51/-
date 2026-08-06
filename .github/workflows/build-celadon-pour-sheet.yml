@@ -1,0 +1,108 @@
+name: Build celadon pour sheet
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-celadon-pour-sheet.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check pillow==11.3.0
+
+      - name: Build lossless RGBA sprite sheet
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          source_path = Path('assets/art/kongjwi-tools/celadon.png')
+          output_path = Path('assets/art/game-scene/tools/celadon/pour-sheet.png')
+          output_path.parent.mkdir(parents=True, exist_ok=True)
+
+          source = Image.open(source_path).convert('RGBA')
+          alpha = source.getchannel('A')
+          bbox = alpha.getbbox()
+          if bbox is None:
+              raise RuntimeError('The celadon source image has no visible pixels.')
+
+          ladle = source.crop(bbox)
+          # Preserve the source pixel dimensions. No enlargement or color quantization is applied.
+          poses = [
+              (0, 0, 0),
+              (1, 1, -2),
+              (6, 0, -8),
+              (14, 1, -22),
+              (25, 4, -32),
+              (42, 10, -42),
+              (12, 2, -16),
+              (-7, -2, 14),
+          ]
+
+          sheet = Image.new('RGBA', (4096, 512), (0, 0, 0, 0))
+          baseline = 430
+          for index, (angle, dx, dy) in enumerate(poses):
+              frame = ladle.rotate(
+                  angle,
+                  resample=Image.Resampling.BICUBIC,
+                  expand=True,
+                  fillcolor=(0, 0, 0, 0),
+              )
+              x = index * 512 + 256 - frame.width // 2 + dx
+              y = baseline - frame.height + dy
+              sheet.alpha_composite(frame, (x, y))
+
+          sheet.save(output_path, format='PNG', compress_level=9, optimize=False)
+
+          check = Image.open(output_path)
+          if check.format != 'PNG':
+              raise RuntimeError(f'Unexpected format: {check.format}')
+          if check.size != (4096, 512):
+              raise RuntimeError(f'Unexpected dimensions: {check.size}')
+          if check.mode != 'RGBA':
+              raise RuntimeError(f'Unexpected color mode: {check.mode}')
+          if check.getchannel('A').getextrema()[0] != 0:
+              raise RuntimeError('The sprite sheet does not contain fully transparent background pixels.')
+
+          print(f'created={output_path}')
+          print(f'dimensions={check.width}x{check.height}')
+          print(f'mode={check.mode}')
+          print(f'bytes={output_path.stat().st_size}')
+          PY
+
+      - name: Commit and push generated PNG
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/art/game-scene/tools/celadon/pour-sheet.png
+          if git diff --cached --quiet; then
+            echo 'No PNG change to commit.'
+            exit 0
+          fi
+          git commit -m 'feat: add celadon pour sprite sheet'
+          for attempt in 1 2 3 4 5; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep $((attempt * 3))
+          done
+          exit 1
