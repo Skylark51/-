@@ -17,14 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Verify reference PNG
-        run: |
-          file assets/art/jars/moon-white/lid-open.png
-          python - <<'PY'
-          from PIL import Image
-          p = 'assets/art/jars/moon-white/lid-open.png'
-          im = Image.open(p)
-          print(im.size, im.mode)
-          PY
+        run: file assets/art/jars/moon-white/lid-open.png
 
       - name: Upload reference PNG
         uses: actions/upload-artifact@v4
