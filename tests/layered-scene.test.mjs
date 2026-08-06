@@ -9,7 +9,7 @@ const manifest = JSON.parse(read("assets/art/game-scene/manifest.json"));
 const html = read("콩쥐야_줘때써.html");
 const renderer = read("assets/js/scene-renderer.js");
 const controller = read("assets/js/scene-state-machine.js");
-const actorShim = read("assets/js/quiz-scene-actors.js");
+const actorBootstrap = read("assets/js/quiz-scene-actors.js");
 const controls = read("assets/js/quiz-shell-controls.js");
 const cosmetics = read("assets/js/game-cosmetics-entry.js");
 
@@ -46,10 +46,15 @@ test("renderer creates exactly one ordered logical layer stack", () => {
   assert.doesNotMatch(html, /game-asset-animation\.js/);
 });
 
-test("legacy actor entry is inert and runtime art path is PNG-only", () => {
-  assert.match(actorShim, /Compatibility entry/);
-  assert.doesNotMatch(actorShim, /new Image|fetch\(|import\s|backgroundImage|filter/);
-  const runtime = [html, renderer, controller, actorShim, controls, cosmetics].join("\n");
+test("quiz actor compatibility file only bootstraps the single renderer", () => {
+  assert.match(actorBootstrap, /Compatibility bootstrap/);
+  assert.match(actorBootstrap, /mountGameScene\(root\)/);
+  assert.doesNotMatch(actorBootstrap, /new Image|fetch\(|backgroundImage|filter|createSceneStateController/);
+  assert.match(cosmetics, /root\.__mountedGameScene/);
+});
+
+test("runtime art path is PNG-only", () => {
+  const runtime = [html, renderer, controller, actorBootstrap, controls, cosmetics].join("\n");
   assert.doesNotMatch(runtime, /data:image\/jpeg;base64/i);
   assert.doesNotMatch(runtime, /\.webp(?:["')?])/i);
   assert.doesNotMatch(runtime, /SCENE_ART_LAYOUT|scene-photo\/jar-photo-/);
