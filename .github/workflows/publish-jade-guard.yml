@@ -20,13 +20,13 @@ jobs:
       - name: Download and verify original PNG
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check 'gdown==5.2.0' 'Pillow==12.2.0'
           mkdir -p assets/art/game-scene/toad/skins
-          gdown --fuzzy \
-            'https://drive.google.com/file/d/1z5LvLj1VDW9pg_fNy9VeD74ZB6m_OjHY/view?usp=drivesdk' \
+          curl --fail --location --retry 3 \
+            'https://oaisdmntprsouthcentralus.blob.core.windows.net/files/00000000-7eec-81f7-8252-af1d280d0501/raw?se=2026-08-06T02%3A17%3A06Z&sp=r&sv=2026-02-06&sr=b&scid=019fd4ae-bfa5-788d-9864-5d2a9e7cd9f8&skoid=f5e14fda-2af7-44a3-9d18-d372ffcad871&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-05T22%3A39%3A05Z&ske=2026-08-06T22%3A39%3A05Z&sks=b&skv=2026-02-06&sig=fGKrWkQgSXFleEPLybC8YksIyYU2atC0R6OoApFQOq0%3D' \
             --output assets/art/game-scene/toad/skins/jade-guard.png
           file assets/art/game-scene/toad/skins/jade-guard.png
           echo '9c59c52ceba078fd6bb248d2f264bc795eb4a73a8310bc3a2dd70b160cf57254  assets/art/game-scene/toad/skins/jade-guard.png' | sha256sum --check --strict
+          python -m pip install --disable-pip-version-check 'Pillow==12.2.0'
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
