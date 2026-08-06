@@ -12,6 +12,8 @@ const controller = read("assets/js/scene-state-machine.js");
 const actorBootstrap = read("assets/js/quiz-scene-actors.js");
 const controls = read("assets/js/quiz-shell-controls.js");
 const cosmetics = read("assets/js/game-cosmetics-entry.js");
+const themeSystem = read("assets/js/theme-system.js");
+const sceneComposition = read("assets/css/quiz-scene-composition.css");
 
 const layerNames = [
   "scene-background", "scene-kongjwi", "scene-tool", "scene-water-stream",
@@ -54,11 +56,15 @@ test("quiz actor compatibility file only bootstraps the single renderer", () => 
 });
 
 test("runtime art path is PNG-only", () => {
-  const runtime = [html, renderer, controller, actorBootstrap, controls, cosmetics].join("\n");
+  const runtime = [
+    html, renderer, controller, actorBootstrap, controls, cosmetics, themeSystem, sceneComposition
+  ].join("\n");
   assert.doesNotMatch(runtime, /data:image\/jpeg;base64/i);
   assert.doesNotMatch(runtime, /\.webp(?:["')?])/i);
   assert.doesNotMatch(runtime, /SCENE_ART_LAYOUT|scene-photo\/jar-photo-/);
   assert.doesNotMatch(renderer, /hue-rotate|sepia\(|saturate\(/);
+  assert.match(themeSystem, /const JAR_PREVIEW_PNGS/);
+  assert.doesNotMatch(sceneComposition, /toad-expression-sprite\.webp/);
 });
 
 test("one state controller owns all required quiz scene events", () => {
