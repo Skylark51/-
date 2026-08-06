@@ -1,5 +1,0 @@
-asset=assets/art/game-scene/toad/skins/gold-worker.png
-sha256=c933dfd3b1a1ad903c099aab7fcda0778ebae97551ad00657b0e6123a430317a
-size=757240
-resolution=1024x768
-mode=RGBA-8
