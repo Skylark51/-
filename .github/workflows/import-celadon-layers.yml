@@ -1,0 +1,79 @@
+name: Import celadon layer asset
+
+on:
+  push:
+    paths:
+      - .github/workflows/import-celadon-layers.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: import-celadon-layer-asset
+  cancel-in-progress: false
+
+jobs:
+  import-asset:
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_URL: 'https://oaisdmntprwestcentralus.blob.core.windows.net/files/00000000-5814-81fb-a294-10d1db49ef8c/raw?se=2026-08-06T01%3A45%3A10Z&sp=r&sv=2026-02-06&sr=b&scid=019fd4b4-4eb4-7014-9f3b-3850fbb82964&skoid=f5e14fda-2af7-44a3-9d18-d372ffcad871&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-06T00%3A11%3A52Z&ske=2026-08-07T00%3A11%3A52Z&sks=b&skv=2026-02-06&sig=U9Y6SvqIOcKrVTEBZj1Bs%2B7Kf1VVYBc5zTHCYL4J9mY%3D'
+      EXPECTED_SHA256: '5646f22ef1a918252fcab5517f0af0f69abdb07ebc9e84691b419ba5ac7ceaec'
+      EXPECTED_SIZE: '2340131'
+      TARGET_PATH: 'assets/art/game-scene/jars/celadon/layers.png'
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Download and validate original PNG
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --retry-all-errors "$SOURCE_URL" --output /tmp/celadon-layers.png
+          test "$(stat -c%s /tmp/celadon-layers.png)" = "$EXPECTED_SIZE"
+          echo "$EXPECTED_SHA256  /tmp/celadon-layers.png" | sha256sum --check --strict
+          python3 - <<'PY'
+          import struct
+          from pathlib import Path
+
+          path = Path('/tmp/celadon-layers.png')
+          data = path.read_bytes()
+          if data[:8] != b'\x89PNG\r\n\x1a\n':
+              raise SystemExit('Not a PNG file')
+          length = struct.unpack('>I', data[8:12])[0]
+          if data[12:16] != b'IHDR' or length != 13:
+              raise SystemExit('Invalid PNG IHDR')
+          width, height, bit_depth, color_type, compression, filtering, interlace = struct.unpack('>IIBBBBB', data[16:29])
+          if (width, height) != (1536, 1024):
+              raise SystemExit(f'Unexpected dimensions: {width}x{height}')
+          if bit_depth != 8 or color_type != 6:
+              raise SystemExit(f'Expected 8-bit RGBA PNG, got bit_depth={bit_depth}, color_type={color_type}')
+          if compression != 0 or filtering != 0:
+              raise SystemExit('Unsupported PNG encoding')
+          print(f'Validated PNG: {width}x{height}, 8-bit RGBA, {len(data)} bytes')
+          PY
+
+      - name: Commit asset to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git pull --rebase origin main
+          mkdir -p "$(dirname "$TARGET_PATH")"
+          cp /tmp/celadon-layers.png "$TARGET_PATH"
+          git rm .github/workflows/import-celadon-layers.yml
+          git add "$TARGET_PATH"
+          git commit -m 'art: add celadon jar layer sheet'
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git fetch origin main
+            git rebase origin/main
+            sleep 2
+          done
+          exit 1
