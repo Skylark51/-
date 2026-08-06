@@ -68,23 +68,23 @@ async function exerciseGameplay(page, name) {
 
   const wrongBefore = await page.evaluate(() => ({
     combo: globalThis.KongJuiYaGame.game.state.combo,
-    questionId: globalThis.KongJuiYaGame.game.question?.id,
     wrongCount: Number(document.getElementById("ui-wrongCount")?.textContent || 0)
   }));
   await page.evaluate(() => globalThis.KongJuiYaGame.submit("__definitely_wrong_answer__"));
-  await page.waitForFunction(({ questionId, wrongCount }) => {
-    const nextId = globalThis.KongJuiYaGame?.game?.question?.id;
+  await page.waitForFunction(wrongCount => {
     const nextWrong = Number(document.getElementById("ui-wrongCount")?.textContent || 0);
-    return nextId && nextId !== questionId && nextWrong > wrongCount;
-  }, wrongBefore);
+    return nextWrong > wrongCount;
+  }, wrongBefore.wrongCount);
 
   const afterWrong = await page.evaluate(() => ({
     combo: globalThis.KongJuiYaGame.game.state.combo,
     wrongCount: Number(document.getElementById("ui-wrongCount")?.textContent || 0),
+    questionId: globalThis.KongJuiYaGame.game.question?.id,
     feedback: document.getElementById("feedback")?.textContent?.trim()
   }));
   assert(afterWrong.combo === 0, `${name}: wrong answer did not reset combo`);
   assert(afterWrong.wrongCount > wrongBefore.wrongCount, `${name}: wrong UI count did not update`);
+  assert(afterWrong.questionId, `${name}: no question after wrong answer`);
   assert(/오답/.test(afterWrong.feedback || ""), `${name}: wrong feedback did not render`);
 
   await page.click("#ui-pauseButton");
@@ -118,7 +118,9 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
 
   const geometry = await page.evaluate(() => {
     const stage = document.getElementById("visualStage").getBoundingClientRect();
-    const stack = document.getElementById("layeredScene").getBoundingClientRect();
+    const stacks = [...document.querySelectorAll("#layeredScene")];
+    const stack = stacks[0].getBoundingClientRect();
+    const legacyActors = document.querySelector(".quiz-scene-actors");
     const visible = [...document.querySelectorAll(
       "#layeredScene > .scene-kongjwi, #layeredScene > .scene-tool, #layeredScene > .scene-jar-back, #layeredScene > .scene-toad-expression"
     )].filter(element => !element.hidden).map(element => {
@@ -126,6 +128,8 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
       return { className: element.className, left: box.left, top: box.top, right: box.right, bottom: box.bottom };
     });
     return {
+      stackCount: stacks.length,
+      legacyDisplay: legacyActors ? getComputedStyle(legacyActors).display : "missing",
       stage: { left: stage.left, top: stage.top, right: stage.right, bottom: stage.bottom, width: stage.width, height: stage.height },
       stack: { left: stack.left, top: stack.top, right: stack.right, bottom: stack.bottom, width: stack.width, height: stack.height },
       visible
@@ -133,6 +137,8 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
   });
 
   const tolerance = 2;
+  assert(geometry.stackCount === 1, `${name}: expected one layered scene, found ${geometry.stackCount}`);
+  assert(geometry.legacyDisplay === "none", `${name}: legacy actor scene is visible (${geometry.legacyDisplay})`);
   assert(geometry.stage.width > 0 && geometry.stage.height > 0, `${name}: visual stage has no layout box`);
   assert(geometry.stack.width > 0 && geometry.stack.height > 0, `${name}: layered scene has no layout box`);
   assert(geometry.stack.left >= geometry.stage.left - tolerance, `${name}: stack left crop`);
