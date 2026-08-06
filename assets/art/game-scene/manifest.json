@@ -1,5 +1,5 @@
 {
-  "version": "2026.08.06-layered-scene-1",
+  "version": "2026.08.06-mobile-scene-fix1",
   "logicalSize": {
     "width": 2048,
     "height": 1152
@@ -10,7 +10,8 @@
     "webpFallback": false,
     "canvasExport": false,
     "cssSkinFilters": false,
-    "loadStrategy": "selected-cosmetics-first"
+    "loadStrategy": "selected-cosmetics-first",
+    "fallbackMode": "coherent-static-rig"
   },
   "layers": {
     "scene-background": 0,
@@ -331,6 +332,32 @@
       "y": 600,
       "width": 512,
       "height": 512
+    }
+  },
+  "fallbackPlacements": {
+    "kongjwi": {
+      "x": 205,
+      "y": 300,
+      "width": 500,
+      "height": 720
+    },
+    "tool": {
+      "x": 520,
+      "y": 565,
+      "width": 185,
+      "height": 220
+    },
+    "waterStream": {
+      "x": 625,
+      "y": 390,
+      "width": 870,
+      "height": 410
+    },
+    "toad": {
+      "x": 1450,
+      "y": 625,
+      "width": 330,
+      "height": 250
     }
   },
   "jarOffsets": {

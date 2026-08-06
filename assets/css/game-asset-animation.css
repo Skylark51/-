@@ -42,29 +42,22 @@
 
 .scene-layer-image {
   position: absolute;
-  left: 50%;
-  bottom: 0;
+  inset: 0;
   display: block;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 100%;
-  transform: translateX(-50%);
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+  object-position: center bottom;
   image-rendering: auto;
   backface-visibility: hidden;
   -webkit-user-drag: none;
 }
 
 .scene-layer-image.is-cover {
-  inset: 0;
-  left: 0;
-  bottom: auto;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  max-height: none;
-  transform: none;
   object-fit: cover;
+  object-position: center bottom;
 }
 
 .scene-foreground .scene-layer-image {
@@ -108,12 +101,6 @@
   opacity: 0.82;
 }
 
-.scene-layer-stack .scene-water-fill-viewport {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-
 .scene-layer-stack .scene-water-fill-texture {
   position: absolute;
   left: -4%;
@@ -135,6 +122,10 @@
   transform-origin: center 76%;
 }
 
+.scene-layer-stack[data-toad-mode="full-fallback"] .scene-toad-expression .scene-layer-image {
+  object-position: center center;
+}
+
 .scene-ui {
   z-index: 120;
 }
@@ -143,9 +134,50 @@
   pointer-events: auto;
 }
 
+.scene-fallback-water-arc {
+  position: absolute;
+  inset: 12% 2% 8%;
+  display: block;
+  opacity: 0;
+  border-top: clamp(3px, .72vw, 7px) solid rgba(127, 225, 244, .9);
+  border-radius: 50% 54% 0 0;
+  filter: drop-shadow(0 0 4px rgba(83, 198, 224, .5));
+  transform: rotate(-9deg) scaleX(.18);
+  transform-origin: left center;
+}
+
+.scene-fallback-water-arc i {
+  position: absolute;
+  right: 2%;
+  top: -6px;
+  width: clamp(4px, .55vw, 8px);
+  height: clamp(7px, .9vw, 12px);
+  border-radius: 50%;
+  background: rgba(150, 232, 247, .92);
+}
+
+.scene-fallback-water-arc i:last-child {
+  right: 9%;
+  top: 3px;
+  width: clamp(3px, .4vw, 6px);
+  height: clamp(5px, .7vw, 9px);
+}
+
 .scene-layer-stack[data-scene-state="correct"] .scene-kongjwi,
 .scene-layer-stack[data-scene-state="correct"] .scene-tool {
   animation: layered-pour-settle 940ms ease-out both;
+}
+
+.scene-layer-stack[data-kongjwi-mode="static"][data-scene-state="correct"] .scene-kongjwi {
+  animation: layered-static-kongjwi-pour 940ms cubic-bezier(.2,.7,.25,1) both;
+}
+
+.scene-layer-stack[data-kongjwi-mode="static"][data-scene-state="correct"] .scene-tool {
+  animation: layered-static-tool-pour 940ms cubic-bezier(.2,.7,.25,1) both;
+}
+
+.scene-layer-stack[data-kongjwi-mode="static"][data-scene-state="correct"] .scene-fallback-water-arc {
+  animation: layered-fallback-water 940ms ease-out both;
 }
 
 .scene-layer-stack[data-scene-state="wrong"] .scene-toad-expression,
@@ -164,7 +196,7 @@
   animation-play-state: paused;
 }
 
-.scene-layer-stack[data-asset-mode="png-fallback"]::after {
+.scene-layer-stack[data-asset-mode="coherent-fallback"]::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -176,6 +208,25 @@
 @keyframes layered-pour-settle {
   0%, 100% { transform: translateY(0); }
   45% { transform: translateY(-0.8%); }
+}
+
+@keyframes layered-static-kongjwi-pour {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  28% { transform: translate3d(1.2%, -1.2%, 0) rotate(.7deg); }
+  58% { transform: translate3d(2.2%, -.3%, 0) rotate(1.1deg); }
+}
+
+@keyframes layered-static-tool-pour {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
+  28% { transform: translate3d(10%, -12%, 0) rotate(-12deg); }
+  58% { transform: translate3d(18%, -7%, 0) rotate(-38deg); }
+}
+
+@keyframes layered-fallback-water {
+  0%, 11%, 100% { opacity: 0; transform: rotate(-9deg) scaleX(.18); }
+  25% { opacity: .92; }
+  68% { opacity: .96; transform: rotate(-9deg) scaleX(1); }
+  88% { opacity: 0; transform: rotate(-9deg) scaleX(1.03); }
 }
 
 @keyframes layered-toad-shake {
@@ -191,7 +242,6 @@
 
 @media (max-width: 900px), (pointer: coarse) {
   .scene-layer-stack {
-    /* The full logical stage remains visible; no actor receives a separate crop. */
     inset: 0;
   }
 
@@ -202,11 +252,6 @@
 
 @media (orientation: portrait) and (max-width: 900px) {
   .scene-layer-stack {
-    /*
-     * The scene panel already owns the portrait viewport. Keep one coordinate
-     * system and bias the stage upward so the jar base and Kongjwi feet remain
-     * above the answer controls.
-     */
     transform-origin: center bottom;
   }
 }

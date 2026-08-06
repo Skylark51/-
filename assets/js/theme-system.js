@@ -1,12 +1,19 @@
 export const GAME_TITLE = "콩쥐야 줘때써 - 화학편";
 
-const JAR_THUMBNAIL_STYLE_ID = "jar-png-preview-style-v3";
-const JAR_PREVIEW_PNGS = Object.freeze([
-  "assets/art/jars/onggi/thumbnail-no-toad.png",
-  "assets/art/jars/celadon/thumbnail-no-toad.png",
-  "assets/art/jars/moon-white/thumbnail-no-toad.png",
-  "assets/art/jars/night-lacquer/thumbnail-no-toad.png"
-]);
+const JAR_THUMBNAIL_STYLE_ID = "jar-png-preview-style-v4";
+const JAR_PREVIEW_PNGS = Object.freeze({
+  onggi: "assets/art/jars/onggi/thumbnail-no-toad.png",
+  celadon: "assets/art/jars/celadon/thumbnail-no-toad.png",
+  "moon-white": "assets/art/jars/moon-white/thumbnail-no-toad.png",
+  "night-lacquer": "assets/art/jars/night-lacquer/thumbnail-no-toad.png"
+});
+const COSMETIC_STORAGE_KEY = "kongjuiya-cosmetics-v1";
+const JAR_ITEM_TO_SKIN = Object.freeze({
+  jar_onggi: "onggi",
+  jar_celadon: "celadon",
+  jar_moon_white: "moon-white",
+  jar_night_lacquer: "night-lacquer"
+});
 
 const ids = [
   "atomic_number", "atomic_mass", "period_group", "valence_electron",
@@ -84,6 +91,20 @@ function decorate(root, theme) {
   root.style.setProperty("--toad-hue", `${theme.hue}deg`);
 }
 
+function normalizeJarSkin(value) {
+  return Object.hasOwn(JAR_PREVIEW_PNGS, value) ? value : "onggi";
+}
+
+function readEquippedJarSkin() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(COSMETIC_STORAGE_KEY) || "null");
+    const equipped = saved?.equipped?.jar;
+    return normalizeJarSkin(JAR_ITEM_TO_SKIN[equipped] || equipped);
+  } catch {
+    return "onggi";
+  }
+}
+
 function ensureJarPhotoStyle() {
   if (document.getElementById(JAR_THUMBNAIL_STYLE_ID)) return;
   const style = document.createElement("style");
@@ -92,10 +113,12 @@ function ensureJarPhotoStyle() {
     #trainingGrid .jar-preview.jar-preview-photo {
       min-height: 0;
       isolation: isolate;
-      background-color: #3a2417;
-      background-position: center 53% !important;
+      background-color: #21150f;
+      background-position: center 51% !important;
       background-repeat: no-repeat !important;
       background-size: contain !important;
+      filter: none !important;
+      mix-blend-mode: normal !important;
     }
     #trainingGrid .jar-preview.jar-preview-photo::before {
       content: "";
@@ -103,10 +126,7 @@ function ensureJarPhotoStyle() {
       inset: 0;
       z-index: 1;
       pointer-events: none;
-      background:
-        linear-gradient(180deg, rgba(255, 246, 218, .08), transparent 45%, rgba(18, 8, 3, .24)),
-        linear-gradient(135deg, color-mix(in srgb, var(--jar-main) 24%, transparent), transparent 58%, color-mix(in srgb, var(--theme-water) 17%, transparent));
-      mix-blend-mode: color;
+      background: linear-gradient(180deg, rgba(255, 246, 218, .035), transparent 48%, rgba(18, 8, 3, .18));
     }
     #trainingGrid .jar-preview.jar-preview-photo::after {
       content: "";
@@ -115,8 +135,7 @@ function ensureJarPhotoStyle() {
       z-index: 2;
       pointer-events: none;
       border: 1px solid rgba(255, 232, 184, .09);
-      background: radial-gradient(circle at 68% 45%, transparent 0 37%, rgba(15, 7, 3, .14) 100%);
-      box-shadow: inset 0 -28px 34px rgba(12, 6, 3, .22);
+      box-shadow: inset 0 -24px 30px rgba(12, 6, 3, .18);
     }
     @media (max-width: 760px), (max-device-width: 760px) {
       #trainingGrid .jar-preview.jar-preview-photo {
@@ -129,14 +148,11 @@ function ensureJarPhotoStyle() {
   document.head.append(style);
 }
 
-function thumbnailFilter(theme) {
-  const index = Number(theme.photoIndex || 0);
-  const hue = (index * 37) % 360;
-  const saturation = 0.86 + (index % 5) * 0.12;
-  const brightness = 0.88 + (index % 4) * 0.055;
-  const contrast = 1.02 + (index % 3) * 0.08;
-  const sepia = index % 6 === 0 ? 0.16 : index % 6 === 3 ? 0.08 : 0;
-  return `hue-rotate(${hue}deg) saturate(${saturation.toFixed(2)}) brightness(${brightness.toFixed(2)}) contrast(${contrast.toFixed(2)}) sepia(${sepia.toFixed(2)})`;
+function setPreviewSkin(preview, jarSkin) {
+  const skin = normalizeJarSkin(jarSkin);
+  preview.dataset.jarSkin = skin;
+  preview.style.backgroundImage = `url("${JAR_PREVIEW_PNGS[skin]}")`;
+  preview.style.filter = "none";
 }
 
 export function applyJarTheme(root, trainingId) {
@@ -146,15 +162,30 @@ export function applyJarTheme(root, trainingId) {
   return theme;
 }
 
-export function createJarPreview(mode) {
+export function createJarPreview(mode, jarSkin = readEquippedJarSkin()) {
   const preview = document.createElement("div");
   const theme = themeFor(mode.id);
-  const index = Number(theme.photoIndex || 0) % JAR_PREVIEW_PNGS.length;
   ensureJarPhotoStyle();
   preview.className = "jar-preview jar-preview-photo";
   preview.setAttribute("aria-hidden", "true");
+  preview.dataset.trainingId = mode.id;
   decorate(preview, theme);
-  preview.style.backgroundImage = `url("${JAR_PREVIEW_PNGS[index]}")`;
-  preview.style.filter = thumbnailFilter(theme);
+  setPreviewSkin(preview, jarSkin);
   return preview;
+}
+
+export function refreshJarPreviews(jarSkin = readEquippedJarSkin(), root = document) {
+  root.querySelectorAll?.("#trainingGrid .jar-preview.jar-preview-photo")
+    .forEach(preview => setPreviewSkin(preview, jarSkin));
+}
+
+if (typeof window !== "undefined" && !window.__jarPreviewSkinSync) {
+  window.__jarPreviewSkinSync = true;
+  window.addEventListener("pageshow", () => refreshJarPreviews());
+  window.addEventListener("cosmetic:equipped", event => {
+    if (!event.detail?.category || event.detail.category === "jar") refreshJarPreviews();
+  });
+  window.addEventListener("storage", event => {
+    if (event.key === COSMETIC_STORAGE_KEY || event.key == null) refreshJarPreviews();
+  });
 }

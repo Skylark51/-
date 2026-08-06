@@ -25,7 +25,7 @@ test("redox pool contains only complete underlined reaction equations and three 
   }
 });
 
-test("game entry busts the complete redox module cache chain", () => {
+test("game entry keeps the complete redox question cache chain", () => {
   const html = read("콩쥐야_줘때써.html");
   const uiEffects = read("assets/js/ui-effects.js");
   const main = read("assets/js/main.js");
@@ -36,15 +36,23 @@ test("game entry busts the complete redox module cache chain", () => {
   }
 });
 
-test("redox mobile layout keeps all equations visible above three compact buttons", () => {
+test("redox mobile layout keeps every reaction equation on one line above three buttons", () => {
   const css = read("assets/css/redox-quiz.css");
+  const fitter = read("assets/js/redox-single-line.js");
+  const cosmeticsEntry = read("assets/js/game-cosmetics-entry.js");
+
   assert.match(css, /data-training-id="redox"/);
   assert.match(css, /grid-template-columns:\s*repeat\(3,/);
   assert.match(css, /grid-template-rows:\s*38px minmax\(0, 1fr\) auto/);
   assert.match(css, /\.feedback\s*\{\s*display:\s*none;/s);
-  assert.match(css, /data-question-length="medium"/);
-  assert.match(css, /data-question-length="long"/);
-  assert.match(css, /max-height:\s*none\s*!important/);
-  assert.match(css, /overflow:\s*visible\s*!important/);
-  assert.match(css, /white-space:\s*normal/);
+  assert.match(css, /white-space:\s*nowrap\s*!important/);
+  assert.match(css, /word-break:\s*keep-all\s*!important/);
+  assert.match(css, /--redox-fit-font-size/);
+  assert.doesNotMatch(css, /#questionText[^}]*white-space:\s*normal/s);
+
+  assert.match(fitter, /scrollWidth\s*<=\s*element\.clientWidth/);
+  assert.match(fitter, /ResizeObserver/);
+  assert.match(fitter, /MutationObserver/);
+  assert.match(fitter, /for \(let index = 0; index < 14;/);
+  assert.match(cosmeticsEntry, /redox-single-line\.js\?v=20260806-mobile-scene-fix1/);
 });
