@@ -1,0 +1,29 @@
+name: Apply lobby entry cache refresh
+
+on:
+  push:
+    paths:
+      - .github/workflows/fix-lobby-entry.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Refresh lobby entry versions
+        run: python3 -c 'from pathlib import Path; p=Path("index.html"); s=p.read_text(encoding="utf-8"); pairs=[("data-ui-version=\"20260805-home-square4\"","data-ui-version=\"20260806-lobby-router1\""),("assets/css/lobby-hero-scene.css?v=20260805-home-square4","assets/css/lobby-hero-scene.css?v=20260806-lobby-router1"),("assets/js/lobby-actions.js?v=20260804-home-clean3","assets/js/lobby-actions.js?v=20260806-lobby-router1"),("assets/js/lobby-navigation.js?v=20260805-home-square4","assets/js/lobby-navigation.js?v=20260806-lobby-router1")]; [(lambda old,new: None)(old,new) for old,new in []]; [(_ for _ in ()).throw(SystemExit(f"missing anchor: {old}")) if old not in s else None for old,new in pairs]; [None for old,new in pairs if not (s:=s.replace(old,new,1))]; p.write_text(s,encoding="utf-8")'
+      - name: Commit refreshed entry
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/fix-lobby-entry.yml
+          git add index.html
+          git commit -m 'fix: refresh lobby router assets'
+          git push origin HEAD:main
