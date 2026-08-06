@@ -16,17 +16,13 @@ SHEET = (2048, 1024)
 
 
 def fit_reference(source: Image.Image) -> tuple[Image.Image, dict[str, object]]:
-    """Fit the reference into one 1024 px cell without changing its aspect ratio."""
     source = source.convert("RGBA")
     original_size = source.size
-
     alpha = np.asarray(source.getchannel("A"))
     bbox = Image.fromarray(alpha, mode="L").getbbox()
     if bbox is None:
         raise RuntimeError("Reference image has no visible pixels")
 
-    # Remove only fully transparent outer margins before fitting. The rendered
-    # artwork itself is never cropped.
     artwork = source.crop(bbox)
     max_extent = 948
     scale = min(max_extent / artwork.width, max_extent / artwork.height, 1.0)
@@ -41,7 +37,6 @@ def fit_reference(source: Image.Image) -> tuple[Image.Image, dict[str, object]]:
     x = (CELL - artwork.width) // 2
     y = (CELL - artwork.height) // 2
     cell.alpha_composite(artwork, (x, y))
-
     return cell, {
         "source_size": original_size,
         "source_visible_bbox": bbox,
@@ -51,107 +46,64 @@ def fit_reference(source: Image.Image) -> tuple[Image.Image, dict[str, object]]:
     }
 
 
-def component_stats(mask: np.ndarray) -> list[dict[str, object]]:
-    labels, count = ndimage.label(mask, structure=np.ones((3, 3), dtype=np.uint8))
-    result: list[dict[str, object]] = []
-    for component_id in range(1, count + 1):
-        yy, xx = np.nonzero(labels == component_id)
-        if len(xx) == 0:
-            continue
-        result.append(
-            {
-                "id": component_id,
-                "area": int(len(xx)),
-                "centroid": (float(xx.mean()), float(yy.mean())),
-                "bbox": (int(xx.min()), int(yy.min()), int(xx.max()) + 1, int(yy.max()) + 1),
-                "mask": labels == component_id,
-            }
-        )
-    return result
-
-
-def choose_holes(object_mask: np.ndarray) -> tuple[np.ndarray, np.ndarray, list[dict[str, object]]]:
-    # Filling the silhouette reveals enclosed transparent cavities: the open
-    # mouth and the broken side hole. Tiny enclosed antialiasing pockets are
-    # discarded by area.
-    filled = ndimage.binary_fill_holes(object_mask)
-    holes = filled & ~object_mask
-    components = [item for item in component_stats(holes) if item["area"] >= 120]
-    if not components:
-        raise RuntimeError("No enclosed transparent cavities found in reference")
-
-    mouth_candidates = [
-        item
-        for item in components
-        if item["centroid"][1] < CELL * 0.52
-        and CELL * 0.18 < item["centroid"][0] < CELL * 0.82
-    ]
-    side_candidates = [
-        item
-        for item in components
-        if item["centroid"][0] > CELL * 0.52
-        and item["centroid"][1] > CELL * 0.30
-    ]
-
-    mouth = max(mouth_candidates or components, key=lambda item: item["area"])
-    side_pool = [item for item in side_candidates if item["id"] != mouth["id"]]
-    if not side_pool:
-        side_pool = [item for item in components if item["id"] != mouth["id"]]
-    if not side_pool:
-        raise RuntimeError("Broken side-hole cavity could not be distinguished from jar mouth")
-    side = max(side_pool, key=lambda item: item["area"])
-
-    public_stats = [
-        {key: value for key, value in item.items() if key != "mask"}
-        for item in components
-    ]
-    return mouth["mask"], side["mask"], public_stats
+def ellipse_mask(
+    yy: np.ndarray,
+    xx: np.ndarray,
+    cx: float,
+    cy: float,
+    rx: float,
+    ry: float,
+) -> np.ndarray:
+    return ((xx - cx) / max(rx, 1.0)) ** 2 + ((yy - cy) / max(ry, 1.0)) ** 2 <= 1.0
 
 
 def build_front_occluder(cell: Image.Image) -> tuple[Image.Image, dict[str, object]]:
     rgba = np.asarray(cell).copy()
     alpha = rgba[:, :, 3]
     object_mask = alpha >= 12
+    bbox = Image.fromarray((object_mask * 255).astype(np.uint8), mode="L").getbbox()
+    if bbox is None:
+        raise RuntimeError("Normalized jar cell has no visible pixels")
 
-    mouth_hole, side_hole, holes = choose_holes(object_mask)
+    x0, y0, x1, y1 = bbox
+    width = x1 - x0
+    height = y1 - y0
+    yy, xx = np.indices((CELL, CELL))
 
-    # Side-hole rim: a narrow ceramic ring immediately surrounding the cavity.
-    side_outer = ndimage.binary_dilation(side_hole, iterations=22)
-    side_inner = ndimage.binary_dilation(side_hole, iterations=3)
+    # The source paints the mouth and broken cavity as dark pixels rather than
+    # alpha holes. Derive restrained occlusion bands from the normalized jar
+    # silhouette so the two cells stay in exactly the same coordinate system.
+    mouth_cx = x0 + width * 0.50
+    mouth_cy = y0 + height * 0.205
+    mouth_outer = ellipse_mask(yy, xx, mouth_cx, mouth_cy, width * 0.255, height * 0.082)
+    mouth_inner = ellipse_mask(yy, xx, mouth_cx, mouth_cy, width * 0.205, height * 0.045)
+    mouth_ring = mouth_outer & ~mouth_inner & object_mask
+    mouth_front = mouth_ring & (yy >= mouth_cy)
+
+    side_cx = x0 + width * 0.715
+    side_cy = y0 + height * 0.625
+    side_outer = ellipse_mask(yy, xx, side_cx, side_cy, width * 0.150, height * 0.135)
+    side_inner = ellipse_mask(yy, xx, side_cx, side_cy, width * 0.112, height * 0.098)
     side_ring = side_outer & ~side_inner & object_mask
 
-    # Retain the complete lower rim plus restrained left/right cheek pieces so
-    # a toad is naturally occluded at its lower body and flanks.
-    sy, sx = np.nonzero(side_hole)
-    side_cx = float(sx.mean())
-    side_cy = float(sy.mean())
-    side_bbox = (int(sx.min()), int(sy.min()), int(sx.max()) + 1, int(sy.max()) + 1)
-    side_width = max(1, side_bbox[2] - side_bbox[0])
-    lower = np.indices((CELL, CELL))[0] >= side_cy - 0.10 * (side_bbox[3] - side_bbox[1])
-    flank = np.abs(np.indices((CELL, CELL))[1] - side_cx) >= side_width * 0.34
-    side_occluder = side_ring & (lower | flank)
+    # Keep the lower rim and both side cheeks. This is the portion that must
+    # overlap a toad's lower body and flanks when composited.
+    lower = yy >= side_cy - height * 0.018
+    side_cheeks = np.abs(xx - side_cx) >= width * 0.092
+    side_occluder = side_ring & (lower | side_cheeks)
 
-    # Mouth front lip: only the lower half of a narrow ring, allowing poured
-    # water to pass behind the lip and appear to enter the jar.
-    mouth_outer = ndimage.binary_dilation(mouth_hole, iterations=16)
-    mouth_inner = ndimage.binary_dilation(mouth_hole, iterations=2)
-    mouth_ring = mouth_outer & ~mouth_inner & object_mask
-    my, mx = np.nonzero(mouth_hole)
-    mouth_cy = float(my.mean())
-    mouth_front = mouth_ring & (np.indices((CELL, CELL))[0] >= mouth_cy)
-
-    occluder_mask = side_occluder | mouth_front
+    occluder_mask = mouth_front | side_occluder
     occluder_mask = ndimage.binary_closing(occluder_mask, iterations=1)
+    occluder_mask = ndimage.binary_opening(occluder_mask, iterations=1)
 
     front = np.zeros_like(rgba)
     front[occluder_mask] = rgba[occluder_mask]
     front[:, :, 3] = np.where(occluder_mask, alpha, 0).astype(np.uint8)
 
     return Image.fromarray(front, mode="RGBA"), {
-        "hole_components": holes,
-        "side_hole_centroid": (side_cx, side_cy),
-        "side_hole_bbox": side_bbox,
-        "mouth_hole_centroid": (float(mx.mean()), mouth_cy),
+        "object_bbox": bbox,
+        "mouth_center": (mouth_cx, mouth_cy),
+        "side_hole_center": (side_cx, side_cy),
         "occluder_pixels": int(np.count_nonzero(occluder_mask)),
     }
 
