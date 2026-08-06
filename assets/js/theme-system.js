@@ -1,15 +1,12 @@
-import photo1 from "./scene-photo/jar-photo-1.js";
-import photo2 from "./scene-photo/jar-photo-2.js";
-import photo3 from "./scene-photo/jar-photo-3.js";
-import photo4 from "./scene-photo/jar-photo-4.js";
-import photo5 from "./scene-photo/jar-photo-5.js";
-import photo6 from "./scene-photo/jar-photo-6.js";
-import photo7 from "./scene-photo/jar-photo-7.js";
-
 export const GAME_TITLE = "콩쥐야 줘때써 - 화학편";
 
-const JAR_SCENE_URL = `data:image/jpeg;base64,${photo1}${photo2}${photo3}${photo4}${photo5}${photo6}${photo7}`;
-const JAR_THUMBNAIL_STYLE_ID = "jar-photo-preview-style-v2";
+const JAR_THUMBNAIL_STYLE_ID = "jar-png-preview-style-v3";
+const JAR_PREVIEW_PNGS = Object.freeze([
+  "assets/art/jars/onggi/thumbnail-no-toad.png",
+  "assets/art/jars/celadon/thumbnail-no-toad.png",
+  "assets/art/jars/moon-white/thumbnail-no-toad.png",
+  "assets/art/jars/night-lacquer/thumbnail-no-toad.png"
+]);
 
 const ids = [
   "atomic_number", "atomic_mass", "period_group", "valence_electron",
@@ -98,7 +95,7 @@ function ensureJarPhotoStyle() {
       background-color: #3a2417;
       background-position: center 53% !important;
       background-repeat: no-repeat !important;
-      background-size: cover !important;
+      background-size: contain !important;
     }
     #trainingGrid .jar-preview.jar-preview-photo::before {
       content: "";
@@ -124,7 +121,7 @@ function ensureJarPhotoStyle() {
     @media (max-width: 760px), (max-device-width: 760px) {
       #trainingGrid .jar-preview.jar-preview-photo {
         height: auto !important;
-        aspect-ratio: 1536 / 834;
+        aspect-ratio: 1 / 1;
         background-position: center 51% !important;
       }
     }
@@ -152,11 +149,12 @@ export function applyJarTheme(root, trainingId) {
 export function createJarPreview(mode) {
   const preview = document.createElement("div");
   const theme = themeFor(mode.id);
+  const index = Number(theme.photoIndex || 0) % JAR_PREVIEW_PNGS.length;
   ensureJarPhotoStyle();
   preview.className = "jar-preview jar-preview-photo";
   preview.setAttribute("aria-hidden", "true");
   decorate(preview, theme);
-  preview.style.backgroundImage = `url("${JAR_SCENE_URL}")`;
+  preview.style.backgroundImage = `url("${JAR_PREVIEW_PNGS[index]}")`;
   preview.style.filter = thumbnailFilter(theme);
   return preview;
 }
