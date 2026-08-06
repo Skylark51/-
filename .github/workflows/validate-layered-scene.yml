@@ -31,12 +31,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Static architecture checks
+      - name: JavaScript syntax
         run: |
           node --check assets/js/scene-renderer.js
           node --check assets/js/scene-state-machine.js
-          node --test tests/layered-scene.test.mjs
-          node scripts/validate-layered-scene.mjs
+      - name: Layer architecture tests
+        run: node --test tests/layered-scene.test.mjs
+      - name: PNG and legacy-path validation
+        run: node scripts/validate-layered-scene.mjs
       - name: Install browser smoke-test runtime
         run: |
           npm init -y
@@ -49,7 +51,7 @@ jobs:
       - name: Responsive browser smoke test
         run: node scripts/smoke-layered-scene.mjs
       - name: Upload server log on failure
-        if: failure()
+        if: failure() && hashFiles('/tmp/layered-scene-http.log') != ''
         uses: actions/upload-artifact@v4
         with:
           name: layered-scene-http-log

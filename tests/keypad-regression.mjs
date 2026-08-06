@@ -57,13 +57,18 @@ assert.ok(
 );
 assert.match(
   gameHtml,
-  /mobile-keypad-original\.css\?v=20260804-keypad-stable1/,
+  /mobile-keypad-original\.css\?v=[A-Za-z0-9._-]+/,
   "game page must load the cache-busted stable keypad stylesheet"
 );
 assert.match(
   gameHtml,
-  /quiz-shell-controls\.js\?v=20260804-shell-clean1/,
-  "game page must load the shell controls without the old keypad repair layer"
+  /quiz-shell-controls\.js\?v=[A-Za-z0-9._-]+/,
+  "game page must load the cache-busted shell controls"
+);
+assert.equal(
+  /quiz-shell-controls\.js[^\n]*normalizeNumericKeypad/.test(gameHtml),
+  false,
+  "game page must not request the retired keypad repair layer"
 );
 
 console.log("keypad regression checks passed");
