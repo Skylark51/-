@@ -1,0 +1,32 @@
+name: Export onggi source
+
+on:
+  push:
+    branches:
+      - agent/export-onggi-source
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect source
+        run: |
+          file assets/art/jars/onggi/lid-open.png
+          python - <<'PY'
+          from PIL import Image
+          p='assets/art/jars/onggi/lid-open.png'
+          im=Image.open(p)
+          print(im.size, im.mode)
+          PY
+      - name: Upload source image
+        uses: actions/upload-artifact@v4
+        with:
+          name: onggi-source
+          path: assets/art/jars/onggi/lid-open.png
+          if-no-files-found: error
+          retention-days: 1
