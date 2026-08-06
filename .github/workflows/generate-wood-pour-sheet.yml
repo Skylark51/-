@@ -1,0 +1,196 @@
+name: Generate wood ladle sprite
+
+on:
+  push:
+    paths:
+      - .github/workflows/generate-wood-pour-sheet.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check pillow
+      - name: Generate original RGBA PNG sprite sheet
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageDraw, ImageFilter
+          import math
+          import random
+
+          CELL = 512
+          SCALE = 4
+          W = H = CELL * SCALE
+
+          def sc(value):
+              return int(round(value * SCALE))
+
+          def bezier(p0, p1, p2, count=40):
+              points = []
+              for index in range(count + 1):
+                  t = index / count
+                  x = (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t ** 2 * p2[0]
+                  y = (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t ** 2 * p2[1]
+                  points.append((sc(x), sc(y)))
+              return points
+
+          def build_base_ladle(seed=903):
+              image = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+              draw = ImageDraw.Draw(image, 'RGBA')
+
+              # Wooden handle, lit from upper-left.
+              handle_start = (sc(278), sc(255))
+              handle_end = (sc(409), sc(94))
+              draw.line([handle_start, handle_end], fill=(54, 28, 9, 255), width=sc(31))
+              draw.line([handle_start, handle_end], fill=(126, 70, 24, 255), width=sc(25))
+              draw.line([(handle_start[0] - sc(3), handle_start[1] - sc(3)),
+                         (handle_end[0] - sc(3), handle_end[1] - sc(3))],
+                        fill=(211, 139, 60, 215), width=sc(7))
+              draw.line([(handle_start[0] + sc(5), handle_start[1] + sc(5)),
+                         (handle_end[0] + sc(5), handle_end[1] + sc(5))],
+                        fill=(67, 34, 10, 155), width=sc(6))
+
+              # Rounded wooden end cap.
+              x, y = handle_end
+              draw.ellipse((x - sc(15), y - sc(15), x + sc(15), y + sc(15)), fill=(48, 24, 7, 255))
+              draw.ellipse((x - sc(12), y - sc(12), x + sc(12), y + sc(12)), fill=(136, 77, 27, 255))
+              draw.ellipse((x - sc(8), y - sc(9), x + sc(5), y + sc(5)), fill=(222, 151, 72, 205))
+
+              # Bowl silhouette.
+              left = bezier((155, 267), (158, 349), (232, 363), 38)
+              right = bezier((232, 363), (317, 350), (326, 267), 38)
+              bowl_points = left + right
+              mask = Image.new('L', (W, H), 0)
+              md = ImageDraw.Draw(mask)
+              md.polygon(bowl_points, fill=255)
+
+              # Warm wood body gradient.
+              body = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+              bd = ImageDraw.Draw(body, 'RGBA')
+              y0, y1 = sc(257), sc(368)
+              for py in range(y0, y1):
+                  f = (py - y0) / max(1, y1 - y0)
+                  color = (
+                      int(177 - 78 * f),
+                      int(102 - 56 * f),
+                      int(39 - 22 * f),
+                      255,
+                  )
+                  bd.line([(0, py), (W, py)], fill=color)
+
+              lighting = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+              ld = ImageDraw.Draw(lighting, 'RGBA')
+              ld.ellipse((sc(145), sc(255), sc(278), sc(356)), fill=(255, 199, 111, 105))
+              ld.ellipse((sc(255), sc(275), sc(350), sc(372)), fill=(38, 16, 4, 105))
+              lighting = lighting.filter(ImageFilter.GaussianBlur(sc(13)))
+              body = Image.alpha_composite(body, lighting)
+              body.putalpha(mask)
+              image.alpha_composite(body)
+
+              draw = ImageDraw.Draw(image, 'RGBA')
+              draw.line(bowl_points + [bowl_points[0]], fill=(52, 25, 7, 255), width=sc(4), joint='curve')
+
+              # Bowl rim and dark interior.
+              outer = (sc(151), sc(234), sc(333), sc(297))
+              inner = (sc(160), sc(242), sc(324), sc(287))
+              draw.ellipse(outer, fill=(51, 24, 7, 255))
+              draw.ellipse((outer[0] + sc(3), outer[1] + sc(3), outer[2] - sc(3), outer[3] - sc(3)), fill=(163, 91, 31, 255))
+
+              opening = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+              od = ImageDraw.Draw(opening, 'RGBA')
+              od.ellipse(inner, fill=(33, 14, 4, 255))
+              od.ellipse((sc(174), sc(246), sc(301), sc(276)), fill=(93, 47, 13, 210))
+              opening = opening.filter(ImageFilter.GaussianBlur(sc(1.1)))
+              image.alpha_composite(opening)
+
+              draw = ImageDraw.Draw(image, 'RGBA')
+              draw.ellipse(inner, outline=(31, 13, 3, 255), width=sc(3))
+              draw.arc((sc(154), sc(236), sc(331), sc(295)), start=184, end=356,
+                       fill=(239, 175, 91, 245), width=sc(5))
+              draw.arc((sc(159), sc(241), sc(326), sc(290)), start=4, end=176,
+                       fill=(74, 34, 9, 230), width=sc(3))
+
+              # Deterministic wood grain. The grain is drawn once and rotates with every frame.
+              rng = random.Random(seed)
+              grain = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+              gd = ImageDraw.Draw(grain, 'RGBA')
+              for index in range(18):
+                  y = 279 + index * 4.0 + rng.uniform(-1.5, 1.5)
+                  amp = rng.uniform(2.5, 6.0)
+                  phase = rng.uniform(0, math.tau)
+                  pts = []
+                  for x_value in range(165, 322, 3):
+                      y_value = y + math.sin(x_value * 0.055 + phase) * amp
+                      pts.append((sc(x_value), sc(y_value)))
+                  gd.line(pts, fill=(62, 29, 8, rng.randint(35, 75)), width=sc(rng.choice([1.0, 1.2, 1.5])))
+              for index in range(8):
+                  x_value = 294 + index * 13 + rng.uniform(-2, 2)
+                  pts = []
+                  for t in range(0, 101, 4):
+                      px = x_value + 1.8 * math.sin(t * 0.13 + index)
+                      py = 240 - t * 1.45
+                      pts.append((sc(px), sc(py)))
+                  gd.line(pts, fill=(65, 31, 9, 70), width=sc(1.2))
+              grain.putalpha(Image.composite(grain.getchannel('A'), Image.new('L', (W, H), 0), mask))
+              image.alpha_composite(grain)
+
+              # Restrained worn marks, fixed across frames.
+              draw = ImageDraw.Draw(image, 'RGBA')
+              for _ in range(42):
+                  px = rng.randint(sc(172), sc(314))
+                  py = rng.randint(sc(275), sc(349))
+                  if mask.getpixel((px, py)) > 0:
+                      radius = rng.randint(sc(0.5), sc(1.2))
+                      color = (239, 184, 98, rng.randint(18, 45)) if rng.random() > 0.55 else (49, 22, 6, rng.randint(18, 55))
+                      draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=color)
+
+              return image
+
+          BASE = build_base_ladle()
+          PIVOT = (sc(246), sc(284))
+
+          def render_frame(angle, dx, dy):
+              rotated = BASE.rotate(angle, resample=Image.Resampling.BICUBIC, center=PIVOT, expand=False)
+              shifted = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+              shifted.alpha_composite(rotated, (sc(dx), sc(dy)))
+              return shifted.resize((CELL, CELL), Image.Resampling.LANCZOS)
+
+          # idle, subtle idle, prepare, lift, tilt, full pour, return, startled shake
+          angles = [0, 1, -5, -12, -28, -58, -8, 14]
+          x_offsets = [0, 0, 0, 1, 3, 5, 0, 5]
+          y_offsets = [0, -2, -6, -20, -10, 0, -3, 12]
+
+          output = Path('assets/art/game-scene/tools/wood/pour-sheet.png')
+          output.parent.mkdir(parents=True, exist_ok=True)
+          sheet = Image.new('RGBA', (CELL * 8, CELL), (0, 0, 0, 0))
+          for frame_index, values in enumerate(zip(angles, x_offsets, y_offsets)):
+              sheet.alpha_composite(render_frame(*values), (frame_index * CELL, 0))
+          sheet.save(output, 'PNG', optimize=True, compress_level=9)
+
+          check = Image.open(output)
+          assert check.format == 'PNG'
+          assert check.size == (4096, 512)
+          assert check.mode == 'RGBA'
+          assert check.getchannel('A').getextrema() == (0, 255)
+          assert output.stat().st_size > 100_000
+          print(f'{output}: {check.size}, {check.mode}, {output.stat().st_size} bytes')
+          PY
+      - name: Commit generated asset
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/art/game-scene/tools/wood/pour-sheet.png
+          git commit -m "feat: add wood ladle pour sprite sheet"
+          git pull --rebase origin main
+          git push origin HEAD:main
