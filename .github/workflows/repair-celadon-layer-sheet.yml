@@ -1,0 +1,97 @@
+name: Repair celadon layer sheet
+
+on:
+  push:
+    paths:
+      - .github/workflows/repair-celadon-layer-sheet.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repair-celadon-layer-sheet
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Install lossless PNG tooling
+        run: python3 -m pip install --disable-pip-version-check pillow
+
+      - name: Reframe equal source panels without resampling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageChops
+
+          path = Path('assets/art/game-scene/jars/celadon/layers.png')
+          image = Image.open(path)
+          image.load()
+          if image.mode != 'RGBA':
+              raise SystemExit(f'Expected RGBA, got {image.mode}')
+          if image.size == (2048, 1024):
+              print('Celadon layer sheet is already 2048x1024; no reframing needed.')
+          else:
+              if image.size != (1536, 1024):
+                  raise SystemExit(f'Unexpected source dimensions: {image.size[0]}x{image.size[1]}')
+
+              # The authored source contains two equal 768x1024 panels. Preserve every
+              # source pixel and add transparent side gutters so each panel occupies a
+              # standards-compliant 1024x1024 sprite cell. No resize or resampling occurs.
+              left = image.crop((0, 0, 768, 1024))
+              right = image.crop((768, 0, 1536, 1024))
+              output = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
+              output.alpha_composite(left, (128, 0))
+              output.alpha_composite(right, (1152, 0))
+
+              if ImageChops.difference(output.crop((128, 0, 896, 1024)), left).getbbox() is not None:
+                  raise SystemExit('Left panel pixel-integrity check failed')
+              if ImageChops.difference(output.crop((1152, 0, 1920, 1024)), right).getbbox() is not None:
+                  raise SystemExit('Right panel pixel-integrity check failed')
+
+              print(f'left alpha bbox={left.getchannel("A").getbbox()}')
+              print(f'right alpha bbox={right.getchannel("A").getbbox()}')
+              output.save(path, format='PNG', compress_level=9, optimize=False)
+
+          check = Image.open(path)
+          check.load()
+          if check.size != (2048, 1024) or check.mode != 'RGBA':
+              raise SystemExit(f'Invalid repaired PNG: size={check.size}, mode={check.mode}')
+          print(f'Repaired PNG: {check.size[0]}x{check.size[1]}, mode={check.mode}, bytes={path.stat().st_size}')
+          PY
+
+      - name: Validate layered scene assets
+        run: node scripts/validate-layered-scene.mjs
+
+      - name: Commit repaired original PNG
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/repair-celadon-layer-sheet.yml
+          git add assets/art/game-scene/jars/celadon/layers.png
+          if git diff --cached --quiet; then
+            echo 'No repair changes required.'
+            exit 0
+          fi
+          git commit -m 'fix: restore celadon jar layer sheet dimensions'
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git fetch origin main
+            git rebase origin/main
+            sleep 2
+          done
+          exit 1
