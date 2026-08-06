@@ -129,3 +129,71 @@
     max-height: 140px !important;
   }
 }
+
+/* Render the four authored ladle PNGs instead of the legacy SVG sprite. */
+.shop-page .shop-asset-tool {
+  box-sizing: border-box !important;
+  display: block !important;
+  width: 94% !important;
+  height: 92% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  aspect-ratio: auto !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  background-size: contain !important;
+  image-rendering: auto;
+  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, .42)) !important;
+  transform: none !important;
+}
+
+.shop-page .shop-asset-tool[data-visual-key="wood"] {
+  background-image: url("../art/kongjwi-tools/wood.png?v=20260806-shop-tool-png1") !important;
+}
+
+.shop-page .shop-asset-tool[data-visual-key="brass"] {
+  background-image: url("../art/kongjwi-tools/brass.png?v=20260806-shop-tool-png1") !important;
+}
+
+.shop-page .shop-asset-tool[data-visual-key="celadon"] {
+  background-image: url("../art/kongjwi-tools/celadon.png?v=20260806-shop-tool-png1") !important;
+}
+
+.shop-page .shop-asset-tool[data-visual-key="moon"] {
+  background-image: url("../art/kongjwi-tools/moon.png?v=20260806-shop-tool-png1") !important;
+}
+
+.shop-page .shop-grid[data-category="tool"] .shop-item-visual {
+  position: relative;
+  box-sizing: border-box;
+  display: grid !important;
+  place-items: center !important;
+  padding: 5px 7px !important;
+  overflow: hidden !important;
+}
+
+.shop-page .shop-grid[data-category="tool"] .shop-item-visual .shop-asset-tool {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.shop-page .shop-category-card[data-category="tool"] .shop-category-visual {
+  padding: 8px !important;
+}
+
+.shop-page .shop-category-card[data-category="tool"] .shop-asset-tool {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="tool"] .shop-item-visual {
+  min-height: 0 !important;
+  padding: 3px 4px !important;
+}
+
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="tool"] .shop-asset-tool {
+  width: 108% !important;
+  height: 108% !important;
+  max-width: 108% !important;
+  max-height: 108% !important;
+}
