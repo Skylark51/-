@@ -1,0 +1,180 @@
+name: Generate courtyard foreground PNG
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/generate-courtyard-night-fg.yml
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install renderer
+        run: python -m pip install --disable-pip-version-check pillow
+
+      - name: Render and verify RGBA PNG
+        shell: bash
+        run: |
+          python - <<'PY'
+          from PIL import Image, ImageDraw, ImageFilter
+          from pathlib import Path
+          import random, math, hashlib
+
+          W, H = 2048, 1152
+          rng = random.Random(20260806)
+          image = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+
+          base = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+          draw = ImageDraw.Draw(base, 'RGBA')
+
+          def mound(cx, cy, rx, ry, warm=0):
+              points = []
+              for i in range(25):
+                  angle = math.pi + math.pi * i / 24
+                  jitter = 1 + rng.uniform(-0.08, 0.08)
+                  points.append((cx + math.cos(angle) * rx * jitter,
+                                 cy + math.sin(angle) * ry * jitter))
+              points += [(cx + rx, H), (cx - rx, H)]
+              draw.polygon(points, fill=(61 + warm, 52 + warm // 2, 36, 185))
+              draw.line(points[:25], fill=(134 + warm, 108 + warm // 2, 62, 115), width=3)
+              draw.ellipse((cx-rx*0.75, cy-ry*0.15, cx+rx*0.75, cy+ry*0.55),
+                           fill=(34, 34, 26, 65))
+
+          mound(260, 1110, 270, 74, 8)
+          mound(1788, 1114, 285, 78, 15)
+          mound(720, 1132, 180, 48, 10)
+          mound(1325, 1136, 160, 42, 16)
+
+          stones = [
+              (115,1088,34,19),(180,1110,48,23),(325,1098,29,15),(455,1128,25,12),
+              (1605,1115,31,16),(1710,1087,43,22),(1825,1104,52,25),(1940,1082,28,16),
+              (690,1125,23,11),(760,1118,31,14),(1285,1127,25,12),(1375,1121,33,14)
+          ]
+          for cx, cy, rx, ry in stones:
+              draw.ellipse((cx-rx,cy-ry,cx+rx,cy+ry),
+                           fill=(67,70,62,235), outline=(24,30,27,210), width=2)
+              draw.arc((cx-rx+3,cy-ry+2,cx+rx-3,cy+ry-2),
+                       195,300,fill=(153,151,113,165),width=3)
+              draw.ellipse((cx-rx*0.45,cy+ry*0.05,cx+rx*0.7,cy+ry*0.55),
+                           fill=(20,25,23,80))
+
+          for _ in range(180):
+              x = rng.randrange(0, W)
+              if 520 < x < 1500 and rng.random() < 0.72:
+                  continue
+              y = rng.randrange(1080, H)
+              radius = rng.choice([1,1,2,2,3])
+              draw.ellipse((x-radius,y-radius,x+radius,y+radius),
+                           fill=(91,78,47,rng.randrange(55,130)))
+
+          base = base.filter(ImageFilter.GaussianBlur(0.35))
+          image.alpha_composite(base)
+
+          plants = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+          plant_draw = ImageDraw.Draw(plants, 'RGBA')
+
+          def grass_cluster(cx, ground, count, spread, hmin, hmax, warm=False):
+              for _ in range(count):
+                  x0 = cx + rng.uniform(-spread, spread)
+                  y0 = ground + rng.uniform(-6, 5)
+                  height = rng.uniform(hmin, hmax)
+                  lean = rng.uniform(-0.42, 0.42) * height
+                  x1, y1 = x0 + lean, y0 - height
+                  midx = (x0 + x1) / 2 + rng.uniform(-9, 9)
+                  midy = (y0 + y1) / 2
+                  color = (38+rng.randrange(-5,11), 64+rng.randrange(-7,11),
+                           42+rng.randrange(-5,9), rng.randrange(175,241))
+                  if warm and rng.random() < 0.25:
+                      color = (84+rng.randrange(-6,10), 91+rng.randrange(-6,11),
+                               42+rng.randrange(-4,10), rng.randrange(155,220))
+                  width = rng.choice([2,2,3,3,4])
+                  plant_draw.line([(x0,y0),(midx,midy),(x1,y1)],
+                                  fill=color,width=width,joint='curve')
+                  if width >= 3:
+                      highlight = (121,129,72,85) if warm else (92,117,79,70)
+                      plant_draw.line([(x0-1,y0),(midx-1,midy),(x1-1,y1)],
+                                      fill=highlight,width=1,joint='curve')
+                  if rng.random() < 0.17:
+                      side = rng.choice([-1,1])
+                      ratio = rng.uniform(0.25,0.6)
+                      ly, lx = y0-height*ratio, x0+lean*ratio
+                      length = rng.uniform(18,45)
+                      plant_draw.polygon([
+                          (lx,ly),
+                          (lx+side*length,ly-rng.uniform(5,18)),
+                          (lx+side*length*0.55,ly+rng.uniform(2,9))
+                      ], fill=(34,65,42,rng.randrange(125,205)))
+
+          grass_cluster(75,1142,75,105,45,150,False)
+          grass_cluster(250,1144,70,145,30,112,True)
+          grass_cluster(1980,1143,78,115,50,158,False)
+          grass_cluster(1780,1144,72,145,30,118,True)
+          grass_cluster(610,1144,28,90,22,65,False)
+          grass_cluster(1430,1144,30,95,22,68,True)
+
+          for centers in (
+              [(45,1120),(115,1110),(205,1125)],
+              [(2000,1118),(1930,1106),(1845,1124)]
+          ):
+              for cx, cy in centers:
+                  for _ in range(15):
+                      angle = rng.uniform(math.radians(195), math.radians(345))
+                      length = rng.uniform(25,70)
+                      x2 = cx + math.cos(angle) * length
+                      y2 = cy + math.sin(angle) * length * 0.45
+                      width = rng.uniform(6,14)
+                      vx, vy = x2-cx, y2-cy
+                      norm = max(1, math.hypot(vx,vy))
+                      nx, ny = -vy/norm*width, vx/norm*width
+                      plant_draw.polygon([
+                          (cx,cy),(x2+nx,y2+ny),(x2,y2-4),(x2-nx,y2-ny)
+                      ], fill=(28,59,39,rng.randrange(160,225)))
+                      plant_draw.line([(cx,cy),(x2,y2)], fill=(105,117,65,80), width=1)
+
+          plant_draw.arc((-55,1010,380,1240),200,320,fill=(104,126,84,75),width=4)
+          plant_draw.arc((1670,1005,2110,1245),210,335,fill=(176,139,66,70),width=4)
+          plants = plants.filter(ImageFilter.GaussianBlur(0.45))
+          image.alpha_composite(plants)
+
+          output = Path('assets/art/game-scene/background/courtyard-night-fg.png')
+          output.parent.mkdir(parents=True, exist_ok=True)
+          image.save(output, 'PNG', compress_level=9, optimize=True)
+
+          checked = Image.open(output)
+          assert checked.format == 'PNG'
+          assert checked.mode == 'RGBA'
+          assert checked.size == (2048, 1152)
+          alpha = checked.getchannel('A')
+          assert alpha.getextrema()[0] == 0
+          assert alpha.getbbox() is not None
+          assert alpha.getbbox()[1] >= 944
+          print('path:', output)
+          print('size:', checked.size)
+          print('mode:', checked.mode)
+          print('bytes:', output.stat().st_size)
+          print('sha256:', hashlib.sha256(output.read_bytes()).hexdigest())
+          PY
+
+      - name: Commit generated asset and remove one-shot workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/art/game-scene/background/courtyard-night-fg.png
+          git rm .github/workflows/generate-courtyard-night-fg.yml
+          git commit -m 'feat: add courtyard foreground layer'
+          git pull --rebase origin main
+          git push origin HEAD:main
