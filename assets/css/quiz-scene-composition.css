@@ -183,7 +183,7 @@
   display: block !important;
   width: 100% !important;
   height: 100% !important;
-  background-image: url("../images/toad-expressions/toad-expression-sprite.webp") !important;
+  background-image: none !important;
   background-repeat: no-repeat !important;
   background-size: 200% 500% !important;
   filter: brightness(1.22) contrast(1.08) saturate(1.08);
@@ -221,17 +221,7 @@
   opacity: 0.88;
 }
 
-.jar-game-shell[data-toad-skin="gold-worker"] .scene-toad-sprite {
-  filter: sepia(.68) saturate(1.75) hue-rotate(356deg) brightness(1.24) !important;
-}
-
-.jar-game-shell[data-toad-skin="jade-guard"] .scene-toad-sprite {
-  filter: hue-rotate(76deg) saturate(1.18) brightness(1.16) !important;
-}
-
-.jar-game-shell[data-toad-skin="star-night"] .scene-toad-sprite {
-  filter: hue-rotate(176deg) saturate(1.35) brightness(1.04) contrast(1.08) !important;
-}
+/* Toad skins are authored PNG layers in scene-renderer.js; no CSS recoloring fallback. */
 
 .scene-jar-actor.is-reacting[data-toad-expression="correct"] .scene-toad-sprite,
 .scene-jar-actor.is-reacting[data-toad-expression="combo"] .scene-toad-sprite {
