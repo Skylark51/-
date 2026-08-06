@@ -67,7 +67,7 @@
     "assets/art/game-scene/tools/celadon/pour-sheet.png": true,
     "assets/art/game-scene/tools/moon/pour-sheet.png": true,
     "assets/art/game-scene/jars/onggi/layers.png": false,
-    "assets/art/game-scene/jars/celadon/layers.png": true,
+    "assets/art/game-scene/jars/celadon/layers.png": false,
     "assets/art/game-scene/jars/moon-white/layers.png": false,
     "assets/art/game-scene/jars/night-lacquer/layers.png": true,
     "assets/art/game-scene/toad/skins/field-brown.png": false,
