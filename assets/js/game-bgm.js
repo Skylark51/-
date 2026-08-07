@@ -1,3 +1,5 @@
+import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical2";
+
 const AUDIO_SETTINGS_KEY = "kongjuiya-audio-settings";
 const DEFAULT_SETTINGS = Object.freeze({
   bgmVolume: 0.62,
@@ -32,6 +34,12 @@ const saveSettings = next => {
 };
 
 let settings = readSettings();
+
+// The quiz previously mounted the shared historical BGM from ui-effects.js.
+// Stop that shared controller before the new training-only score starts so two
+// soundtracks never play on top of each other.
+const legacyBgm = mountHistoricalBgm({ initialVolume: 0 });
+legacyBgm.destroy();
 let context = null;
 let master = null;
 let musicBus = null;
