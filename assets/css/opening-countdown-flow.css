@@ -1,67 +1,109 @@
-/* Universal three-second breathing countdown: only the authored animation zone is veiled. */
-.scene-animation-zone {
-  position: relative;
+/* Universal three-second breathing countdown: the countdown replaces the live question frame only. */
+.scene-question-bubble {
+  isolation: isolate;
 }
 
-.scene-animation-zone > #startOverlay.game-start-countdown {
+.scene-question-bubble > #startOverlay.game-start-countdown {
   position: absolute !important;
-  inset: 0 !important;
-  z-index: 40 !important;
+  inset: -1px !important;
+  z-index: 999 !important;
   display: grid !important;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  padding: 14px !important;
+  place-items: stretch;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
   overflow: hidden;
+  border: 1px solid rgba(218, 184, 48, .52);
   border-radius: inherit;
   background:
-    radial-gradient(circle at 50% 48%, rgba(96, 80, 32, .18), transparent 40%),
-    rgba(4, 7, 10, .78) !important;
+    radial-gradient(circle at 50% 48%, rgba(96, 80, 32, .18), transparent 52%),
+    linear-gradient(155deg, rgba(24, 25, 20, .98), rgba(7, 11, 15, .98)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
   backdrop-filter: blur(5px) !important;
   -webkit-backdrop-filter: blur(5px) !important;
+  opacity: 1;
+  transition: opacity 120ms ease;
   pointer-events: auto;
 }
 
-.scene-animation-zone > #startOverlay.game-start-countdown.hidden {
+.scene-question-bubble > #startOverlay.game-start-countdown.hidden {
   display: none !important;
 }
 
-.scene-animation-zone > #startOverlay.game-start-countdown .game-start-countdown-card {
-  width: min(88%, 430px);
-  max-height: calc(100% - 24px);
-  padding: clamp(18px, 4vh, 28px) 18px;
+.scene-question-bubble > #startOverlay.game-start-countdown.is-opening {
+  opacity: 0;
 }
 
-.scene-animation-zone > #startOverlay.game-start-countdown .game-start-countdown-message {
-  font-size: clamp(15px, 4vw, 21px);
+.scene-question-bubble > #startOverlay.game-start-countdown > #startButton,
+.scene-question-bubble > #startOverlay.game-start-countdown > #ui-trainingSelect,
+.scene-question-bubble > #startOverlay.game-start-countdown > #ui-difficultySelect {
+  display: none !important;
 }
 
-.scene-animation-zone > #startOverlay.game-start-countdown .game-start-countdown-number {
-  font-size: clamp(54px, 18vw, 104px);
-}
-
-/* Do not expose the first question during the breathing period. */
-#ui-gameApp.is-opening-countdown #questionText {
-  position: relative;
-  color: transparent !important;
-  text-shadow: none !important;
-}
-
-#ui-gameApp.is-opening-countdown #questionText::after {
-  content: "문제 준비 중";
-  position: absolute;
-  inset: 0;
+.scene-question-bubble > #startOverlay.game-start-countdown .game-start-countdown-card {
   display: grid;
+  grid-template-rows: auto 1fr;
   place-items: center;
-  color: rgba(242, 234, 211, .72);
-  font-family: Pretendard, "Noto Sans KR", system-ui, sans-serif;
-  font-size: clamp(12px, 3.4vw, 16px);
-  font-weight: 800;
-  letter-spacing: -.02em;
-  text-shadow: none;
+  align-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  gap: 2px;
+  margin: 0;
+  padding: 5px 12px 6px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: center;
 }
 
-/* The keypad stays visible for hand placement but cannot submit before the countdown ends. */
+.scene-question-bubble > #startOverlay.game-start-countdown .game-start-countdown-message {
+  margin: 0;
+  color: #f2ead3;
+  font-size: clamp(12px, 3.1vw, 16px);
+  font-weight: 850;
+  line-height: 1.2;
+  word-break: keep-all;
+}
+
+.scene-question-bubble > #startOverlay.game-start-countdown .game-start-countdown-number {
+  align-self: center;
+  min-height: 0;
+  color: #fff8a9;
+  font-size: clamp(32px, 9vw, 54px);
+  font-weight: 950;
+  line-height: .95;
+  letter-spacing: -.05em;
+  text-shadow: 0 5px 18px rgba(0, 0, 0, .45), 0 0 20px rgba(225, 192, 44, .2);
+}
+
+.scene-question-bubble > #startOverlay[data-phase="intro"] .game-start-countdown-card {
+  grid-template-rows: 1fr;
+}
+
+.scene-question-bubble > #startOverlay[data-phase="intro"] .game-start-countdown-number {
+  display: none;
+}
+
+.scene-question-bubble > #startOverlay[data-phase="countdown"] .game-start-countdown-number {
+  animation: universal-countdown-pulse 700ms ease-out both;
+}
+
+.scene-question-bubble > #startOverlay[data-phase="open"] .game-start-countdown-number {
+  font-size: clamp(25px, 7vw, 40px);
+  letter-spacing: 0;
+}
+
+@keyframes universal-countdown-pulse {
+  0% { opacity: 0; transform: scale(.78); }
+  24% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* The keypad stays visible for hand placement but remains locked while game state is paused. */
 #ui-gameApp.is-opening-countdown #ui-pausedCurtain {
   display: none !important;
 }
@@ -73,9 +115,14 @@
   opacity: 1 !important;
 }
 
-/* Very short mobile viewports need a permanently shorter scene. Otherwise the
- * keypad is clipped below the fold during the countdown and then jumps when
- * play begins, defeating the hand-placement purpose of the breathing period. */
+.reduce-motion .scene-question-bubble > #startOverlay.game-start-countdown,
+.reduce-motion .scene-question-bubble > #startOverlay.game-start-countdown .game-start-countdown-number {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Very short mobile viewports keep a stable compact scene so the entire keypad
+ * remains visible before and after the countdown without changing hand position. */
 @media (max-width: 900px) and (max-height: 520px),
        (pointer: coarse) and (max-height: 520px) {
   :root {
@@ -139,25 +186,16 @@
     min-height: 29px !important;
   }
 
-  .scene-animation-zone > #startOverlay.game-start-countdown {
-    padding: 8px !important;
+  .scene-question-bubble > #startOverlay.game-start-countdown .game-start-countdown-card {
+    gap: 1px;
+    padding: 3px 8px 4px;
   }
 
-  .scene-animation-zone > #startOverlay.game-start-countdown .game-start-countdown-card {
-    width: min(84%, 330px);
-    max-height: calc(100% - 12px);
-    gap: 6px;
-    padding: 10px 12px 12px;
-    border-radius: 16px;
+  .scene-question-bubble > #startOverlay.game-start-countdown .game-start-countdown-message {
+    font-size: 11px;
   }
 
-  .scene-animation-zone > #startOverlay.game-start-countdown .game-start-countdown-message {
-    font-size: 13px;
-    line-height: 1.25;
-  }
-
-  .scene-animation-zone > #startOverlay.game-start-countdown .game-start-countdown-number {
-    min-height: .9em;
-    font-size: clamp(42px, 14vw, 62px);
+  .scene-question-bubble > #startOverlay.game-start-countdown .game-start-countdown-number {
+    font-size: 30px;
   }
 }
