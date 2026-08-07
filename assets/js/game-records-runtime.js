@@ -15,6 +15,18 @@ function readSelection() {
   catch { return null; }
 }
 
+function syncQuestionTargetUi(questionCount) {
+  const questionProgress = document.querySelector(".question-progress-line > span");
+  const questionIndex = document.getElementById("ui-questionCount");
+  if (questionProgress && questionIndex) {
+    questionProgress.replaceChildren(document.createTextNode("문제 "), questionIndex, document.createTextNode(` / ${questionCount}`));
+  }
+  const completed = document.getElementById("correctInStage");
+  if (completed?.parentNode) {
+    completed.parentNode.replaceChildren(completed, document.createTextNode(`/${questionCount}`));
+  }
+}
+
 await import("./main.js?v=20260807-oxidation-formula1");
 const api = globalThis.KongJuiYaGame;
 
@@ -24,6 +36,7 @@ if (api?.game && api?.storage) {
   const questionCount = clampQuestionCount(savedTarget || api.storage.data.settings?.questionCount);
   api.game.config = Object.freeze({ ...api.game.config, correctAnswersToClear: questionCount });
   document.documentElement.dataset.defaultQuestionCount = String(questionCount);
+  syncQuestionTargetUi(questionCount);
 
   const originalFinishRun = api.storage.finishRun.bind(api.storage);
   api.storage.finishRun = state => {
