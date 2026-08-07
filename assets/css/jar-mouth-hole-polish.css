@@ -1,0 +1,91 @@
+/*
+ * Final jar mouth / lower-hole polish.
+ * Keep water visually inside the jar opening and keep the toad readable inside
+ * the broken hole without altering any authored PNG asset.
+ */
+
+#layeredScene > .scene-water-fill {
+  --scene-x: 66.6% !important;
+  --scene-y: 33.6% !important;
+  --scene-width: 14.2% !important;
+  --scene-height: 5.8% !important;
+  overflow: hidden !important;
+  border-radius: 50% !important;
+  clip-path: ellipse(47% 36% at 50% 58%) !important;
+  opacity: .74 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+#layeredScene > .scene-water-fill > .scene-water-fill-texture {
+  left: 6% !important;
+  right: 6% !important;
+  bottom: -2% !important;
+  height: var(--scene-water-level) !important;
+  min-height: 0 !important;
+  border-top: 1px solid rgba(215, 248, 255, .58) !important;
+  border-radius: 46% 46% 40% 40% !important;
+  background-position: center bottom !important;
+  background-size: auto 24px !important;
+  box-shadow: none !important;
+  filter: none !important;
+  opacity: .92 !important;
+}
+
+#ui-gameApp[data-jar-skin="celadon"] #layeredScene > .scene-water-fill {
+  --scene-x: 66.9% !important;
+  --scene-y: 33.9% !important;
+  --scene-width: 13.9% !important;
+  --scene-height: 5.6% !important;
+  clip-path: ellipse(47% 36% at 50% 59%) !important;
+}
+
+#ui-gameApp[data-jar-skin="night-lacquer"] #layeredScene > .scene-water-fill {
+  --scene-x: 66.8% !important;
+  --scene-y: 33.8% !important;
+  --scene-width: 14.1% !important;
+  --scene-height: 5.7% !important;
+  clip-path: ellipse(47% 36% at 50% 58%) !important;
+}
+
+#ui-gameApp[data-jar-skin="celadon"] #layeredScene .scene-toad-skin,
+#ui-gameApp[data-jar-skin="celadon"] #layeredScene .scene-toad-expression {
+  clip-path: ellipse(48% 45% at 50% 56%) !important;
+}
+
+#ui-gameApp[data-jar-skin="celadon"] #layeredScene[data-toad-mode="full-fallback"] {
+  --toad-image-scale: 2.56 !important;
+  --toad-image-y: 8% !important;
+  --toad-image-origin-y: 50% !important;
+}
+
+#ui-gameApp[data-jar-skin="celadon"] #layeredScene[data-toad-mode="skin-only"] {
+  --toad-image-scale: 1.50 !important;
+  --toad-image-y: 1% !important;
+  --toad-image-origin-y: 57% !important;
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  #layeredScene > .scene-water-fill {
+    --scene-x: 66.8% !important;
+    --scene-y: 33.8% !important;
+    --scene-width: 14.0% !important;
+    --scene-height: 5.6% !important;
+  }
+
+  #ui-gameApp[data-jar-skin="celadon"] #layeredScene > .scene-water-fill {
+    --scene-x: 67.0% !important;
+    --scene-y: 34.0% !important;
+    --scene-width: 13.7% !important;
+    --scene-height: 5.4% !important;
+  }
+
+  #ui-gameApp[data-jar-skin="celadon"] #layeredScene .scene-toad-skin,
+  #ui-gameApp[data-jar-skin="celadon"] #layeredScene .scene-toad-expression {
+    --scene-x: 69.8% !important;
+    --scene-y: 56.9% !important;
+    --scene-width: 14.8% !important;
+    --scene-height: 19.2% !important;
+  }
+}
