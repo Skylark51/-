@@ -66,14 +66,19 @@ test("every oxidation-number question exposes the same signed keypad", () => {
   }
 });
 
-test("oxidation-number signed keypad gives half of the header to large sign controls", () => {
+test("oxidation-number signed keypad keeps the sign row separate from number keys", () => {
   const css = read("assets/css/oxidation-number-keypad.css");
   const html = read("콩쥐야_줘때써.html");
 
   assert.match(css, /data-training-id="oxidation_number"/);
   assert.match(css, /data-input-mode="signed_numeric_keypad"/);
   assert.match(css, /grid-template-columns:\s*minmax\(0,\s*0\.9fr\)\s*minmax\(0,\s*1\.1fr\)/);
-  assert.match(css, /\.keypad-modifiers\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s);
-  assert.match(css, /\.keypad-modifier\s*\{[^}]*width:\s*100%/s);
-  assert.match(html, /oxidation-number-keypad\.css\?v=20260807-oxidation-keypad1/);
+  assert.match(css, /grid-template-rows:\s*36px\s*minmax\(0,\s*1fr\)\s*!important/);
+  assert.match(css, /row-gap:\s*6px\s*!important/);
+  assert.match(css, /\.keypad-display-row\s*\{[^}]*max-height:\s*36px[^}]*overflow:\s*hidden/s);
+  assert.match(css, /\.keypad-modifiers\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)[^}]*overflow:\s*hidden/s);
+  assert.match(css, /\.keypad-modifier\s*\{[^}]*height:\s*100%\s*!important[^}]*min-height:\s*0\s*!important[^}]*max-height:\s*100%/s);
+  assert.match(css, /grid-template-rows:\s*32px\s*minmax\(0,\s*1fr\)\s*!important/);
+  assert.match(css, /grid-template-rows:\s*29px\s*minmax\(0,\s*1fr\)\s*!important/);
+  assert.match(html, /oxidation-number-keypad\.css\?v=20260807-oxidation-keypad2/);
 });
