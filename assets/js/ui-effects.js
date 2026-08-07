@@ -118,7 +118,7 @@ async function initializeGamePage() {
     return;
   }
 
-  await import("./main.js?v=20260807-atomic-number-flash1");
+  await import("./main.js?v=20260807-oxidation-formula1");
   const api = globalThis.KongJuiYaGame;
   if (!api) throw new Error("게임 엔진을 불러오지 못했습니다.");
 
