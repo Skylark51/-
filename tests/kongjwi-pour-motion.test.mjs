@@ -26,7 +26,7 @@ test("all Kongjwi outfits have authored 8-frame pour sheets enabled", () => {
   }
 });
 
-test("bucket, stream and splash authored assets are available once Kongjwi motion is enabled", () => {
+test("bucket, stream and splash authored assets survive integrated Kongjwi grip mode", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "assets/art/game-scene/manifest.json"), "utf8"));
   for (const tool of Object.values(manifest.assets.tools)) {
     assert.equal(manifest.availability[tool.sheet], true, `${tool.sheet} must remain authored`);
@@ -36,8 +36,10 @@ test("bucket, stream and splash authored assets are available once Kongjwi motio
 
   const renderer = fs.readFileSync(path.join(root, "assets/js/scene-renderer.js"), "utf8");
   assert.match(renderer, /motionRig\s*=\s*authoredKongjwi\.authored\s*&&\s*authoredTool\.authored/);
-  assert.match(renderer, /stream:\s*motionRig\s*\?\s*target\(manifest,\s*a\.effects\.waterStream\)/);
-  assert.match(renderer, /splash:\s*motionRig\s*\?\s*target\(manifest,\s*a\.effects\.waterSplash\)/);
+  assert.match(renderer, /waterRig\s*=\s*integratedGrip\s*\|\|\s*motionRig/);
+  assert.match(renderer, /stream:\s*waterRig\s*\?\s*target\(manifest,\s*a\.effects\.waterStream\)/);
+  assert.match(renderer, /splash:\s*waterRig\s*\?\s*target\(manifest,\s*a\.effects\.waterSplash\)/);
+  assert.match(renderer, /if \(integratedGrip\) clearLayer\(layer\(stack, "scene-tool"\)\)/);
 });
 
 test("correct feedback survives synchronous nextQuestion so the pour can actually play", () => {
@@ -50,7 +52,7 @@ test("correct feedback survives synchronous nextQuestion so the pour can actuall
   assert.match(stateMachine, /case "clear"[\s\S]*playSequence\("waterStream"[\s\S]*playSequence\("waterSplash"/);
 });
 
-test("scene composition no longer over-compresses Kongjwi and keeps the bucket at her hand", () => {
+test("scene composition no longer over-compresses Kongjwi and keeps legacy separate buckets aligned", () => {
   const css = fs.readFileSync(path.join(root, "assets/css/scene-source-aspect-fix.css"), "utf8");
   assert.match(css, /scene-kongjwi\[data-sprite-mode="sheet"\][\s\S]*transform:\s*none/);
   assert.doesNotMatch(css, /scaleX\(0\.88293\)/);
@@ -73,28 +75,31 @@ test("a high-contrast bucket-to-jar ribbon is guaranteed for correct and clear s
   assert.match(animationCss, /@keyframes layered-visible-water-ribbon/);
 });
 
-test("direct answer-driven SVG water overlay is loaded and independent of scene state", () => {
+test("direct answer-driven SVG water overlay follows separate or integrated bucket source", () => {
   const html = fs.readFileSync(path.join(root, "콩쥐야_줘때써.html"), "utf8");
   const overlay = fs.readFileSync(path.join(root, "assets/js/visible-water-pour.js"), "utf8");
-  assert.match(html, /data-ui-version="20260807-water-overlay3"/);
-  assert.match(html, /visible-water-pour\.js\?v=20260807-water-overlay3/);
+  assert.match(html, /data-ui-version="20260807-underlayer-grip1"/);
+  assert.match(html, /visible-water-pour\.js\?v=20260807-underlayer-grip1/);
   assert.match(overlay, /window\.addEventListener\("answer:correct"/);
   assert.match(overlay, /runtimeVisibleWaterPour/);
   assert.match(overlay, /scene-animation-zone/);
-  assert.match(overlay, /#layeredScene \.scene-tool/);
-  assert.match(overlay, /#layeredScene \.scene-jar-back/);
+  assert.match(overlay, /querySelector\("\.scene-tool"\)/);
+  assert.match(overlay, /querySelector\("\.scene-kongjwi"\)/);
+  assert.match(overlay, /integratedGrip && kongjwi/);
+  assert.match(overlay, /querySelector\("\.scene-jar-back"\)/);
   assert.match(overlay, /DURATION_MS\s*=\s*1380/);
   assert.match(overlay, /stroke-width:\s*8/);
   assert.match(overlay, /z-index:\s*8/);
 });
 
-test("game shell cache-busts the corrected composition and direct water overlay", () => {
+test("game shell cache-busts the frame-locked grip runtime", () => {
   const html = fs.readFileSync(path.join(root, "콩쥐야_줘때써.html"), "utf8");
   const runtime = fs.readFileSync(path.join(root, "assets/css/layered-scene-runtime.css"), "utf8");
-  assert.match(html, /data-ui-version="20260807-water-overlay3"/);
+  assert.match(html, /data-ui-version="20260807-underlayer-grip1"/);
   assert.match(html, /game-asset-animation\.css\?v=20260807-pour-visual2/);
   assert.match(html, /layered-scene-runtime\.css\?v=20260807-pour-visual2/);
-  assert.match(html, /visible-water-pour\.js\?v=20260807-water-overlay3/);
+  assert.match(html, /visible-water-pour\.js\?v=20260807-underlayer-grip1/);
+  assert.match(html, /ui-effects\.js\?v=20260807-underlayer-grip1/);
   assert.match(runtime, /scene-source-aspect-fix\.css\?v=20260807-pour-visual2/);
 });
 
@@ -103,4 +108,5 @@ test("generated motion pipeline stays PNG-only", () => {
   for (const skin of skins) {
     assert.match(manifestText, new RegExp(`game-scene/kongjwi/${skin.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}/pour-sheet\\.png`));
   }
+  assert.match(manifestText, /underlayer\/wood-grip-sheet\.png/);
 });
