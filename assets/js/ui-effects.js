@@ -1,4 +1,3 @@
-import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js?v=20260805-redox-mobile2";
 import { GameStorage } from "./storage.js";
 import { applyDeviceMode, getDeviceMode, syncViewport } from "./device-entry.js";
 import { GAME_TITLE, displayJarName } from "./theme-system.js";
@@ -118,14 +117,15 @@ async function initializeGamePage() {
     return;
   }
 
-  await import("./main.js?v=20260807-oxidation-formula1");
+  await import("./main.js?v=20260807-metal-reactivity-route1");
   const api = globalThis.KongJuiYaGame;
   if (!api) throw new Error("게임 엔진을 불러오지 못했습니다.");
 
-  const mode =
-    getTrainingMode(requestedTrainingId) ||
-    getTrainingMode(selection?.trainingId) ||
-    TRAINING_MODES[0];
+  const modeById = id => api.TRAINING_MODES.find(item => item.id === id) || null;
+  const mode = modeById(requestedTrainingId) || modeById(selection?.trainingId);
+  if (!mode) {
+    throw new Error(`알 수 없는 장독대 ID: ${requestedTrainingId || selection?.trainingId || "(없음)"}`);
+  }
 
   const savedDifficulty = storage.data.settings?.difficulty;
   const difficulty = mode.difficultyLevels?.includes(selection?.difficulty)
