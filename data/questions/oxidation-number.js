@@ -31,6 +31,12 @@ export const oxidationNumberQuestions = Object.freeze([
   oxidation("oxidation_number_013", 1, "K₂O", "<u>K</u>₂O", 1, "O가 -2이고 K가 두 개이므로 K는 +1이다.", "K", "이온 결합 화합물"),
   oxidation("oxidation_number_014", 1, "H₂O", "<u>H</u>₂O", 1, "일반적인 화합물에서 H의 산화수는 +1이다.", "H", "공유 결합 화합물"),
   oxidation("oxidation_number_015", 1, "H₂O", "H₂<u>O</u>", -2, "일반적인 화합물에서 O의 산화수는 -2이다.", "O", "공유 결합 화합물"),
+  oxidation("oxidation_number_046", 1, "H₂O₂", "H₂<u>O</u>₂", -1, "과산화물 H₂O₂에서 O의 산화수는 -1이다.", "O", "과산화물"),
+  oxidation("oxidation_number_047", 1, "H₂O₂", "<u>H</u>₂O₂", 1, "H₂O₂에서도 H는 +1이고, 전체 산화수의 합이 0이 되려면 O는 -1이다.", "H", "과산화물"),
+  oxidation("oxidation_number_048", 1, "NaH", "Na<u>H</u>", -1, "금속 수소화물 NaH에서 H의 산화수는 -1이다.", "H", "금속 수소화물"),
+  oxidation("oxidation_number_049", 1, "CaH₂", "Ca<u>H</u>₂", -1, "금속 수소화물 CaH₂에서 H의 산화수는 -1이다.", "H", "금속 수소화물"),
+  oxidation("oxidation_number_050", 1, "OF₂", "<u>O</u>F₂", 2, "화합물에서 F는 -1이므로 O + 2(-1) = 0에서 O는 +2이다.", "O", "산소-플루오린 화합물"),
+  oxidation("oxidation_number_051", 1, "OF₂", "O<u>F</u>₂", -1, "F는 화합물에서 -1이며, 그 결과 OF₂에서 O는 +2가 된다.", "F", "산소-플루오린 화합물"),
 
   oxidation("oxidation_number_016", 2, "CO₂", "<u>C</u>O₂", 4, "C + 2(-2) = 0이므로 C는 +4이다.", "C", "공유 결합 화합물"),
   oxidation("oxidation_number_017", 2, "CO", "<u>C</u>O", 2, "C + (-2) = 0이므로 C는 +2이다.", "C", "공유 결합 화합물"),
@@ -47,6 +53,12 @@ export const oxidationNumberQuestions = Object.freeze([
   oxidation("oxidation_number_028", 2, "SiCl₄", "<u>Si</u>Cl₄", 4, "Si + 4(-1) = 0이므로 Si는 +4이다.", "Si", "공유 결합 화합물"),
   oxidation("oxidation_number_029", 2, "Al₂O₃", "<u>Al</u>₂O₃", 3, "2Al + 3(-2) = 0이므로 Al은 +3이다.", "Al", "이온 결합 화합물"),
   oxidation("oxidation_number_030", 2, "Mg₃N₂", "Mg₃<u>N</u>₂", -3, "3(+2) + 2N = 0이므로 N은 -3이다.", "N", "이온 결합 화합물"),
+  oxidation("oxidation_number_052", 2, "Na₂O₂", "Na₂<u>O</u>₂", -1, "Na₂O₂는 과산화물이므로 O의 산화수는 -1이다.", "O", "과산화물"),
+  oxidation("oxidation_number_053", 2, "K₂O₂", "K₂<u>O</u>₂", -1, "K₂O₂는 과산화물이므로 O의 산화수는 -1이다.", "O", "과산화물"),
+  oxidation("oxidation_number_054", 2, "MgH₂", "Mg<u>H</u>₂", -1, "금속 수소화물 MgH₂에서 H의 산화수는 -1이다.", "H", "금속 수소화물"),
+  oxidation("oxidation_number_055", 2, "KH", "K<u>H</u>", -1, "금속 수소화물 KH에서 H의 산화수는 -1이다.", "H", "금속 수소화물"),
+  oxidation("oxidation_number_056", 2, "HClO", "H<u>Cl</u>O", 1, "(+1) + Cl + (-2) = 0이므로 Cl은 +1이다.", "Cl", "산소산"),
+  oxidation("oxidation_number_057", 2, "HClO₄", "H<u>Cl</u>O₄", 7, "(+1) + Cl + 4(-2) = 0이므로 Cl은 +7이다.", "Cl", "산소산"),
 
   oxidation("oxidation_number_031", 3, "NO₃⁻", "<u>N</u>O₃⁻", 5, "N + 3(-2) = -1이므로 N은 +5이다.", "N", "다원자 이온"),
   oxidation("oxidation_number_032", 3, "NO₂⁻", "<u>N</u>O₂⁻", 3, "N + 2(-2) = -1이므로 N은 +3이다.", "N", "다원자 이온"),
@@ -62,5 +74,11 @@ export const oxidationNumberQuestions = Object.freeze([
   oxidation("oxidation_number_042", 3, "KNO₃", "K<u>N</u>O₃", 5, "(+1) + N + 3(-2) = 0이므로 N은 +5이다.", "N", "이온 결합 화합물"),
   oxidation("oxidation_number_043", 3, "CaCO₃", "Ca<u>C</u>O₃", 4, "(+2) + C + 3(-2) = 0이므로 C는 +4이다.", "C", "이온 결합 화합물"),
   oxidation("oxidation_number_044", 3, "Na₃PO₄", "Na₃<u>P</u>O₄", 5, "3(+1) + P + 4(-2) = 0이므로 P는 +5이다.", "P", "이온 결합 화합물"),
-  oxidation("oxidation_number_045", 3, "Ca(NO₃)₂", "Ca(<u>N</u>O₃)₂", 5, "NO₃⁻에서 N + 3(-2) = -1이므로 N은 +5이다.", "N", "이온 결합 화합물")
+  oxidation("oxidation_number_045", 3, "Ca(NO₃)₂", "Ca(<u>N</u>O₃)₂", 5, "NO₃⁻에서 N + 3(-2) = -1이므로 N은 +5이다.", "N", "이온 결합 화합물"),
+  oxidation("oxidation_number_058", 3, "CH₃OH", "<u>C</u>H₃OH", -2, "메탄올 CH₃OH에서 H를 +1, O를 -2로 먼저 두면 C + 4(+1) + (-2) = 0이므로 C는 -2이다.", "C", "다원소 화합물"),
+  oxidation("oxidation_number_059", 3, "C₂H₆O", "<u>C</u>₂H₆O", -2, "에탄올 C₂H₆O에서 H와 O를 먼저 처리한다. C의 평균 산화수를 x라 하면 2x + 6(+1) + (-2) = 0이므로 x는 -2이다.", "C", "다원소 화합물"),
+  oxidation("oxidation_number_060", 3, "C₂H₄O₂", "<u>C</u>₂H₄O₂", 0, "아세트산 C₂H₄O₂에서 H와 O를 먼저 처리한다. C의 평균 산화수를 x라 하면 2x + 4(+1) + 2(-2) = 0이므로 x는 0이다.", "C", "다원소 화합물"),
+  oxidation("oxidation_number_061", 3, "C₆H₁₂O₆", "<u>C</u>₆H₁₂O₆", 0, "포도당 C₆H₁₂O₆에서 H와 O를 먼저 처리한다. C의 평균 산화수를 x라 하면 6x + 12(+1) + 6(-2) = 0이므로 x는 0이다.", "C", "다원소 화합물"),
+  oxidation("oxidation_number_062", 3, "NH₄NO₃", "<u>N</u>H₄NO₃", -3, "NH₄⁺ 부분에서 N + 4(+1) = +1이므로 밑줄 친 N은 -3이다.", "N", "동일 원소 다중 산화수"),
+  oxidation("oxidation_number_063", 3, "NH₄NO₃", "NH₄<u>N</u>O₃", 5, "NO₃⁻ 부분에서 N + 3(-2) = -1이므로 밑줄 친 N은 +5이다.", "N", "동일 원소 다중 산화수")
 ]);
