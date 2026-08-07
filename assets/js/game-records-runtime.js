@@ -1,7 +1,7 @@
 const DEFAULT_QUESTION_COUNT = 10;
 const MIN_QUESTION_COUNT = 5;
 const MAX_QUESTION_COUNT = 100;
-const MAX_RECENT_RUNS = 200;
+const MAX_PLAY_DATES = 365;
 
 const clampQuestionCount = value => {
   const number = Math.round(Number(value));
@@ -27,18 +27,20 @@ if (api?.game && api?.storage) {
 
   const originalFinishRun = api.storage.finishRun.bind(api.storage);
   api.storage.finishRun = state => {
-    const previous = [...(api.storage.data.recentRuns || [])];
     const result = originalFinishRun(state);
-    const newest = api.storage.data.recentRuns?.[0] ? { ...api.storage.data.recentRuns[0] } : null;
-    if (newest) {
+    const newest = api.storage.data.recentRuns?.[0];
+    const stats = api.storage.mode(state.trainingId);
+    if (newest?.trainingId === state.trainingId) {
       newest.questionCount = Number(state.correctAnswersPerStage || questionCount);
       newest.correct = Number(state.correctInStage || 0);
       newest.bestCombo = Number(state.bestCombo || state.combo || 0);
-      const duplicateKey = run => [run?.endedAt, run?.trainingId, run?.score].join("|");
-      const newestKey = duplicateKey(newest);
-      api.storage.data.recentRuns = [newest, ...previous.filter(run => duplicateKey(run) !== newestKey)].slice(0, MAX_RECENT_RUNS);
-      api.storage.persist();
     }
+    const playedAt = newest?.endedAt || stats.lastPlayedAt;
+    if (playedAt) {
+      const existingDates = Array.isArray(stats.playDates) ? stats.playDates.filter(Boolean) : [];
+      stats.playDates = [playedAt, ...existingDates].slice(0, MAX_PLAY_DATES);
+    }
+    api.storage.persist();
     return result;
   };
 
