@@ -7,11 +7,9 @@ on:
       - "scripts/build-kongjwi-pour-sheets.py"
       - "scripts/apply-underlayer-grip-runtime.py"
       - "assets/art/kongjwi/*-cutout.png"
-      - "assets/art/kongjwi-tools/wood.png"
+      - "assets/art/kongjwi-tools/*.png"
       - "tests/kongjwi-pour-motion.test.mjs"
       - "tests/kongjwi-underlayer-grip.test.mjs"
-      - "콩쥐야_줘때써.html"
-      - "shop.html"
       - ".github/workflows/build-kongjwi-pour-motion.yml"
   workflow_dispatch:
 
@@ -31,28 +29,16 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install PNG build dependency
-        run: python -m pip install --disable-pip-version-check pillow
+      - name: Install PNG build dependencies
+        run: python -m pip install --disable-pip-version-check pillow numpy
 
-      - name: Build frame-locked Kongjwi pour sheets
+      - name: Build articulated underlayer and equipped bucket sheets
         run: python scripts/build-kongjwi-pour-sheets.py
 
-      - name: Apply underlayer grip runtime wiring
-        run: |
-          python scripts/apply-underlayer-grip-runtime.py
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("콩쥐야_줘때써.html")
-          text = path.read_text(encoding="utf-8")
-          text = text.replace(
-              'data-ui-version="20260807-records-analytics1"',
-              'data-ui-version="20260807-underlayer-grip1"',
-              1,
-          )
-          path.write_text(text, encoding="utf-8")
-          PY
+      - name: Apply underlayer runtime wiring
+        run: python scripts/apply-underlayer-grip-runtime.py
 
-      - name: Validate pour animation pipeline
+      - name: Validate animation pipeline
         shell: bash
         run: |
           set -euo pipefail
@@ -60,7 +46,10 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
+
           skins = ("underlayer", "classic-red", "blue-scholar", "field-work", "ragged", "night-court")
+          tools = ("wood", "brass", "celadon", "moon")
+
           for skin in skins:
               path = Path("assets/art/game-scene/kongjwi") / skin / "pour-sheet.png"
               image = Image.open(path)
@@ -68,16 +57,17 @@ jobs:
               assert image.mode == "RGBA", (skin, image.mode)
               assert image.size == (4096, 768), (skin, image.size)
 
-          grip = Path("assets/art/game-scene/kongjwi/underlayer/wood-grip-sheet.png")
-          image = Image.open(grip)
-          assert image.format == "PNG"
-          assert image.mode == "RGBA"
-          assert image.size == (4096, 768)
-          assert image.getchannel("A").getbbox(), "integrated grip must contain visible pixels"
+          for tool in tools:
+              path = Path("assets/art/game-scene/tools") / tool / "pour-sheet.png"
+              image = Image.open(path)
+              assert image.format == "PNG", (tool, image.format)
+              assert image.mode == "RGBA", (tool, image.mode)
+              assert image.size == (4096, 768), (tool, image.size)
+              assert image.getchannel("A").getbbox(), f"{tool} bucket sheet must contain visible pixels"
           PY
           git diff --check
 
-      - name: Commit generated Kongjwi motion assets and runtime wiring
+      - name: Commit generated motion assets and runtime wiring
         shell: bash
         run: |
           set -euo pipefail
@@ -86,17 +76,19 @@ jobs:
           git add \
             assets/art/game-scene/manifest.json \
             assets/art/game-scene/kongjwi \
+            assets/art/game-scene/tools \
             assets/js/scene-renderer.js \
             assets/js/visible-water-pour.js \
             assets/js/game-cosmetics-entry.js \
             assets/js/ui-effects.js \
-            assets/js/shop-navigation.js \
+            assets/css/scene-source-aspect-fix.css \
+            assets/css/layered-scene-runtime.css \
             data/shop-catalog.js \
             shop.html \
             "콩쥐야_줘때써.html"
           if git diff --cached --quiet; then
-            echo "No Kongjwi grip changes."
+            echo "No Kongjwi motion changes."
             exit 0
           fi
-          git commit -m "feat: lock underlayer bucket grip to source frame [skip ci]"
+          git commit -m "feat: articulate underlayer and align equipped buckets [skip ci]"
           git push
