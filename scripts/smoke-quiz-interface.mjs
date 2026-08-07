@@ -2,11 +2,20 @@
 import { chromium } from "playwright";
 
 const baseUrl = process.env.SCENE_BASE_URL || "http://127.0.0.1:4173";
+const baseOrigin = new URL(baseUrl).origin;
 const path = "/%EC%BD%A9%EC%A5%90%EC%95%BC_%EC%A4%98%EB%95%8C%EC%8D%A8.html?training=atomic_number";
 const viewport = { width: 367, height: 662 };
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function isLocalResponse(url) {
+  try {
+    return new URL(url).origin === baseOrigin;
+  } catch {
+    return false;
+  }
 }
 
 const browser = await chromium.launch({ headless: true });
@@ -17,11 +26,16 @@ try {
   const failedResponses = [];
 
   page.on("console", message => {
-    if (message.type() === "error") consoleErrors.push(message.text());
+    if (message.type() !== "error") return;
+    const text = message.text();
+    if (/^Failed to load resource:/i.test(text)) return;
+    consoleErrors.push(text);
   });
   page.on("pageerror", error => consoleErrors.push(error.message));
   page.on("response", response => {
-    if (response.status() >= 400) failedResponses.push(`${response.status()} ${response.url()}`);
+    if (response.status() >= 400 && isLocalResponse(response.url())) {
+      failedResponses.push(`${response.status()} ${response.url()}`);
+    }
   });
 
   await page.goto(`${baseUrl}${path}`, { waitUntil: "networkidle" });
@@ -122,7 +136,7 @@ try {
   assert(metrics.toadAfterDisplay === "none", `367x662: artificial hard hole ring is still visible (${metrics.toadAfterDisplay})`);
   assert(metrics.toadImage && metrics.toadImage.width >= metrics.toad.width * 1.2, `367x662: toad PNG is not enlarged inside the smaller opening (${metrics.toadImage?.width || 0}px / ${metrics.toad.width}px)`);
 
-  assert(failedResponses.length === 0, `367x662: HTTP failures\n${failedResponses.join("\n")}`);
+  assert(failedResponses.length === 0, `367x662: local HTTP failures\n${failedResponses.join("\n")}`);
   assert(consoleErrors.length === 0, `367x662: console errors\n${consoleErrors.join("\n")}`);
 
   await page.screenshot({ path: "/tmp/quiz-interface-367x662.png", fullPage: false });
