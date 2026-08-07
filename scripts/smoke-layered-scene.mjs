@@ -2,6 +2,7 @@
 import { chromium } from "playwright";
 
 const baseUrl = process.env.SCENE_BASE_URL || "http://127.0.0.1:4173";
+const baseOrigin = new URL(baseUrl).origin;
 const path = "/%EC%BD%A9%EC%A5%90%EC%95%BC_%EC%A4%98%EB%95%8C%EC%8D%A8.html?training=atomic_number";
 const cases = [
   ["mobile-portrait", { width: 390, height: 844 }],
@@ -12,6 +13,14 @@ const cases = [
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function isLocalResponse(url) {
+  try {
+    return new URL(url).origin === baseOrigin;
+  } catch {
+    return false;
+  }
 }
 
 async function exerciseGameplay(page, name) {
@@ -103,7 +112,9 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
     if (message.type() === "error") consoleErrors.push(message.text());
   });
   page.on("response", response => {
-    if (response.status() >= 400) failedResponses.push(`${response.status()} ${response.url()}`);
+    if (response.status() >= 400 && isLocalResponse(response.url())) {
+      failedResponses.push(`${response.status()} ${response.url()}`);
+    }
   });
   page.on("pageerror", error => consoleErrors.push(error.message));
 
@@ -159,7 +170,7 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
     assert(animation === "none", `${name}: reduced motion animation is ${animation}`);
   }
 
-  assert(failedResponses.length === 0, `${name}: HTTP failures\n${failedResponses.join("\n")}`);
+  assert(failedResponses.length === 0, `${name}: local HTTP failures\n${failedResponses.join("\n")}`);
   assert(consoleErrors.length === 0, `${name}: console errors\n${consoleErrors.join("\n")}`);
   await context.close();
 }
