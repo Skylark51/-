@@ -17,7 +17,7 @@ function pngSize(file) {
 
 test("underlayer uses pose-only source pixels and no baked bucket", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "assets/art/game-scene/manifest.json"), "utf8"));
-  assert.equal(manifest.version, "2026.08.07-underlayer-rig2");
+  assert.equal(manifest.version, "20260807-underlayer-rig3");
   assert.equal(manifest.runtimePolicy.kongjwiMotionPolicy, "source-locked-articulated-underlayer");
   assert.equal(manifest.runtimePolicy.kongjwiFramePolicy, "source-character-pixels-pose-only");
   assert.equal(manifest.runtimePolicy.toolMotionPolicy, "equipped-tool-co-registered-with-kongjwi");
@@ -50,6 +50,16 @@ test("renderer always uses the equipped independent bucket layer", () => {
   assert.doesNotMatch(renderer, /integratedGrip|integratedTools|integratedToolGrip/);
 });
 
+test("runtime art URLs are tied to manifest version instead of stale browser cache", () => {
+  const renderer = fs.readFileSync(path.join(root, "assets/js/scene-renderer.js"), "utf8");
+  assert.match(renderer, /const versionedAssetUrl =/);
+  assert.match(renderer, /url\.includes\("\?"\) \? "&" : "\?"/);
+  assert.match(renderer, /versionedAssetUrl\(primary, manifest\.version\)/);
+  assert.match(renderer, /versionedAssetUrl\(fallback, manifest\.version\)/);
+  assert.match(renderer, /root\.dataset\.sceneAssetVersion = manifest\.version/);
+  assert.match(renderer, /stack\.dataset\.assetVersion = manifest\.version/);
+});
+
 test("correct, wrong and timeout states drive character and bucket together", () => {
   const stateMachine = fs.readFileSync(path.join(root, "assets/js/scene-state-machine.js"), "utf8");
   assert.match(stateMachine, /playSequence\("kongjwi", plan\.kongjwi \|\| \[2, 3, 4, 5, 6\], 1180\)/);
@@ -71,12 +81,12 @@ test("visible water starts from the final pouring hand area and reaches the jar"
 test("cache chain loads the articulated underlayer rig", () => {
   const html = fs.readFileSync(path.join(root, "콩쥐야_줘때써.html"), "utf8");
   const runtime = fs.readFileSync(path.join(root, "assets/css/layered-scene-runtime.css"), "utf8");
-  assert.match(html, /data-ui-version="20260807-underlayer-rig2"/);
-  assert.match(html, /game-asset-animation\.css\?v=20260807-underlayer-rig2/);
-  assert.match(html, /layered-scene-runtime\.css\?v=20260807-underlayer-rig2/);
-  assert.match(html, /visible-water-pour\.js\?v=20260807-underlayer-rig2/);
-  assert.match(html, /ui-effects\.js\?v=20260807-underlayer-rig2/);
-  assert.match(runtime, /scene-source-aspect-fix\.css\?v=20260807-underlayer-rig2/);
+  assert.match(html, /data-ui-version="20260807-underlayer-rig3"/);
+  assert.match(html, /game-asset-animation\.css\?v=20260807-underlayer-rig3/);
+  assert.match(html, /layered-scene-runtime\.css\?v=20260807-underlayer-rig3/);
+  assert.match(html, /visible-water-pour\.js\?v=20260807-underlayer-rig3/);
+  assert.match(html, /ui-effects\.js\?v=20260807-underlayer-rig3/);
+  assert.match(runtime, /scene-source-aspect-fix\.css\?v=20260807-underlayer-rig3/);
 });
 
 test("all other Kongjwi outfits keep their PNG animation sheets available", () => {
