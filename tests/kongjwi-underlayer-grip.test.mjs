@@ -4,14 +4,15 @@ import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const read = path => readFile(resolve(root, path), "utf8");
-const [catalog, manifestText, renderer, water, shop, gameHtml, css] = await Promise.all([
+const [catalog, manifestText, renderer, water, shop, gameHtml, css, uiEffects] = await Promise.all([
   read("data/shop-catalog.js"),
   read("assets/art/game-scene/manifest.json"),
   read("assets/js/scene-renderer.js"),
   read("assets/js/visible-water-pour.js"),
   read("assets/js/shop-navigation.js"),
   read("콩쥐야_줘때써.html"),
-  read("assets/css/scene-source-aspect-fix.css")
+  read("assets/css/scene-source-aspect-fix.css"),
+  read("assets/js/ui-effects.js")
 ]);
 const manifest = JSON.parse(manifestText);
 
@@ -34,7 +35,9 @@ assert.ok(water.includes("kongjwi.left + kongjwi.width * 0.93"));
 assert.ok(water.includes("kongjwi.top + kongjwi.height * 0.35"));
 assert.ok(css.includes("--scene-x: 10.009765625%"));
 assert.ok(css.includes("--scene-height: 71.18055556%"));
+assert.ok(gameHtml.includes("20260807-underlayer-rig3"));
 assert.ok(gameHtml.includes("visible-water-pour.js?v=20260807-underlayer-rig3"));
 assert.ok(gameHtml.includes("ui-effects.js?v=20260807-underlayer-rig3"));
+assert.ok(uiEffects.includes('game-cosmetics-entry.js?v=20260807-underlayer-rig3'));
 
 console.log("underlayer-rig3 runtime asset refresh locked");

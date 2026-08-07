@@ -52,15 +52,17 @@ test("correct and wrong states drive character and tool", () => {
   assert.ok(stateMachine.includes('[7]'));
 });
 
-test("cache chain points at rig3", () => {
+test("cache chain contains the independent rig3 scene version", () => {
   const html = fs.readFileSync(path.join(root, "콩쥐야_줘때써.html"), "utf8");
   const runtime = fs.readFileSync(path.join(root, "assets/css/layered-scene-runtime.css"), "utf8");
-  assert.ok(html.includes('data-ui-version="20260807-underlayer-rig3"'));
+  const uiEffects = fs.readFileSync(path.join(root, "assets/js/ui-effects.js"), "utf8");
+  assert.ok(html.includes("20260807-underlayer-rig3"));
   assert.ok(html.includes("game-asset-animation.css?v=20260807-underlayer-rig3"));
   assert.ok(html.includes("layered-scene-runtime.css?v=20260807-underlayer-rig3"));
   assert.ok(html.includes("visible-water-pour.js?v=20260807-underlayer-rig3"));
   assert.ok(html.includes("ui-effects.js?v=20260807-underlayer-rig3"));
   assert.ok(runtime.includes("scene-source-aspect-fix.css?v=20260807-underlayer-rig3"));
+  assert.ok(uiEffects.includes('game-cosmetics-entry.js?v=20260807-underlayer-rig3'));
 });
 
 test("all Kongjwi sheets remain available", () => {

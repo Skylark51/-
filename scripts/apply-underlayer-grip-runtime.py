@@ -3,11 +3,13 @@
 
 The previous rig changed PNG bytes but kept the same image URLs. A browser that
 already had the old sprite sheets cached could therefore keep drawing the old
-art even though the HTML/JS cache version had changed. This patch versions every
-runtime scene asset from manifest.version and exposes the loaded asset version
-on the scene DOM for direct verification.
+art even though part of the HTML/JS cache chain had changed. This patch versions
+every runtime scene asset from manifest.version, cache-busts the ui-effects
+entry module as well, and exposes the loaded asset version on the scene DOM for
+direct verification.
 """
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 OLD_VERSION = "20260807-underlayer-rig2"
@@ -29,7 +31,7 @@ def replace_version(path: str) -> None:
         text = text.replace(OLD_VERSION, VERSION)
         file.write_text(text, encoding="utf-8")
         return
-    if VERSION not in text:
+    if VERSION not in text and path != "콩쥐야_줘때써.html":
         raise RuntimeError(f"runtime version anchor missing: {path}")
 
 
@@ -43,9 +45,23 @@ def patch_once(path: str, old: str, new: str, marker: str) -> None:
     file.write_text(text.replace(old, new, 1), encoding="utf-8")
 
 
+def cache_bust_ui_effects_entry() -> None:
+    file = ROOT / "콩쥐야_줘때써.html"
+    text = file.read_text(encoding="utf-8")
+    pattern = r'assets/js/ui-effects\.js\?v=[^"&]+'
+    replacement = f"assets/js/ui-effects.js?v={VERSION}"
+    if replacement not in text:
+        text, count = re.subn(pattern, replacement, text, count=1)
+        if count != 1:
+            raise RuntimeError("ui-effects entry URL not found")
+        file.write_text(text, encoding="utf-8")
+
+
 def main() -> None:
     for path in VERSIONED_FILES:
         replace_version(path)
+
+    cache_bust_ui_effects_entry()
 
     patch_once(
         "assets/js/scene-renderer.js",
@@ -80,7 +96,7 @@ def main() -> None:
         "sceneAssetVersion",
     )
 
-    print(f"Applied {VERSION}: versioned runtime PNG URLs + observable scene asset version")
+    print(f"Applied {VERSION}: versioned runtime PNG URLs + fresh ui-effects entry + observable asset version")
 
 
 if __name__ == "__main__":
