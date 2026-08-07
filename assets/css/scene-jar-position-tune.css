@@ -1,11 +1,11 @@
 /*
- * Mobile composition tune: move the complete jar/toad cluster slightly right
+ * Mobile composition tune: move the complete jar/toad cluster farther right
  * and down without breaking the internal hole, water, or reaction alignment.
  */
 @media (max-width: 900px), (pointer: coarse) {
   #layeredScene {
-    --jar-cluster-offset-x: 2.7%;
-    --jar-cluster-offset-y: 2.6%;
+    --jar-cluster-offset-x: 4.2%;
+    --jar-cluster-offset-y: 4.1%;
   }
 
   #layeredScene > .scene-jar-back,
