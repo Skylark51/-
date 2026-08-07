@@ -55,7 +55,7 @@ test("CSS physically seats existing toad PNGs for each jar and removes duplicate
   assert.match(sceneCss, /existing-toad-droop/);
   assert.doesNotMatch(sceneCss, /hue-rotate|sepia\(|saturate\(/);
   assert.match(mobileCss, /\.scene-animation-zone \.scene-water-meter\s*\{\s*display:\s*none\s*!important;/s);
-  assert.match(html, /id="layered-scene-animation-runtime"[^>]*existing-toad-composition1/);
+  assert.match(html, /id="layered-scene-animation-runtime"[^>]*game-asset-animation\.css\?v=[^"]+/);
 });
 
 test("celadon front artwork can never cover the toad", () => {

@@ -18,6 +18,7 @@ on:
       - "assets/js/game-cosmetics-entry.js"
       - "assets/js/quiz-shell-controls.js"
       - "assets/js/quiz-scene-actors.js"
+      - "assets/js/result-panel-enhancements.js"
       - "assets/css/game-asset-animation.css"
       - "assets/css/atomic-number-speed-start.css"
       - "assets/css/toad-composition-fix.css"
@@ -28,6 +29,7 @@ on:
       - "assets/css/quiz-mobile-polish.css"
       - "assets/css/quiz-scene-actors.css"
       - "assets/css/layered-scene-runtime.css"
+      - "assets/css/result-panel-enhancements.css"
       - "scripts/validate-layered-scene.mjs"
       - "scripts/smoke-layered-scene.mjs"
       - "scripts/smoke-quiz-interface.mjs"
@@ -37,6 +39,7 @@ on:
       - "tests/jar-water-surface-regression.test.mjs"
       - "tests/jar-mouth-hole-regression.test.mjs"
       - "tests/atomic-number-start-regression.test.mjs"
+      - "tests/result-panel-regression.test.mjs"
       - "docs/prompts/QUIZ_MOBILE_INTERFACE_POLISH_20260807.md"
       - "docs/prompts/QUIZ_TOAD_HOLE_INTEGRATION_FIX_20260807.md"
       - "docs/prompts/QUIZ_JAR_WATER_SURFACE_FIX_20260807.md"
@@ -66,6 +69,7 @@ jobs:
           node --check assets/js/scene-state-machine.js
           node --check assets/js/game-cosmetics-entry.js
           node --check assets/js/quiz-scene-actors.js
+          node --check assets/js/result-panel-enhancements.js
           node --check scripts/smoke-quiz-interface.mjs
       - name: Layer architecture tests
         run: >-
@@ -76,6 +80,7 @@ jobs:
           tests/jar-water-surface-regression.test.mjs
           tests/jar-mouth-hole-regression.test.mjs
           tests/atomic-number-start-regression.test.mjs
+          tests/result-panel-regression.test.mjs
       - name: PNG and legacy-path validation
         shell: bash
         run: |
