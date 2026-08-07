@@ -1,6 +1,6 @@
-import { createSceneStateController } from "./scene-state-machine.js?v=20260806-layered-scene1";
+import { createSceneStateController } from "./scene-state-machine.js?v=20260807-pour-feedback1";
 
-const MANIFEST_URL = "assets/art/game-scene/manifest.json?v=20260806-mobile-scene-fix1";
+const MANIFEST_URL = "assets/art/game-scene/manifest.json?v=20260807-kongjwi-pour1";
 const RUNTIME_STYLE_ID = "layered-scene-animation-runtime";
 const RUNTIME_STYLE_URL = new URL("../css/game-asset-animation.css?v=20260806-mobile-scene-fix1", import.meta.url).href;
 const ORDER = [
