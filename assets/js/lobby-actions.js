@@ -7,11 +7,44 @@ import { renderDashboard, dashboardMetrics, formatPlayedAt } from "./dashboard-v
 import { DIFFICULTY_LABELS, hasPlayHistory, modeMetrics, playedModes, recommendQuickStart, storedDifficulty } from "./lobby-logic.js";
 
 const SELECTION_KEY = "kongjuiya-training-selection";
+const CATEGORY_SELECTION_KEY = "kongjuiya-training-category";
+const CATEGORY_ORDER = Object.freeze([
+  "원자 구조",
+  "화학 결합",
+  "화학량론",
+  "화학 반응",
+  "주기적 성질",
+  "산화환원",
+  "산염기"
+]);
+const ORDERED_TRAINING_CATEGORIES = Object.freeze([
+  ...CATEGORY_ORDER.filter(category => TRAINING_CATEGORIES.includes(category)),
+  ...TRAINING_CATEGORIES.filter(category => !CATEGORY_ORDER.includes(category))
+]);
 const storage = new GameStorage();
 const upgrades = new UpgradeSystem(storage);
 const $ = selector => document.querySelector(selector);
 const number = value => Math.round(Number(value) || 0).toLocaleString("ko-KR");
-let activeCategory = "전체";
+
+function storedCategory() {
+  try {
+    const category = localStorage.getItem(CATEGORY_SELECTION_KEY);
+    return category === "전체" || TRAINING_CATEGORIES.includes(category) ? category : "전체";
+  } catch {
+    return "전체";
+  }
+}
+
+function selectCategory(category) {
+  activeCategory = category === "전체" || TRAINING_CATEGORIES.includes(category) ? category : "전체";
+  try {
+    localStorage.setItem(CATEGORY_SELECTION_KEY, activeCategory);
+  } catch {
+    // Keep the selection for the current page even when persistent storage is unavailable.
+  }
+}
+
+let activeCategory = storedCategory();
 let primaryAction = null;
 let settingsMounted = false;
 
@@ -172,7 +205,7 @@ function renderTrainingCards() {
 }
 
 function renderCategoryControls() {
-  const categories = ["전체", ...TRAINING_CATEGORIES];
+  const categories = ["전체", ...ORDERED_TRAINING_CATEGORIES];
   const filter = $("#categoryFilter");
   const select = $("#categorySelect");
   if (filter) {
@@ -182,7 +215,7 @@ function renderCategoryControls() {
       button.classList.toggle("is-active", category === activeCategory);
       button.setAttribute("aria-pressed", String(category === activeCategory));
       button.addEventListener("click", () => {
-        activeCategory = category;
+        selectCategory(category);
         renderCategoryControls();
         renderTrainingCards();
       });
@@ -362,7 +395,7 @@ function bindActions() {
     }
   });
   $("#categorySelect")?.addEventListener("change", event => {
-    activeCategory = event.target.value;
+    selectCategory(event.target.value);
     renderCategoryControls();
     renderTrainingCards();
   });
