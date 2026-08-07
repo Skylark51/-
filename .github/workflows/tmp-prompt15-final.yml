@@ -1,0 +1,183 @@
+name: Build Prompt 15 moon-white layers
+
+on:
+  push:
+    branches: [asset/prompt15-final]
+    paths:
+      - '.asset-jobs/prompt15-final.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Install image tooling
+        run: python3 -m pip install --disable-pip-version-check --quiet pillow opencv-python-headless
+
+      - name: Build 2048x1024 RGBA moon-white layer sheet
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets/art/game-scene/jars/moon-white
+          python3 - <<'PY'
+          from PIL import Image, ImageDraw
+          import cv2, numpy as np, math, os, random
+
+          src='assets/art/jars/moon-white/lid-open.png'
+          out='assets/art/game-scene/jars/moon-white/layers.png'
+          im=Image.open(src).convert('RGBA')
+          arr=np.array(im)
+          rgb=arr[:,:,:3].copy(); alpha=arr[:,:,3].copy(); H,W=alpha.shape
+          assert (W,H)==(1536,1024), (W,H)
+
+          # Remove the embedded toad from the reference while preserving the original
+          # high-resolution moon-jar silhouette, glaze, lid and alpha edge.
+          mask=np.zeros((H,W),np.uint8)
+          cv2.ellipse(mask,(920,660),(205,165),-7,0,360,255,-1)
+          cv2.ellipse(mask,(930,735),(190,80),-5,0,360,255,-1)
+          bgr=cv2.cvtColor(rgb,cv2.COLOR_RGB2BGR)
+          clean=cv2.inpaint(bgr,mask,7,cv2.INPAINT_TELEA)
+          clean=cv2.cvtColor(clean,cv2.COLOR_BGR2RGB)
+          base=np.dstack([clean,alpha])
+          base[alpha==0]=0
+          base_im=Image.fromarray(base,'RGBA')
+
+          # Rebuild an irregular broken ceramic opening with visible material depth.
+          S=4; cx,cy=918,650; rx,ry=175,126; ang=-7*math.pi/180
+          N=96
+          pts=[]
+          for i in range(N):
+              t=2*math.pi*i/N
+              n=0.055*math.sin(5*t+0.7)+0.035*math.sin(9*t+1.8)+0.018*math.sin(17*t+0.4)
+              x=rx*(1+n)*math.cos(t); y=ry*(1+n*0.7)*math.sin(t)
+              xr=x*math.cos(ang)-y*math.sin(ang); yr=x*math.sin(ang)+y*math.cos(ang)
+              pts.append((int((cx+xr)*S),int((cy+yr)*S)))
+          hm4=Image.new('L',(W*S,H*S),0)
+          ImageDraw.Draw(hm4).polygon(pts,fill=255)
+          hm=hm4.resize((W,H),Image.Resampling.LANCZOS)
+          hole=np.array(hm)
+          hb=(hole>128).astype(np.uint8)*255
+          outer_band=np.clip(
+              cv2.dilate(hb,cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(19,19)),iterations=1).astype(int)-hb.astype(int),
+              0,255
+          ).astype(np.uint8)
+          inner_band=np.clip(
+              hb.astype(int)-cv2.erode(hb,cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(13,13)),iterations=1).astype(int),
+              0,255
+          ).astype(np.uint8)
+
+          yy,xx=np.mgrid[0:H,0:W]
+          dx=(xx-cx)/rx; dy=(yy-cy)/ry; rr=np.sqrt(dx*dx+dy*dy)
+          val=(18+7*np.clip(1-rr,0,1)+4*np.clip((yy-cy)/ry,0,1)).astype(np.uint8)
+          cavity=np.zeros((H,W,4),np.uint8)
+          cavity[:,:,0]=val
+          cavity[:,:,1]=np.maximum(val-6,0)
+          cavity[:,:,2]=np.maximum(val-10,0)
+          cavity[:,:,3]=hole
+          base_im.alpha_composite(Image.fromarray(cavity,'RGBA'))
+
+          por_r=(239 + 7*np.clip((cy-yy)/250,-1,1)).clip(0,255).astype(np.uint8)
+          por_g=(232 + 7*np.clip((cy-yy)/250,-1,1)).clip(0,255).astype(np.uint8)
+          por_b=(213 + 6*np.clip((cy-yy)/250,-1,1)).clip(0,255).astype(np.uint8)
+          bevel=np.zeros((H,W,4),np.uint8)
+          bevel[:,:,0]=por_r; bevel[:,:,1]=por_g; bevel[:,:,2]=por_b; bevel[:,:,3]=outer_band
+          base_im.alpha_composite(Image.fromarray(bevel,'RGBA'))
+          inner=np.zeros((H,W,4),np.uint8)
+          inner[:,:,:3]=[88,67,44]
+          inner[:,:,3]=(inner_band.astype(float)*0.9).astype(np.uint8)
+          base_im.alpha_composite(Image.fromarray(inner,'RGBA'))
+
+          # Fine radial cracks around the broken hole.
+          cracks=Image.new('RGBA',(W,H),(0,0,0,0)); d=ImageDraw.Draw(cracks)
+          crack_specs=[(3.05,65),(3.45,48),(3.88,58),(4.55,52),(5.15,62),(5.72,53),(0.18,50),(0.62,42),(1.16,45),(1.72,58),(2.08,52),(2.55,45)]
+          for idx,(t,L) in enumerate(crack_specs):
+              ex=rx*math.cos(t); ey=ry*math.sin(t)
+              sx=cx+ex*math.cos(ang)-ey*math.sin(ang); sy=cy+ex*math.sin(ang)+ey*math.cos(ang)
+              ux=math.cos(t+ang); uy=math.sin(t+ang); perp=(-uy,ux)
+              line=[(sx,sy)]
+              for j,f in enumerate((0.38,0.72,1.0)):
+                  jitter=((idx*17+j*11)%13-6)*0.65
+                  line.append((sx+ux*L*f+perp[0]*jitter, sy+uy*L*f+perp[1]*jitter))
+              d.line(line,fill=(104,82,57,150),width=2)
+              if idx%3==0:
+                  p=line[2]
+                  d.line([p,(p[0]+ux*18-uy*9,p[1]+uy*18+ux*9)],fill=(112,90,64,105),width=1)
+          base_im.alpha_composite(cracks)
+
+          # Cell 1 front-occluder: front mouth rim plus only the foreground broken edge.
+          front=Image.new('RGBA',(W,H),(0,0,0,0))
+          mm=Image.new('L',(W,H),0); md=ImageDraw.Draw(mm)
+          md.ellipse((564,177,972,311),fill=255)
+          md.ellipse((585,197,951,275),fill=0)
+          md.rectangle((0,0,W,235),fill=0)
+          mouth=Image.new('RGBA',(W,H),(0,0,0,0)); mouth.paste(im,(0,0),mm)
+          front.alpha_composite(mouth)
+
+          Y,X=np.mgrid[0:H,0:W]
+          front_sel=((Y>cy+10) | ((Y>cy-30)&(np.abs(X-cx)>rx*0.72))).astype(np.uint8)*255
+          occ_outer=cv2.bitwise_and(outer_band,front_sel)
+          occ_inner=cv2.bitwise_and(inner_band,front_sel)
+          occ=np.zeros((H,W,4),np.uint8)
+          occ[:,:,0]=por_r; occ[:,:,1]=por_g; occ[:,:,2]=por_b; occ[:,:,3]=occ_outer
+          front.alpha_composite(Image.fromarray(occ,'RGBA'))
+          occ2=np.zeros((H,W,4),np.uint8); occ2[:,:,:3]=[88,67,44]
+          occ2[:,:,3]=(occ_inner.astype(float)*0.9).astype(np.uint8)
+          front.alpha_composite(Image.fromarray(occ2,'RGBA'))
+          crfa=np.array(cracks)
+          crfa[:,:,3]=(crfa[:,:,3].astype(np.uint16)*front_sel.astype(np.uint16)//255).astype(np.uint8)
+          front.alpha_composite(Image.fromarray(crfa,'RGBA'))
+
+          # 2048x1024 sheet: two exact 1024x1024 cells, no rescaling.
+          x0=256
+          back_cell=base_im.crop((x0,0,x0+1024,1024))
+          front_cell=front.crop((x0,0,x0+1024,1024))
+          canvas=Image.new('RGBA',(2048,1024),(0,0,0,0))
+          canvas.paste(back_cell,(0,0),back_cell)
+          canvas.paste(front_cell,(1024,0),front_cell)
+          canvas.save(out,optimize=True,compress_level=9)
+
+          check=Image.open(out)
+          assert check.size==(2048,1024), check.size
+          assert check.mode=='RGBA', check.mode
+          a=np.array(check.getchannel('A'))
+          assert int(a.min())==0 and int(a.max())==255
+          print(out, check.size, check.mode, os.path.getsize(out))
+          PY
+
+      - name: Validate PNG structure
+        shell: bash
+        run: |
+          set -euo pipefail
+          file assets/art/game-scene/jars/moon-white/layers.png
+          python3 - <<'PY'
+          import struct, os
+          p='assets/art/game-scene/jars/moon-white/layers.png'
+          b=open(p,'rb').read(32)
+          assert b[:8]==b'\x89PNG\r\n\x1a\n'
+          w,h=struct.unpack('>II',b[16:24])
+          assert (w,h)==(2048,1024)
+          assert b[25]==6, f'PNG color type is {b[25]}, expected RGBA type 6'
+          print(f'validated {p}: {w}x{h}, RGBA, {os.path.getsize(p)} bytes')
+          PY
+
+      - name: Commit and push to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/art/game-scene/jars/moon-white/layers.png
+          if git diff --cached --quiet; then
+            echo "No asset change to commit"
+            exit 0
+          fi
+          git commit -m "feat: add moon-white jar layer sheet"
+          git push origin HEAD:main
