@@ -1,4 +1,5 @@
 import { GameStorage } from "./storage.js";
+import "./records-enhancements.js?v=20260807-records-analytics1";
 
 const VALID_VIEWS = new Set(["home", "jars", "records"]);
 const viewNodes = [...document.querySelectorAll("[data-app-view]")];
