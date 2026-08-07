@@ -95,6 +95,8 @@ def align_closed_to_open(open_array: np.ndarray, closed_image: Image.Image):
         "translate": [tx, ty],
         "openBodyBox": list(open_box),
         "closedBodyBox": list(closed_box),
+        "openCanvas": [open_array.shape[1], open_array.shape[0]],
+        "closedCanvas": [closed_image.width, closed_image.height],
     }
 
 
@@ -161,8 +163,6 @@ def build_skin(root: Path, skin: str):
 
     open_image = Image.open(source_dir / "lid-open.png").convert("RGBA")
     closed_image = Image.open(source_dir / "thumbnail-no-toad.png").convert("RGBA")
-    if open_image.size != closed_image.size:
-        raise RuntimeError(f"{skin}: 열린/닫힌 원본 캔버스 크기가 다릅니다: {open_image.size} != {closed_image.size}")
 
     open_array = np.asarray(open_image, dtype=np.uint8)
     registered_closed, registration = align_closed_to_open(open_array, closed_image)
