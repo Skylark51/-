@@ -7,10 +7,14 @@ import { mountMobileKeypad } from "./mobile-keypad.js?v=20260805-redox-mobile2";
 import { mountGameScene } from "./game-cosmetics-entry.js?v=20260805-safe-jar1";
 
 const SELECTION_KEY = "kongjuiya-training-selection";
+const OPENING_COUNTDOWN_TRAININGS = new Set(["atomic_number"]);
+const OPENING_COUNTDOWN_INTRO = "자... 숨 고르시고.. 시작합니다";
+const OPENING_COUNTDOWN_STEPS = Object.freeze([3, 2, 1]);
 const storage = new GameStorage();
 mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ?? 0.5 });
 const byId = id => document.getElementById(id);
 const formatNumber = value => Math.round(Number(value) || 0).toLocaleString("ko-KR");
+const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const DIFFICULTY_NAMES = Object.freeze({ easy: "쉬움", normal: "보통", hard: "어려움" });
 
 function setOfficialTitle() {
@@ -44,6 +48,67 @@ function listen(removers, type, handler, target = window) {
   removers.push(() => target.removeEventListener(type, handler));
 }
 
+async function runOpeningCountdown({ modeId, announce, scene } = {}) {
+  if (!OPENING_COUNTDOWN_TRAININGS.has(modeId)) return;
+
+  const overlay = byId("startOverlay");
+  if (!overlay) return;
+
+  if (scene?.ready) await scene.ready;
+
+  let card = overlay.querySelector(".game-start-countdown-card");
+  if (!card) {
+    card = document.createElement("div");
+    card.className = "game-start-countdown-card";
+
+    const message = document.createElement("p");
+    message.className = "game-start-countdown-message";
+    message.textContent = OPENING_COUNTDOWN_INTRO;
+
+    const number = document.createElement("strong");
+    number.className = "game-start-countdown-number";
+    number.setAttribute("aria-live", "assertive");
+    number.setAttribute("aria-atomic", "true");
+
+    card.append(message, number);
+    overlay.append(card);
+  }
+
+  const message = card.querySelector(".game-start-countdown-message");
+  const number = card.querySelector(".game-start-countdown-number");
+  message.textContent = OPENING_COUNTDOWN_INTRO;
+  number.textContent = "";
+
+  overlay.classList.remove("hidden", "is-opening");
+  overlay.classList.add("game-start-countdown");
+  overlay.dataset.phase = "intro";
+  overlay.setAttribute("aria-hidden", "false");
+  overlay.setAttribute("role", "status");
+  announce?.(OPENING_COUNTDOWN_INTRO);
+
+  await wait(1200);
+
+  for (const step of OPENING_COUNTDOWN_STEPS) {
+    overlay.dataset.phase = "countdown";
+    number.textContent = String(step);
+    announce?.(String(step));
+    await wait(700);
+  }
+
+  overlay.dataset.phase = "open";
+  number.textContent = "시작";
+  announce?.("시작");
+  await wait(320);
+
+  overlay.classList.add("is-opening");
+  await wait(260);
+  overlay.classList.add("hidden");
+  overlay.classList.remove("is-opening");
+  overlay.setAttribute("aria-hidden", "true");
+  overlay.removeAttribute("role");
+  delete overlay.dataset.phase;
+}
+
 async function initializeGamePage() {
   const selection = readSelection();
   const requestedTrainingId = new URLSearchParams(location.search).get("training");
@@ -53,7 +118,7 @@ async function initializeGamePage() {
     return;
   }
 
-  await import("./main.js?v=20260805-redox-mobile2");
+  await import("./main.js?v=20260807-atomic-number-flash1");
   const api = globalThis.KongJuiYaGame;
   if (!api) throw new Error("게임 엔진을 불러오지 못했습니다.");
 
@@ -265,6 +330,7 @@ async function initializeGamePage() {
   listen(removers, "fever:end", endFeverUi);
   listen(removers, "ui:device-mode", () => syncViewport());
 
+  await runOpeningCountdown({ modeId: mode.id, announce, scene });
   api.start({ difficulty, resumeState });
   keypad = mountMobileKeypad({
     api,

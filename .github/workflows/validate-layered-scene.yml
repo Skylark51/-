@@ -7,13 +7,19 @@ on:
     branches: [main]
     paths:
       - "콩쥐야_줘때써.html"
+      - "data/questions.js"
+      - "data/questions/index.js"
+      - "data/questions/atomic-number.js"
       - "assets/art/game-scene/**"
+      - "assets/js/main.js"
+      - "assets/js/ui-effects.js"
       - "assets/js/scene-renderer.js"
       - "assets/js/scene-state-machine.js"
       - "assets/js/game-cosmetics-entry.js"
       - "assets/js/quiz-shell-controls.js"
       - "assets/js/quiz-scene-actors.js"
       - "assets/css/game-asset-animation.css"
+      - "assets/css/atomic-number-speed-start.css"
       - "assets/css/toad-composition-fix.css"
       - "assets/css/toad-hole-integration.css"
       - "assets/css/jar-water-surface-fix.css"
@@ -30,10 +36,12 @@ on:
       - "tests/toad-composition-regression.test.mjs"
       - "tests/jar-water-surface-regression.test.mjs"
       - "tests/jar-mouth-hole-regression.test.mjs"
+      - "tests/atomic-number-start-regression.test.mjs"
       - "docs/prompts/QUIZ_MOBILE_INTERFACE_POLISH_20260807.md"
       - "docs/prompts/QUIZ_TOAD_HOLE_INTEGRATION_FIX_20260807.md"
       - "docs/prompts/QUIZ_JAR_WATER_SURFACE_FIX_20260807.md"
       - "docs/prompts/QUIZ_JAR_MOUTH_HOLE_POLISH_20260807.md"
+      - "docs/prompts/ATOMIC_NUMBER_FLASH_COUNTDOWN_FIX_20260807.md"
       - ".github/workflows/validate-layered-scene.yml"
 
 permissions:
@@ -50,6 +58,10 @@ jobs:
           node-version: "22"
       - name: JavaScript syntax
         run: |
+          node --check data/questions/atomic-number.js
+          node --check data/questions/index.js
+          node --check assets/js/main.js
+          node --check assets/js/ui-effects.js
           node --check assets/js/scene-renderer.js
           node --check assets/js/scene-state-machine.js
           node --check assets/js/game-cosmetics-entry.js
@@ -63,6 +75,7 @@ jobs:
           tests/toad-composition-regression.test.mjs
           tests/jar-water-surface-regression.test.mjs
           tests/jar-mouth-hole-regression.test.mjs
+          tests/atomic-number-start-regression.test.mjs
       - name: PNG and legacy-path validation
         shell: bash
         run: |

@@ -1,0 +1,112 @@
+/*
+ * Atomic-number speed round: symbol-first prompt + a short breathing countdown.
+ * The game clock does not start until the overlay has opened.
+ */
+
+#ui-gameApp[data-training-id="atomic_number"] .scene-question-bubble h1 {
+  min-height: 1.15em !important;
+  max-height: none !important;
+  font-size: clamp(42px, 11vw, 68px) !important;
+  line-height: 1 !important;
+  letter-spacing: .025em;
+  white-space: nowrap;
+}
+
+#startOverlay.game-start-countdown {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid !important;
+  place-items: center;
+  padding: max(22px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  background:
+    radial-gradient(circle at 50% 43%, rgba(96, 80, 32, .18), transparent 38%),
+    rgba(4, 7, 10, .88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 1;
+  transition: opacity 260ms ease;
+  pointer-events: auto;
+}
+
+#startOverlay.game-start-countdown.hidden {
+  display: none !important;
+}
+
+#startOverlay.game-start-countdown.is-opening {
+  opacity: 0;
+}
+
+#startOverlay.game-start-countdown > #startButton,
+#startOverlay.game-start-countdown > #ui-trainingSelect,
+#startOverlay.game-start-countdown > #ui-difficultySelect {
+  display: none !important;
+}
+
+.game-start-countdown-card {
+  width: min(88vw, 430px);
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 28px 22px 32px;
+  border: 1px solid rgba(218, 184, 48, .44);
+  border-radius: 22px;
+  background: linear-gradient(155deg, rgba(24, 25, 20, .94), rgba(7, 11, 15, .96));
+  box-shadow: 0 22px 70px rgba(0, 0, 0, .48), inset 0 1px 0 rgba(255, 255, 255, .07);
+  text-align: center;
+}
+
+.game-start-countdown-message {
+  margin: 0;
+  color: #f2ead3;
+  font-size: clamp(17px, 4.8vw, 23px);
+  font-weight: 800;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.game-start-countdown-number {
+  min-height: 1.05em;
+  color: #fff4b6;
+  font-size: clamp(78px, 24vw, 128px);
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: -.05em;
+  text-shadow: 0 8px 28px rgba(0, 0, 0, .5), 0 0 28px rgba(225, 192, 44, .18);
+}
+
+#startOverlay[data-phase="intro"] .game-start-countdown-number {
+  opacity: 0;
+}
+
+#startOverlay[data-phase="countdown"] .game-start-countdown-number {
+  animation: game-countdown-pulse 700ms ease-out both;
+}
+
+#startOverlay[data-phase="open"] .game-start-countdown-number {
+  font-size: clamp(46px, 14vw, 78px);
+  letter-spacing: 0;
+}
+
+@keyframes game-countdown-pulse {
+  0% { opacity: 0; transform: scale(.78); }
+  24% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.reduce-motion #startOverlay.game-start-countdown,
+.reduce-motion .game-start-countdown-number {
+  transition: none !important;
+  animation: none !important;
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  #ui-gameApp[data-training-id="atomic_number"] .scene-question-bubble h1 {
+    font-size: clamp(44px, 13vw, 60px) !important;
+  }
+
+  .game-start-countdown-card {
+    width: min(90vw, 390px);
+    padding: 24px 18px 28px;
+  }
+}

@@ -70,6 +70,8 @@ try {
     const toadAfter = visibleToad ? getComputedStyle(visibleToad, "::after") : null;
     const toadImage = visibleToad?.querySelector(".scene-layer-image");
     const toadImageBox = toadImage?.getBoundingClientRect();
+    const questionText = document.querySelector("#questionText")?.textContent?.trim() || "";
+    const startOverlay = document.querySelector("#startOverlay");
 
     return {
       viewport: { width: innerWidth, height: innerHeight },
@@ -77,6 +79,8 @@ try {
         width: document.documentElement.scrollWidth,
         height: document.documentElement.scrollHeight
       },
+      questionText,
+      startOverlayHidden: Boolean(startOverlay?.classList.contains("hidden")),
       headerTitle: {
         visibility: titleStyle?.visibility || "missing",
         display: titleStyle?.display || "missing",
@@ -109,6 +113,8 @@ try {
 
   assert(metrics.document.width <= metrics.viewport.width + 1, `367x662: horizontal overflow ${metrics.document.width} > ${metrics.viewport.width}`);
   assert(metrics.document.height <= metrics.viewport.height + 1, `367x662: vertical overflow ${metrics.document.height} > ${metrics.viewport.height}`);
+  assert(/^[A-Z][a-z]?$/.test(metrics.questionText), `367x662: atomic-number prompt is not symbol-only (${metrics.questionText})`);
+  assert(metrics.startOverlayHidden, "367x662: opening countdown did not clear before gameplay");
   assert(metrics.headerTitle.visibility === "visible" && metrics.headerTitle.display !== "none", "367x662: training title remains hidden");
   assert(metrics.headerTitle.width >= 70 && metrics.headerTitle.text.length > 0, "367x662: training title has no usable width/text");
   assert(metrics.stage?.height >= 260, `367x662: scene collapsed to ${metrics.stage?.height || 0}px`);
@@ -128,7 +134,6 @@ try {
   assert(metrics.toad && ratio(metrics.toad) >= 0.11 && ratio(metrics.toad) <= 0.15, `367x662: toad viewport width ratio ${ratio(metrics.toad).toFixed(3)}`);
   assert(metrics.toad.right <= metrics.stage.right + 1 && metrics.toad.bottom <= metrics.stage.bottom + 1, "367x662: toad is cropped outside the stage");
 
-  /* Enlarged-crop regression: never turn the entire toad viewport into a black oval. */
   assert(metrics.toadBackgroundImage === "none", `367x662: toad viewport has a synthetic background (${metrics.toadBackgroundImage})`);
   assert(metrics.toadBackgroundColor === "rgba(0, 0, 0, 0)", `367x662: toad viewport is not transparent (${metrics.toadBackgroundColor})`);
   assert(/radial-gradient/.test(metrics.toadBeforeBackground), `367x662: feathered inner cavity missing (${metrics.toadBeforeBackground})`);
@@ -140,7 +145,7 @@ try {
   assert(consoleErrors.length === 0, `367x662: console errors\n${consoleErrors.join("\n")}`);
 
   await page.screenshot({ path: "/tmp/quiz-interface-367x662.png", fullPage: false });
-  console.log("367x662 screenshot-driven quiz interface and toad-hole integration checks passed.");
+  console.log("367x662 atomic-number symbol prompt, countdown reveal, and quiz interface checks passed.");
   await context.close();
 } finally {
   await browser.close();
