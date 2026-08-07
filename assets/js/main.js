@@ -1,13 +1,14 @@
 import { GAME_CONFIG } from "../../data/game-config.js";
 import { BEAN_REWARDS } from "../../data/upgrades.js";
 import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js?v=20260807-metal-reactivity-route1";
-import { QUESTIONS, validateQuestions } from "../../data/questions.js?v=20260807-metal-reactivity-route1";
+import { QUESTIONS, validateQuestions } from "../../data/questions.js?v=20260807-metal-reactivity-symbols1";
 import { QuestionEngine } from "./question-engine.js";
 import { GameCore } from "./game-core.js";
 import { GameStorage } from "./storage.js";
 import { UpgradeSystem } from "./upgrade-system.js";
 import { ActionSystem } from "./action-system.js";
 import { UIAdapter } from "./ui-adapter.js?v=20260805-redox-mobile2";
+import { installMetalReactivityChoiceLabels } from "./metal-reactivity-choice-ui.js?v=20260807-metal-reactivity-symbols1";
 
 const validationErrors = validateQuestions();
 if (validationErrors.length) {
@@ -25,6 +26,7 @@ const game = new GameCore({
   actionSystem: actions
 });
 const ui = new UIAdapter();
+installMetalReactivityChoiceLabels();
 
 const requestedTrainingId = new URLSearchParams(location.search).get("training");
 let selectedTrainingId = getTrainingMode(requestedTrainingId)?.id || null;

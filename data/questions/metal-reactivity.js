@@ -1,25 +1,24 @@
 import { binary } from './_choice.js';
 
 export const METAL_REACTIVITY_SERIES = Object.freeze([
-  Object.freeze({ name: '칼륨', symbol: 'K' }),
-  Object.freeze({ name: '칼슘', symbol: 'Ca' }),
-  Object.freeze({ name: '나트륨', symbol: 'Na' }),
-  Object.freeze({ name: '마그네슘', symbol: 'Mg' }),
-  Object.freeze({ name: '알루미늄', symbol: 'Al' }),
-  Object.freeze({ name: '아연', symbol: 'Zn' }),
-  Object.freeze({ name: '철', symbol: 'Fe' }),
-  Object.freeze({ name: '니켈', symbol: 'Ni' }),
-  Object.freeze({ name: '주석', symbol: 'Sn' }),
-  Object.freeze({ name: '납', symbol: 'Pb' }),
-  Object.freeze({ name: '수소', symbol: 'H', hydrogen: true }),
-  Object.freeze({ name: '구리', symbol: 'Cu' }),
-  Object.freeze({ name: '수은', symbol: 'Hg' }),
-  Object.freeze({ name: '은', symbol: 'Ag' }),
-  Object.freeze({ name: '백금', symbol: 'Pt' }),
-  Object.freeze({ name: '금', symbol: 'Au' })
+  'K',
+  'Ca',
+  'Na',
+  'Mg',
+  'Al',
+  'Zn',
+  'Fe',
+  'Ni',
+  'Sn',
+  'Pb',
+  'H',
+  'Cu',
+  'Hg',
+  'Ag',
+  'Pt',
+  'Au'
 ]);
 
-const display = item => item.hydrogen ? '[수소]' : item.name;
 const difficultyForGap = gap => gap >= 8 ? 1 : gap >= 4 ? 2 : 3;
 const questions = [];
 let serial = 1;
@@ -32,12 +31,12 @@ function addQuestion(left, right, moreReactive, difficulty) {
       `metal_reactivity_${String(serial++).padStart(3, '0')}`,
       'metal_reactivity',
       difficulty,
-      `반응성 서열에서 더 반응성이 큰 쪽은? 좌: ${display(left)} | 우: ${display(right)}`,
-      { label: '좌', value: display(left) },
-      { label: '우', value: display(right) },
+      `(${left} ${right})`,
+      { label: '좌', value: left },
+      { label: '우', value: right },
       correctKey,
-      `반응성 서열에서 ${display(moreReactive)} 쪽이 ${display(lessReactive)}보다 앞에 있으므로 ${correctKey === '1' ? '좌' : '우'}가 정답입니다.`,
-      ['금속 반응성 비교', display(left), display(right)]
+      `반응성 서열에서 ${moreReactive} > ${lessReactive}이므로 ${correctKey === '1' ? '좌' : '우'}가 정답입니다.`,
+      ['금속 반응성 비교', left, right]
     ),
     choicePresentation: 'left_right'
   }));

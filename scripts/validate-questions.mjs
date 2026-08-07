@@ -7,6 +7,7 @@ const warnings=[];
 const modes=new Map(TRAINING_MODES.map(mode=>[mode.id,mode]));
 const allowedElements=new Set(ELEMENTS_1_TO_20);
 const redoxExtendedElements=new Set(['Cr','Mn','Fe','Co','Ni','Cu','Zn','Br','Ag','I','Ba','Pb']);
+const metalReactivityElements=new Set(['K','Ca','Na','Mg','Al','Zn','Fe','Ni','Sn','Pb','H','Cu','Hg','Ag','Pt','Au']);
 const forbiddenPhrases=['교육과정상','교육과정에 따르면','교육과정 기준','교과 과정상'];
 const outOfRangeSymbols=['Sc','Ti','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe','Cs','Ba','La','Ce','Pr','Nd','Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn'];
 const forbiddenElementPattern=new RegExp('(?<![A-Za-z])(?:'+outOfRangeSymbols.join('|')+')(?![a-z])','g');
@@ -40,7 +41,9 @@ for(const item of QUESTIONS){
   forbiddenElementPattern.lastIndex=0;
   const disallowedOutOfRange=item.trainingId==='redox'
     ?outOfRangeMatches.filter(symbol=>!redoxExtendedElements.has(symbol))
-    :outOfRangeMatches;
+    :item.trainingId==='metal_reactivity'
+      ?outOfRangeMatches.filter(symbol=>!metalReactivityElements.has(symbol))
+      :outOfRangeMatches;
   if(disallowedOutOfRange.length)fail('element_out_of_range',item,[...new Set(disallowedOutOfRange)].join(','));
   const promptKey=String(item.prompt).replace(/(?<![A-Za-z])\d+(?:\.\d+)?(?![A-Za-z])/g,'#').replace(/\s+/g,' ').trim();
   const promptList=normalizedPrompts.get(promptKey)||[];promptList.push(item);normalizedPrompts.set(promptKey,promptList);
@@ -70,6 +73,21 @@ if(QUESTION_BANKS.redox?.length!==30)errors.push('redox_count');
 for(const item of QUESTION_BANKS.redox||[]){
   const labels=(item.choices||[]).map(choice=>choice.label);
   if(item.type!=='multiple_choice'||item.choices.length!==3||!item.autoSubmit||item.inputMode!=='choice'||JSON.stringify(item.keyboardShortcuts)!==JSON.stringify(['1','2','3'])||JSON.stringify(labels)!==JSON.stringify(['산화','환원','둘 다 아님'])||!item.promptHtml?.includes('<u>'))fail('redox_not_three_choice',item);
+}
+
+const metalReactivityBank=QUESTION_BANKS.metal_reactivity||[];
+if(metalReactivityBank.length!==240)errors.push('metal_reactivity_count');
+const metalRanks=new Map([...metalReactivityElements].map((symbol,index)=>[symbol,index]));
+for(const item of metalReactivityBank){
+  const match=String(item.prompt).match(/^\(([A-Z][a-z]?) ([A-Z][a-z]?)\)$/);
+  if(!match){fail('metal_reactivity_prompt',item);continue}
+  const left=match[1],right=match[2];
+  const labels=(item.choices||[]).map(choice=>choice.label);
+  const values=(item.choices||[]).map(choice=>choice.value);
+  if(left===right||!metalReactivityElements.has(left)||!metalReactivityElements.has(right))fail('metal_reactivity_symbols',item);
+  if(JSON.stringify(labels)!==JSON.stringify(['좌','우'])||JSON.stringify(values)!==JSON.stringify([left,right])||item.choicePresentation!=='left_right')fail('metal_reactivity_choices',item);
+  const expected=metalRanks.get(left)<metalRanks.get(right)?'1':'2';
+  if(String(item.correctChoice)!==expected)fail('metal_reactivity_answer',item);
 }
 
 const counts=Object.fromEntries(Object.entries(QUESTION_BANKS).map(([name,items])=>[name,items.length]));

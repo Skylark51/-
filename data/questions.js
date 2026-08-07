@@ -1,1 +1,1 @@
-export{QUESTIONS,QUESTION_BANKS,validateQuestions}from'./questions/index.js?v=20260807-metal-reactivity1';
+export{QUESTIONS,QUESTION_BANKS,validateQuestions}from'./questions/index.js?v=20260807-metal-reactivity-symbols1';
