@@ -4,38 +4,37 @@ import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const read = path => readFile(resolve(root, path), "utf8");
-const [catalog, manifestText, renderer, water, shop, gameHtml] = await Promise.all([
+const [catalog, manifestText, renderer, water, shop, gameHtml, css] = await Promise.all([
   read("data/shop-catalog.js"),
   read("assets/art/game-scene/manifest.json"),
   read("assets/js/scene-renderer.js"),
   read("assets/js/visible-water-pour.js"),
   read("assets/js/shop-navigation.js"),
-  read("콩쥐야_줘때써.html")
+  read("콩쥐야_줘때써.html"),
+  read("assets/css/scene-source-aspect-fix.css")
 ]);
 const manifest = JSON.parse(manifestText);
 
 assert.match(catalog, /outfit_underlayer/);
 assert.match(catalog, /outfit:\s*"outfit_underlayer"/);
-assert.match(catalog, /"outfit_underlayer"[\s\S]*"outfit_classic_red"/);
-
-const integrated = manifest.assets.kongjwi.underlayer.integratedTools?.wood;
-assert.equal(integrated, "assets/art/game-scene/kongjwi/underlayer/wood-grip-sheet.png");
-assert.equal(manifest.availability[integrated], true);
-assert.equal(manifest.sprites.kongjwi.frames, 8);
-
-assert.match(renderer, /ALIAS\.outfit,\s*"underlayer"/);
-assert.match(renderer, /integratedTools\?\.\[toolKey\]/);
-assert.match(renderer, /integratedGrip \? emptyAsset\(\)/);
-assert.match(renderer, /if \(integratedGrip\) clearLayer\(layer\(stack, "scene-tool"\)\)/);
-assert.match(renderer, /const waterRig = integratedGrip \|\| motionRig/);
-assert.match(renderer, /dataset\.integratedToolGrip/);
-
-assert.match(water, /integratedGrip && kongjwi/);
-assert.match(water, /kongjwi\.left \+ kongjwi\.width \* 0\.89/);
 assert.match(shop, /underlayer:\s*`assets\/art\/kongjwi\/kongjwi-underlayer-cutout\.png/);
 assert.match(shop, /cosmetics\.isEquipped\("outfit_underlayer"\)/);
-assert.match(shop, /item\.id !== "outfit_underlayer"/);
-assert.match(gameHtml, /visible-water-pour\.js\?v=20260807-underlayer-grip1/);
-assert.match(gameHtml, /ui-effects\.js\?v=20260807-underlayer-grip1/);
 
-console.log("underlayer-grip: source-locked character frame, integrated wood bucket, selectable base outfit locked");
+assert.equal(manifest.assets.kongjwi.underlayer.integratedTools, undefined);
+assert.equal(manifest.runtimePolicy.toolMotionPolicy, "equipped-tool-co-registered-with-kongjwi");
+assert.deepEqual(manifest.placements.tool, manifest.placements.kongjwi);
+assert.equal(manifest.sprites.tool.cell.height, 768);
+
+assert.match(renderer, /ALIAS\.outfit,\s*"underlayer"/);
+assert.match(renderer, /a\.tools\[toolKey\]\.sheet/);
+assert.match(renderer, /dataset\.toolRig = motionRig \? "co-registered" : "static"/);
+assert.doesNotMatch(renderer, /integratedToolGrip|integratedGrip/);
+
+assert.match(water, /kongjwi\.left \+ kongjwi\.width \* 0\.93/);
+assert.match(water, /kongjwi\.top \+ kongjwi\.height \* 0\.35/);
+assert.match(css, /--scene-x:\s*10\.009765625%/);
+assert.match(css, /--scene-height:\s*71\.18055556%/);
+assert.match(gameHtml, /visible-water-pour\.js\?v=20260807-underlayer-rig2/);
+assert.match(gameHtml, /ui-effects\.js\?v=20260807-underlayer-rig2/);
+
+console.log("underlayer-rig2: pose-only Kongjwi + separately equipped co-registered bucket locked");
