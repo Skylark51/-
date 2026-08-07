@@ -58,3 +58,11 @@
 .scene-animation-zone > #layeredScene > .scene-layer[hidden] {
   display: none !important;
 }
+
+/* Final mobile cascade guard: the source button still says "전체" for stable
+ * behavior/accessibility, while the visible label is supplied by the polish layer. */
+@media (max-width: 900px), (pointer: coarse) {
+  .mobile-keypad .keypad-clear {
+    font-size: 0 !important;
+  }
+}
