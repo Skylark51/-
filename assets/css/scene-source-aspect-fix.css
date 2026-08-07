@@ -26,10 +26,10 @@
 }
 
 #ui-gameApp .scene-tool[data-sprite-mode="sheet"] {
-  --scene-x: 17.08984375% !important;
-  --scene-y: 29.07986111% !important;
-  --scene-width: 19.53125% !important;
-  --scene-height: 34.72222222% !important;
+  --scene-x: 10.009765625% !important;
+  --scene-y: 22.56944444% !important;
+  --scene-width: 26.66015625% !important;
+  --scene-height: 71.18055556% !important;
 }
 
 #ui-gameApp .scene-water-stream {

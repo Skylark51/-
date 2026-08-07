@@ -1,5 +1,5 @@
 {
-  "version": "2026.08.07-underlayer-grip1",
+  "version": "2026.08.07-underlayer-rig2",
   "logicalSize": {
     "width": 2048,
     "height": 1152
@@ -13,14 +13,14 @@
     "loadStrategy": "selected-cosmetics-first",
     "fallbackMode": "coherent-static-rig",
     "jarFramePolicy": "source-locked-paired-png",
-    "kongjwiMotionPolicy": "source-derived-png-pour-sheet",
-    "kongjwiFramePolicy": "source-locked-character-pixels",
-    "integratedGripPolicy": "underlayer+wood-bucket-behind-original-hand"
+    "kongjwiMotionPolicy": "source-locked-articulated-underlayer",
+    "kongjwiFramePolicy": "source-character-pixels-pose-only",
+    "toolMotionPolicy": "equipped-tool-co-registered-with-kongjwi"
   },
   "layers": {
     "scene-background": 0,
     "scene-kongjwi": 10,
-    "scene-tool": 20,
+    "scene-tool": 9,
     "scene-water-stream": 30,
     "scene-jar-back": 40,
     "scene-water-fill": 50,
@@ -44,10 +44,7 @@
     "kongjwi": {
       "underlayer": {
         "sheet": "assets/art/game-scene/kongjwi/underlayer/pour-sheet.png",
-        "fallback": "assets/art/kongjwi/kongjwi-underlayer-cutout.png",
-        "integratedTools": {
-          "wood": "assets/art/game-scene/kongjwi/underlayer/wood-grip-sheet.png"
-        }
+        "fallback": "assets/art/kongjwi/kongjwi-underlayer-cutout.png"
       },
       "classic-red": {
         "sheet": "assets/art/game-scene/kongjwi/classic-red/pour-sheet.png",
@@ -173,7 +170,7 @@
     "tool": {
       "cell": {
         "width": 512,
-        "height": 512
+        "height": 768
       },
       "frames": 8
     },
@@ -286,12 +283,12 @@
       "y": 1018
     },
     "toolHandle": {
-      "x": 690,
-      "y": 610
+      "x": 560,
+      "y": 671
     },
     "waterStart": {
-      "x": 780,
-      "y": 552
+      "x": 663,
+      "y": 538
     },
     "jarMouthCenter": {
       "x": 1500,
@@ -308,16 +305,16 @@
   },
   "placements": {
     "kongjwi": {
-      "x": 170,
+      "x": 205,
       "y": 260,
-      "width": 620,
+      "width": 546,
       "height": 820
     },
     "tool": {
-      "x": 430,
-      "y": 405,
-      "width": 430,
-      "height": 430
+      "x": 205,
+      "y": 260,
+      "width": 546,
+      "height": 820
     },
     "waterStream": {
       "x": 660,
@@ -557,7 +554,6 @@
     "assets/art/game-scene/jars/onggi/layers.png?v=20260807-source-locked-jars1": true,
     "assets/art/game-scene/jars/celadon/layers.png?v=20260807-source-locked-jars1": true,
     "assets/art/game-scene/jars/moon-white/layers.png?v=20260807-source-locked-jars1": true,
-    "assets/art/game-scene/jars/night-lacquer/layers.png?v=20260807-source-locked-jars1": true,
-    "assets/art/game-scene/kongjwi/underlayer/wood-grip-sheet.png": true
+    "assets/art/game-scene/jars/night-lacquer/layers.png?v=20260807-source-locked-jars1": true
   }
 }

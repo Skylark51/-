@@ -3,7 +3,7 @@ import { applyDeviceMode, getDeviceMode, syncViewport } from "./device-entry.js"
 import { GAME_TITLE, displayJarName } from "./theme-system.js";
 import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical2";
 import { mountMobileKeypad } from "./mobile-keypad.js?v=20260805-redox-mobile2";
-import { mountGameScene } from "./game-cosmetics-entry.js?v=20260807-underlayer-grip1";
+import { mountGameScene } from "./game-cosmetics-entry.js?v=20260807-underlayer-rig2";
 
 const SELECTION_KEY = "kongjuiya-training-selection";
 const OPENING_COUNTDOWN_TRAININGS = new Set(["atomic_number"]);

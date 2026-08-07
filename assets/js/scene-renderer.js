@@ -1,6 +1,6 @@
 import { createSceneStateController } from "./scene-state-machine.js?v=20260807-pour-feedback1";
 
-const MANIFEST_URL = "assets/art/game-scene/manifest.json?v=20260807-underlayer-grip1";
+const MANIFEST_URL = "assets/art/game-scene/manifest.json?v=20260807-underlayer-rig2";
 const RUNTIME_STYLE_ID = "layered-scene-animation-runtime";
 const RUNTIME_STYLE_URL = new URL("../css/game-asset-animation.css?v=20260806-mobile-scene-fix1", import.meta.url).href;
 const ORDER = [
@@ -237,21 +237,17 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
     const outfitAsset = a.kongjwi[outfit] || a.kongjwi.underlayer;
     const authoredKongjwi = target(manifest, outfitAsset.sheet, outfitAsset.fallback);
     const authoredTool = target(manifest, a.tools[toolKey].sheet, a.tools[toolKey].fallback);
-    const integratedPath = outfitAsset.integratedTools?.[toolKey] || "";
-    const integratedKongjwi = integratedPath ? target(manifest, integratedPath) : emptyAsset();
-    const integratedGrip = integratedKongjwi.authored;
     const motionRig = authoredKongjwi.authored && authoredTool.authored;
-    const waterRig = integratedGrip || motionRig;
     const chosen = {
       background: target(manifest, a.background.path, a.background.fallback),
       foreground: target(manifest, a.foreground.path, a.foreground.fallback),
-      kongjwi: integratedGrip ? integratedKongjwi : authoredKongjwi,
-      tool: integratedGrip ? emptyAsset() : motionRig ? authoredTool : { url: a.tools[toolKey].fallback, authored: false },
+      kongjwi: authoredKongjwi,
+      tool: motionRig ? authoredTool : { url: a.tools[toolKey].fallback, authored: false },
       jar: target(manifest, a.jars[jarKey].layers, a.jars[jarKey].fallback),
       toad: target(manifest, a.toads[toadKey].skin),
       expression: target(manifest, a.effects.toadExpression),
-      stream: waterRig ? target(manifest, a.effects.waterStream) : emptyAsset(),
-      splash: waterRig ? target(manifest, a.effects.waterSplash) : emptyAsset(),
+      stream: motionRig ? target(manifest, a.effects.waterStream) : emptyAsset(),
+      splash: motionRig ? target(manifest, a.effects.waterSplash) : emptyAsset(),
       leak: target(manifest, a.effects.waterLeak),
       surface: target(manifest, a.effects.waterSurface)
     };
@@ -264,10 +260,9 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
     image(layer(stack, "scene-background"), chosen.background, true);
     image(layer(stack, "scene-foreground"), chosen.foreground, true);
     sprite(layer(stack, "scene-kongjwi"), chosen.kongjwi, s.kongjwi);
-    if (integratedGrip) clearLayer(layer(stack, "scene-tool"));
-    else sprite(layer(stack, "scene-tool"), chosen.tool, s.tool);
+    sprite(layer(stack, "scene-tool"), chosen.tool, s.tool);
 
-    if (waterRig && chosen.stream.url) sprite(layer(stack, "scene-water-stream"), chosen.stream, s.waterStream);
+    if (motionRig && chosen.stream.url) sprite(layer(stack, "scene-water-stream"), chosen.stream, s.waterStream);
     else fallbackWaterArc(layer(stack, "scene-water-stream"));
 
     if (chosen.jar.authored) {
@@ -296,7 +291,7 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
       expressionMode = "full-fallback";
     }
 
-    if (waterRig && chosen.splash.url) sprite(layer(stack, "scene-water-splash"), chosen.splash, s.waterSplash);
+    if (motionRig && chosen.splash.url) sprite(layer(stack, "scene-water-splash"), chosen.splash, s.waterSplash);
     else clearLayer(layer(stack, "scene-water-splash"));
     sprite(layer(stack, "scene-water-leak"), chosen.leak, s.waterLeak);
 
@@ -314,9 +309,9 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
 
     const placements = manifest.placements;
     const fallback = manifest.fallbackPlacements || placements;
-    box(layer(stack, "scene-kongjwi"), waterRig ? placements.kongjwi : fallback.kongjwi, logical);
-    if (!integratedGrip) box(layer(stack, "scene-tool"), motionRig ? placements.tool : fallback.tool, logical);
-    box(layer(stack, "scene-water-stream"), waterRig ? placements.waterStream : fallback.waterStream, logical);
+    box(layer(stack, "scene-kongjwi"), motionRig ? placements.kongjwi : fallback.kongjwi, logical);
+    box(layer(stack, "scene-tool"), motionRig ? placements.tool : fallback.tool, logical);
+    box(layer(stack, "scene-water-stream"), motionRig ? placements.waterStream : fallback.waterStream, logical);
     for (const name of ["scene-jar-back", "scene-jar-front"]) box(layer(stack, name), placements.jar, logical);
     box(fill, placements.waterFill, logical);
     const toadPlacement = expressionMode === "full-fallback" ? fallback.toad : placements.toad;
@@ -329,12 +324,12 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
     root.dataset.toolSkin = toolKey;
     root.dataset.jarSkin = jarKey;
     root.dataset.toadSkin = toadKey;
-    stack.dataset.kongjwiMode = integratedGrip ? "integrated-grip" : motionRig ? "sheet" : "static";
-    stack.dataset.integratedToolGrip = integratedGrip ? toolKey : "";
-    root.dataset.integratedToolGrip = integratedGrip ? toolKey : "";
+    stack.dataset.kongjwiMode = motionRig ? "sheet" : "static";
+    stack.dataset.toolRig = motionRig ? "co-registered" : "static";
+    root.dataset.toolRig = stack.dataset.toolRig;
     stack.dataset.jarMode = chosen.jar.authored ? "layers" : "static";
     stack.dataset.toadMode = expressionMode;
-    stack.dataset.assetMode = waterRig && chosen.jar.authored && expressionMode === "overlay"
+    stack.dataset.assetMode = motionRig && chosen.jar.authored && expressionMode === "overlay"
       ? "authored"
       : "coherent-fallback";
     renderer.setWaterLevel(water);
