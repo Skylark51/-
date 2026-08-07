@@ -42,12 +42,12 @@ function ensureCountdownCard() {
   return card;
 }
 
-function mountOverlayInAnimationZone() {
+function mountOverlayOnQuestionFrame() {
   if (!overlay) return null;
   if (overlay.id !== "startOverlay") overlay.id = "startOverlay";
-  const animationZone = document.querySelector(".scene-animation-zone");
-  if (animationZone && overlay.parentElement !== animationZone) animationZone.append(overlay);
-  return animationZone;
+  const questionFrame = document.querySelector(".scene-question-bubble");
+  if (questionFrame && overlay.parentElement !== questionFrame) questionFrame.append(overlay);
+  return questionFrame;
 }
 
 async function runUniversalCountdown() {
@@ -56,9 +56,8 @@ async function runUniversalCountdown() {
   const app = byId("ui-gameApp");
   const api = globalThis.KongJuiYaGame;
   const card = ensureCountdownCard();
-  const animationZone = mountOverlayInAnimationZone();
-  if (!card || !animationZone) {
-    app?.classList.remove("is-opening-countdown");
+  const questionFrame = mountOverlayOnQuestionFrame();
+  if (!card || !questionFrame) {
     api?.game?.resume?.();
     return;
   }
@@ -68,6 +67,7 @@ async function runUniversalCountdown() {
   message.textContent = INTRO_TEXT;
   number.textContent = "";
 
+  app?.classList.add("is-opening-countdown");
   overlay.classList.remove("hidden", "is-opening");
   overlay.classList.add("game-start-countdown");
   overlay.dataset.phase = "intro";
@@ -104,15 +104,11 @@ window.addEventListener("game:start", () => {
   const api = globalThis.KongJuiYaGame;
   if (!api?.game) return;
 
-  // Apply the opening state synchronously so the first question never flashes
-  // before the breathing countdown takes ownership of the scene.
+  // Pause synchronously, then mount the countdown immediately over the real
+  // question frame. The keypad can finish mounting while the first await runs.
   byId("ui-gameApp")?.classList.add("is-opening-countdown");
   if (api.game.state.status === "running") api.game.pause();
-
-  // Let ui-effects mount the current question keypad while the game is paused.
-  window.setTimeout(() => {
-    void runUniversalCountdown();
-  }, 0);
+  void runUniversalCountdown();
 });
 
 const confirmHomeButton = byId("confirmHomeButton");
