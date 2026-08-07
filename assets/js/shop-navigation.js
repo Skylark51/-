@@ -15,6 +15,7 @@ const SWATCHES = Object.freeze({
   brass: ["#74531b", "#e8c35c"],
   celadon: ["#35675f", "#9ccbbd"],
   moon: ["#202443", "#747fd0"],
+  underlayer: ["#ece8df", "#ffffff"],
   "classic-red": ["#6f2024", "#c95652"],
   "blue-scholar": ["#17335f", "#4a7fa5"],
   "field-green": ["#365e31", "#75944f"],
@@ -30,6 +31,7 @@ const SWATCHES = Object.freeze({
 
 const ASSET_VERSION = "20260805-outfit7";
 const OUTFIT_ART = Object.freeze({
+  underlayer: `assets/art/kongjwi/kongjwi-underlayer-cutout.png?v=${ASSET_VERSION}`,
   "classic-red": `assets/art/kongjwi/kongjwi-classic-red-cutout.png?v=${ASSET_VERSION}`,
   "blue-scholar": `assets/art/kongjwi/kongjwi-blue-scholar-cutout.png?v=${ASSET_VERSION}`,
   "field-green": `assets/art/kongjwi/kongjwi-field-work-cutout.png?v=${ASSET_VERSION}`,
@@ -194,7 +196,7 @@ function actionFor(item) {
 }
 
 function currentWardrobeItem() {
-  return previewOutfitId ? SHOP_ITEM_MAP[previewOutfitId] || null : null;
+  return SHOP_ITEM_MAP[previewOutfitId || "outfit_underlayer"] || null;
 }
 
 function setWardrobeImage(source, label) {
@@ -223,15 +225,16 @@ function renderWardrobeOptions() {
   const underlayer = document.createElement("button");
   underlayer.type = "button";
   underlayer.className = "outfit-wardrobe-option is-underlayer";
-  underlayer.classList.toggle("is-selected", previewOutfitId === null);
-  underlayer.setAttribute("aria-pressed", String(previewOutfitId === null));
-  underlayer.innerHTML = "<span>기본</span><strong>속옷 상태</strong>";
+  underlayer.classList.toggle("is-selected", (previewOutfitId || "outfit_underlayer") === "outfit_underlayer");
+  underlayer.classList.toggle("is-equipped", cosmetics.isEquipped("outfit_underlayer"));
+  underlayer.setAttribute("aria-pressed", String((previewOutfitId || "outfit_underlayer") === "outfit_underlayer"));
+  underlayer.innerHTML = "<span>기본</span><strong>Underlayer</strong>";
   underlayer.addEventListener("click", () => {
-    previewOutfitId = null;
+    previewOutfitId = "outfit_underlayer";
     renderWardrobe();
   });
 
-  const outfitButtons = outfitItems().map(item => {
+  const outfitButtons = outfitItems().filter(item => item.id !== "outfit_underlayer").map(item => {
     const card = cosmetics.card(item.id);
     const button = document.createElement("button");
     button.type = "button";
@@ -288,7 +291,7 @@ function renderWardrobe() {
 function openWardrobe(item = null, trigger = null) {
   const dialog = byId("outfitWardrobeDialog");
   wardrobeReturnFocus = trigger || document.activeElement;
-  previewOutfitId = item?.category === "outfit" ? item.id : null;
+  previewOutfitId = item?.category === "outfit" ? item.id : (cosmetics.equipped("outfit") || "outfit_underlayer");
   renderWardrobe();
   if (!dialog.open) dialog.showModal();
 }

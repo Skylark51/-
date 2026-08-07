@@ -124,14 +124,19 @@ function localRect(element, hostRect) {
 
 function calculateEndpoints(host) {
   const hostRect = host.getBoundingClientRect();
-  const tool = localRect(host.querySelector("#layeredScene .scene-tool"), hostRect);
-  const jar = localRect(host.querySelector("#layeredScene .scene-jar-back"), hostRect);
+  const stack = host.querySelector("#layeredScene");
+  const tool = localRect(stack?.querySelector(".scene-tool"), hostRect);
+  const kongjwi = localRect(stack?.querySelector(".scene-kongjwi"), hostRect);
+  const integratedGrip = Boolean(stack?.dataset.integratedToolGrip);
+  const jar = localRect(stack?.querySelector(".scene-jar-back"), hostRect);
   const width = Math.max(1, hostRect.width);
   const height = Math.max(1, hostRect.height);
 
   const start = tool
     ? { x: tool.left + tool.width * 0.9, y: tool.top + tool.height * 0.52 }
-    : { x: width * 0.38, y: height * 0.49 };
+    : integratedGrip && kongjwi
+      ? { x: kongjwi.left + kongjwi.width * 0.89, y: kongjwi.top + kongjwi.height * 0.47 }
+      : { x: width * 0.38, y: height * 0.49 };
   const end = jar
     ? { x: jar.left + jar.width * 0.5, y: jar.top + jar.height * 0.14 }
     : { x: width * 0.74, y: height * 0.39 };

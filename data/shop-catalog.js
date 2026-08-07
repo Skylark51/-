@@ -15,6 +15,7 @@ export const SHOP_ITEMS = Object.freeze([
   item("tool_celadon_bucket", "tool", "청자 바가지", 420, "맑은 비취빛 유약을 입힌 장식용 바가지입니다. 일상 생활에 사용해도 될지 의문입니다.", "celadon", "희귀"),
   item("tool_moon_bucket", "tool", "월광 바가지", 850, "피버 중 은은한 달빛 잔상이 따라옵니다. 비싸지만 확실히 값은 하는 바가지입니다", "moon", "영웅"),
 
+  item("outfit_underlayer", "outfit", "기본 차림", 0, "콩쥐의 원본 underlayer 차림입니다. 다른 옷 없이 이 상태로도 장독대에 물을 채울 수 있습니다.", "underlayer", "기본"),
   item("outfit_classic_red", "outfit", "고전 홍색 한복", 0, "예스러운 느낌이 일품인 홍색 한복입니다.", "classic-red", "기본"),
   item("outfit_blue_scholar", "outfit", "청람 학자복", 280, "짙은 남색과 옥색 띠를 사용한 차분한 옷입니다.", "blue-scholar", "고급"),
   item("outfit_field_green", "outfit", "들녘 작업복", 480, "초록 저고리와 갈색 앞치마로 구성된 실용적인 옷입니다. 장독대에 물을 채우기에 적합해 보입니다.", "field-green", "희귀"),
@@ -34,13 +35,14 @@ export const SHOP_ITEMS = Object.freeze([
 export const SHOP_ITEM_MAP = Object.freeze(Object.fromEntries(SHOP_ITEMS.map(entry => [entry.id, entry])));
 export const STARTER_COSMETICS = Object.freeze([
   "tool_wood_bucket",
+  "outfit_underlayer",
   "outfit_classic_red",
   "toad_field_brown",
   "jar_onggi"
 ]);
 export const DEFAULT_EQUIPPED_COSMETICS = Object.freeze({
   tool: "tool_wood_bucket",
-  outfit: "outfit_classic_red",
+  outfit: "outfit_underlayer",
   toad: "toad_field_brown",
   jar: "jar_onggi"
 });

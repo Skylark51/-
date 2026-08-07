@@ -1,5 +1,5 @@
 {
-  "version": "2026.08.07-kongjwi-pour1",
+  "version": "2026.08.07-underlayer-grip1",
   "logicalSize": {
     "width": 2048,
     "height": 1152
@@ -13,7 +13,9 @@
     "loadStrategy": "selected-cosmetics-first",
     "fallbackMode": "coherent-static-rig",
     "jarFramePolicy": "source-locked-paired-png",
-    "kongjwiMotionPolicy": "source-derived-png-pour-sheet"
+    "kongjwiMotionPolicy": "source-derived-png-pour-sheet",
+    "kongjwiFramePolicy": "source-locked-character-pixels",
+    "integratedGripPolicy": "underlayer+wood-bucket-behind-original-hand"
   },
   "layers": {
     "scene-background": 0,
@@ -42,7 +44,10 @@
     "kongjwi": {
       "underlayer": {
         "sheet": "assets/art/game-scene/kongjwi/underlayer/pour-sheet.png",
-        "fallback": "assets/art/kongjwi/kongjwi-underlayer-cutout.png"
+        "fallback": "assets/art/kongjwi/kongjwi-underlayer-cutout.png",
+        "integratedTools": {
+          "wood": "assets/art/game-scene/kongjwi/underlayer/wood-grip-sheet.png"
+        }
       },
       "classic-red": {
         "sheet": "assets/art/game-scene/kongjwi/classic-red/pour-sheet.png",
@@ -552,6 +557,7 @@
     "assets/art/game-scene/jars/onggi/layers.png?v=20260807-source-locked-jars1": true,
     "assets/art/game-scene/jars/celadon/layers.png?v=20260807-source-locked-jars1": true,
     "assets/art/game-scene/jars/moon-white/layers.png?v=20260807-source-locked-jars1": true,
-    "assets/art/game-scene/jars/night-lacquer/layers.png?v=20260807-source-locked-jars1": true
+    "assets/art/game-scene/jars/night-lacquer/layers.png?v=20260807-source-locked-jars1": true,
+    "assets/art/game-scene/kongjwi/underlayer/wood-grip-sheet.png": true
   }
 }
