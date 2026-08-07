@@ -51,6 +51,11 @@ try {
     const titleStrong = document.querySelector(".header-title strong");
     const titleStyle = title ? getComputedStyle(title) : null;
     const toadBox = visibleToad?.getBoundingClientRect();
+    const toadStyle = visibleToad ? getComputedStyle(visibleToad) : null;
+    const toadBefore = visibleToad ? getComputedStyle(visibleToad, "::before") : null;
+    const toadAfter = visibleToad ? getComputedStyle(visibleToad, "::after") : null;
+    const toadImage = visibleToad?.querySelector(".scene-layer-image");
+    const toadImageBox = toadImage?.getBoundingClientRect();
 
     return {
       viewport: { width: innerWidth, height: innerHeight },
@@ -73,6 +78,12 @@ try {
       kongjwi: rect("#layeredScene .scene-kongjwi"),
       jar: rect("#layeredScene .scene-jar-back"),
       toad: toadBox ? { width: toadBox.width, height: toadBox.height, left: toadBox.left, top: toadBox.top, right: toadBox.right, bottom: toadBox.bottom } : null,
+      toadImage: toadImageBox ? { width: toadImageBox.width, height: toadImageBox.height } : null,
+      toadBackgroundImage: toadStyle?.backgroundImage || "missing",
+      toadBackgroundColor: toadStyle?.backgroundColor || "missing",
+      toadBeforeBackground: toadBefore?.backgroundImage || "missing",
+      toadBeforeInset: toadBefore?.inset || "missing",
+      toadAfterDisplay: toadAfter?.display || "missing",
       feverFont: px(".fever-copy"),
       feedbackFont: px("#feedback"),
       minKeyHeight: numericButtons.length ? Math.min(...numericButtons.map(button => button.getBoundingClientRect().height)) : 0,
@@ -100,14 +111,22 @@ try {
   const ratio = box => box.width / stageWidth;
   assert(metrics.kongjwi && ratio(metrics.kongjwi) >= 0.30 && ratio(metrics.kongjwi) <= 0.35, `367x662: Kongjwi width ratio ${ratio(metrics.kongjwi).toFixed(3)}`);
   assert(metrics.jar && ratio(metrics.jar) >= 0.34 && ratio(metrics.jar) <= 0.40, `367x662: jar width ratio ${ratio(metrics.jar).toFixed(3)}`);
-  assert(metrics.toad && ratio(metrics.toad) >= 0.12 && ratio(metrics.toad) <= 0.18, `367x662: toad width ratio ${ratio(metrics.toad).toFixed(3)}`);
+  assert(metrics.toad && ratio(metrics.toad) >= 0.11 && ratio(metrics.toad) <= 0.15, `367x662: toad viewport width ratio ${ratio(metrics.toad).toFixed(3)}`);
   assert(metrics.toad.right <= metrics.stage.right + 1 && metrics.toad.bottom <= metrics.stage.bottom + 1, "367x662: toad is cropped outside the stage");
+
+  /* Enlarged-crop regression: never turn the entire toad viewport into a black oval. */
+  assert(metrics.toadBackgroundImage === "none", `367x662: toad viewport has a synthetic background (${metrics.toadBackgroundImage})`);
+  assert(metrics.toadBackgroundColor === "rgba(0, 0, 0, 0)", `367x662: toad viewport is not transparent (${metrics.toadBackgroundColor})`);
+  assert(/radial-gradient/.test(metrics.toadBeforeBackground), `367x662: feathered inner cavity missing (${metrics.toadBeforeBackground})`);
+  assert(metrics.toadBeforeInset !== "0px", `367x662: cavity still fills the whole viewport (${metrics.toadBeforeInset})`);
+  assert(metrics.toadAfterDisplay === "none", `367x662: artificial hard hole ring is still visible (${metrics.toadAfterDisplay})`);
+  assert(metrics.toadImage && metrics.toadImage.width >= metrics.toad.width * 1.2, `367x662: toad PNG is not enlarged inside the smaller opening (${metrics.toadImage?.width || 0}px / ${metrics.toad.width}px)`);
 
   assert(failedResponses.length === 0, `367x662: HTTP failures\n${failedResponses.join("\n")}`);
   assert(consoleErrors.length === 0, `367x662: console errors\n${consoleErrors.join("\n")}`);
 
   await page.screenshot({ path: "/tmp/quiz-interface-367x662.png", fullPage: false });
-  console.log("367x662 screenshot-driven quiz interface checks passed.");
+  console.log("367x662 screenshot-driven quiz interface and toad-hole integration checks passed.");
   await context.close();
 } finally {
   await browser.close();
