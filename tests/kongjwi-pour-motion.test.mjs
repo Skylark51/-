@@ -40,6 +40,16 @@ test("bucket, stream and splash authored assets are available once Kongjwi motio
   assert.match(renderer, /splash:\s*motionRig\s*\?\s*target\(manifest,\s*a\.effects\.waterSplash\)/);
 });
 
+test("correct feedback survives synchronous nextQuestion so the pour can actually play", () => {
+  const stateMachine = fs.readFileSync(path.join(root, "assets/js/scene-state-machine.js"), "utf8");
+  assert.match(stateMachine, /TRANSIENT_FEEDBACK_STATES\s*=\s*new Set\(\["correct", "wrong", "timeout"\]\)/);
+  assert.match(stateMachine, /eventName === "question:changed"\s*&&\s*TRANSIENT_FEEDBACK_STATES\.has\(this\.state\)/);
+  assert.match(stateMachine, /playSequence\("waterStream"[\s\S]*1040/);
+  assert.match(stateMachine, /playSequence\("waterSplash"[\s\S]*900/);
+  assert.match(stateMachine, /schedule\(\(\) => this\.apply\("question"\), 1240\)/);
+  assert.match(stateMachine, /case "clear"[\s\S]*playSequence\("waterStream"[\s\S]*playSequence\("waterSplash"/);
+});
+
 test("generated motion pipeline stays PNG-only", () => {
   const manifestText = fs.readFileSync(path.join(root, "assets/art/game-scene/manifest.json"), "utf8");
   for (const skin of skins) {
