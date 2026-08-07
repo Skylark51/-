@@ -34,9 +34,22 @@ if (api?.game && api?.storage) {
   const selection = readSelection();
   const savedTarget = selection?.resume ? Number(api.storage.data.currentRun?.correctAnswersPerStage || 0) : 0;
   const questionCount = clampQuestionCount(savedTarget || api.storage.data.settings?.questionCount);
+  let visibleQuestionNumber = selection?.resume
+    ? Math.max(0, Number(api.storage.data.currentRun?.correctInStage || 0))
+    : 0;
+
   api.game.config = Object.freeze({ ...api.game.config, correctAnswersToClear: questionCount });
   document.documentElement.dataset.defaultQuestionCount = String(questionCount);
   syncQuestionTargetUi(questionCount);
+
+  addEventListener("question:changed", () => {
+    visibleQuestionNumber += 1;
+    queueMicrotask(() => {
+      syncQuestionTargetUi(questionCount);
+      const node = document.getElementById("ui-questionCount");
+      if (node) node.textContent = String(Math.min(questionCount, visibleQuestionNumber));
+    });
+  });
 
   const originalFinishRun = api.storage.finishRun.bind(api.storage);
   api.storage.finishRun = state => {
