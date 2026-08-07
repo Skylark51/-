@@ -10,6 +10,8 @@ on:
       - "assets/art/kongjwi-tools/wood.png"
       - "tests/kongjwi-pour-motion.test.mjs"
       - "tests/kongjwi-underlayer-grip.test.mjs"
+      - "콩쥐야_줘때써.html"
+      - "shop.html"
       - ".github/workflows/build-kongjwi-pour-motion.yml"
   workflow_dispatch:
 
@@ -36,7 +38,19 @@ jobs:
         run: python scripts/build-kongjwi-pour-sheets.py
 
       - name: Apply underlayer grip runtime wiring
-        run: python scripts/apply-underlayer-grip-runtime.py
+        run: |
+          python scripts/apply-underlayer-grip-runtime.py
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("콩쥐야_줘때써.html")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace(
+              'data-ui-version="20260807-records-analytics1"',
+              'data-ui-version="20260807-underlayer-grip1"',
+              1,
+          )
+          path.write_text(text, encoding="utf-8")
+          PY
 
       - name: Validate pour animation pipeline
         shell: bash
