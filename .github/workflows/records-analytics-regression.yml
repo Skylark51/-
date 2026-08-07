@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
     paths:
+      - "index.html"
+      - "콩쥐야_줘때써.html"
       - "record-detail.html"
       - "assets/js/records-enhancements.js"
       - "assets/js/game-records-runtime.js"
