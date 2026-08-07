@@ -73,12 +73,28 @@ test("a high-contrast bucket-to-jar ribbon is guaranteed for correct and clear s
   assert.match(animationCss, /@keyframes layered-visible-water-ribbon/);
 });
 
-test("game shell cache-busts the corrected composition and water-ribbon CSS", () => {
+test("direct answer-driven SVG water overlay is loaded and independent of scene state", () => {
+  const html = fs.readFileSync(path.join(root, "콩쥐야_줘때써.html"), "utf8");
+  const overlay = fs.readFileSync(path.join(root, "assets/js/visible-water-pour.js"), "utf8");
+  assert.match(html, /data-ui-version="20260807-water-overlay3"/);
+  assert.match(html, /visible-water-pour\.js\?v=20260807-water-overlay3/);
+  assert.match(overlay, /window\.addEventListener\("answer:correct"/);
+  assert.match(overlay, /runtimeVisibleWaterPour/);
+  assert.match(overlay, /scene-animation-zone/);
+  assert.match(overlay, /#layeredScene \.scene-tool/);
+  assert.match(overlay, /#layeredScene \.scene-jar-back/);
+  assert.match(overlay, /DURATION_MS\s*=\s*1380/);
+  assert.match(overlay, /stroke-width:\s*8/);
+  assert.match(overlay, /z-index:\s*8/);
+});
+
+test("game shell cache-busts the corrected composition and direct water overlay", () => {
   const html = fs.readFileSync(path.join(root, "콩쥐야_줘때써.html"), "utf8");
   const runtime = fs.readFileSync(path.join(root, "assets/css/layered-scene-runtime.css"), "utf8");
-  assert.match(html, /data-ui-version="20260807-pour-visual2"/);
+  assert.match(html, /data-ui-version="20260807-water-overlay3"/);
   assert.match(html, /game-asset-animation\.css\?v=20260807-pour-visual2/);
   assert.match(html, /layered-scene-runtime\.css\?v=20260807-pour-visual2/);
+  assert.match(html, /visible-water-pour\.js\?v=20260807-water-overlay3/);
   assert.match(runtime, /scene-source-aspect-fix\.css\?v=20260807-pour-visual2/);
 });
 
