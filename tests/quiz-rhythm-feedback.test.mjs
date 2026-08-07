@@ -23,16 +23,21 @@ test("answer feedback sound is short Web Audio and never leaks the timeout event
   assert.match(js, /answer:correct/);
   assert.match(js, /answer:wrong/);
   assert.doesNotMatch(js, /answer:timeout/);
-  assert.match(js, /playWaterFill/);
+  assert.match(js, /playSpringWater/);
   assert.match(js, /playToadHit/);
   assert.match(js, /stopActive\(\)/);
   assert.match(js, /createBiquadFilter/);
   assert.match(js, /createOscillator/);
+  assert.match(js, /sfxVolume/);
+  assert.match(js, /mute/);
 });
 
-test("game shell loads the jar composition tune and answer SFX with cache-busted URLs", () => {
+test("game shell loads jar tune, audio settings, bgm and answer SFX with cache-busted URLs", () => {
   const html = read("콩쥐야_줘때써.html");
   assert.match(html, /scene-jar-position-tune\.css\?v=20260807-jar-sfx1/);
-  assert.match(html, /game-sfx\.js\?v=20260807-jar-sfx1/);
-  assert.match(html, /data-ui-version="20260807-jar-sfx1"/);
+  assert.match(html, /atomic-number-question-tune\.css\?v=20260807-audio-bgm1/);
+  assert.match(html, /audio-settings\.css\?v=20260807-audio-bgm1/);
+  assert.match(html, /game-bgm\.js\?v=20260807-audio-bgm1/);
+  assert.match(html, /game-sfx\.js\?v=20260807-audio-bgm1/);
+  assert.match(html, /data-ui-version="20260807-audio-bgm1"/);
 });
