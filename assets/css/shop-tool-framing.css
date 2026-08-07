@@ -1,0 +1,49 @@
+/* Bucket product framing: use the authored frame, but crop its game-scene whitespace for shop presentation. */
+
+/* The generic product visual draws a symbolic rounded-square placeholder with ::before.
+   Tool cards already have real artwork, so the placeholder must never sit over the bucket. */
+.shop-page .shop-grid[data-category="tool"] .shop-item-visual::before,
+.shop-page .shop-category-card[data-category="tool"] .shop-category-visual::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* The authored 512x512 game frame intentionally leaves room around the bucket for Kongjwi's hand.
+   Keep the original PNG pixels and enlarge the frame element itself; the visual container performs
+   the crop. This avoids resampling or creating a lower-quality shop asset. */
+.shop-page .shop-grid[data-category="tool"] .shop-asset-tool {
+  width: min(168%, 252px) !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  transform: translateY(-21%) !important;
+  transform-origin: center center !important;
+}
+
+/* The category overview uses the same framing rule at a slightly calmer scale. */
+.shop-page .shop-category-card[data-category="tool"] .shop-asset-tool {
+  width: min(150%, 240px) !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  transform: translateY(-19%) !important;
+  transform-origin: center center !important;
+}
+
+/* Keep the 2-column mobile cards visually equivalent to the jar cards: large centered product,
+   no empty icon tile above it, and no accidental clipping of the bowl/handle. */
+:is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="tool"] .shop-asset-tool {
+  width: min(168%, 252px) !important;
+  max-width: none !important;
+  max-height: none !important;
+  transform: translateY(-21%) !important;
+}
+
+@media (max-width: 370px) {
+  :is(html[data-device-layout="mobile"], html[data-mobile-ui="shadcn"]) .shop-page .shop-grid[data-category="tool"] .shop-asset-tool {
+    width: min(168%, 226px) !important;
+    max-width: none !important;
+    max-height: none !important;
+    transform: translateY(-21%) !important;
+  }
+}
