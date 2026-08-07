@@ -13,11 +13,11 @@ const stripMarkup = html => html
   .replace(/<\/span>$/, "")
   .replace(/<\/?u>/g, "");
 
-test("oxidation-number bank is formula-only, underlined, and broad enough", () => {
-  assert.equal(oxidationNumberQuestions.length, 45);
+test("oxidation-number bank is formula-only, underlined, broad, and difficulty-balanced", () => {
+  assert.equal(oxidationNumberQuestions.length, 63);
   assert.deepEqual(
     [1, 2, 3].map(level => oxidationNumberQuestions.filter(q => q.difficulty === level).length),
-    [15, 15, 15]
+    [21, 21, 21]
   );
 
   for (const question of oxidationNumberQuestions) {
@@ -31,28 +31,63 @@ test("oxidation-number bank is formula-only, underlined, and broad enough", () =
   }
 });
 
-test("oxidation-number bank covers the intended high-school categories without exception-heavy prompts", () => {
+test("oxidation-number bank covers standard rules, exceptions, averages, and multiple oxidation states", () => {
   const kinds = new Set(oxidationNumberQuestions.map(q => q.tags[2]));
-  for (const kind of ["홑원소", "단원자 이온", "이온 결합 화합물", "공유 결합 화합물", "다원자 이온", "산"]) {
+  for (const kind of [
+    "홑원소", "단원자 이온", "이온 결합 화합물", "공유 결합 화합물", "다원자 이온", "산",
+    "과산화물", "금속 수소화물", "산소-플루오린 화합물", "산소산", "다원소 화합물", "동일 원소 다중 산화수"
+  ]) {
     assert.ok(kinds.has(kind), `${kind} 유형이 필요합니다.`);
   }
 
   const prompts = oxidationNumberQuestions.map(q => q.prompt).join(" ");
-  assert.doesNotMatch(prompts, /H₂O₂|NaH|CaH₂|Fe|Mn|Cr|Cu|Zn|Ag|Br|I|Ba|Pb/);
-
-  const expected = new Map([
-    ["CO₂", 4],
-    ["CH₄", -4],
-    ["SO₄²⁻", 6],
-    ["NH₄⁺", -3],
-    ["H₃PO₄", 5],
-    ["Ca(NO₃)₂", 5]
-  ]);
-  for (const [formula, answer] of expected) {
-    const question = oxidationNumberQuestions.find(q => q.prompt === formula);
-    assert.ok(question, `${formula} 문항이 없습니다.`);
-    assert.equal(Number(question.answers[0]), answer, `${formula} 산화수가 잘못되었습니다.`);
+  for (const formula of [
+    "H₂O₂", "NaH", "CaH₂", "OF₂", "Na₂O₂", "K₂O₂", "MgH₂", "KH",
+    "HClO", "HClO₄", "CH₃OH", "C₂H₆O", "C₂H₄O₂", "C₆H₁₂O₆", "NH₄NO₃"
+  ]) {
+    assert.match(prompts, new RegExp(formula), `${formula} 문항이 필요합니다.`);
   }
+  assert.doesNotMatch(prompts, /Fe|Mn|Cr|Cu|Zn|Ag|Br|I|Ba|Pb/);
+
+  const expectedById = new Map([
+    ["oxidation_number_016", 4],
+    ["oxidation_number_018", -4],
+    ["oxidation_number_033", 6],
+    ["oxidation_number_037", -3],
+    ["oxidation_number_040", 5],
+    ["oxidation_number_045", 5],
+    ["oxidation_number_046", -1],
+    ["oxidation_number_048", -1],
+    ["oxidation_number_050", 2],
+    ["oxidation_number_052", -1],
+    ["oxidation_number_054", -1],
+    ["oxidation_number_056", 1],
+    ["oxidation_number_057", 7],
+    ["oxidation_number_058", -2],
+    ["oxidation_number_059", -2],
+    ["oxidation_number_060", 0],
+    ["oxidation_number_061", 0],
+    ["oxidation_number_062", -3],
+    ["oxidation_number_063", 5]
+  ]);
+  for (const [id, answer] of expectedById) {
+    const question = oxidationNumberQuestions.find(q => q.id === id);
+    assert.ok(question, `${id} 문항이 없습니다.`);
+    assert.equal(Number(question.answers[0]), answer, `${id} 산화수가 잘못되었습니다.`);
+  }
+
+  for (const id of ["oxidation_number_059", "oxidation_number_060", "oxidation_number_061"]) {
+    const question = oxidationNumberQuestions.find(q => q.id === id);
+    assert.match(question.explanation, /H와 O를 먼저 처리/);
+    assert.match(question.explanation, /평균 산화수/);
+  }
+
+  const ammoniumN = oxidationNumberQuestions.find(q => q.id === "oxidation_number_062");
+  const nitrateN = oxidationNumberQuestions.find(q => q.id === "oxidation_number_063");
+  assert.equal(ammoniumN.prompt, nitrateN.prompt);
+  assert.equal(Number(ammoniumN.answers[0]), -3);
+  assert.equal(Number(nitrateN.answers[0]), 5);
+  assert.notEqual(ammoniumN.promptHtml, nitrateN.promptHtml);
 });
 
 test("every oxidation-number question exposes the same signed keypad", () => {
