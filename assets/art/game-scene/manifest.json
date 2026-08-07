@@ -1,5 +1,5 @@
 {
-  "version": "2026.08.07-source-locked-jars1",
+  "version": "2026.08.07-kongjwi-pour1",
   "logicalSize": {
     "width": 2048,
     "height": 1152
@@ -12,7 +12,8 @@
     "cssSkinFilters": false,
     "loadStrategy": "selected-cosmetics-first",
     "fallbackMode": "coherent-static-rig",
-    "jarFramePolicy": "source-locked-paired-png"
+    "jarFramePolicy": "source-locked-paired-png",
+    "kongjwiMotionPolicy": "source-derived-png-pour-sheet"
   },
   "layers": {
     "scene-background": 0,
@@ -518,12 +519,12 @@
   "availability": {
     "assets/art/game-scene/background/courtyard-night-bg.png": false,
     "assets/art/game-scene/background/courtyard-night-fg.png": true,
-    "assets/art/game-scene/kongjwi/underlayer/pour-sheet.png": false,
-    "assets/art/game-scene/kongjwi/classic-red/pour-sheet.png": false,
-    "assets/art/game-scene/kongjwi/blue-scholar/pour-sheet.png": false,
-    "assets/art/game-scene/kongjwi/field-work/pour-sheet.png": false,
-    "assets/art/game-scene/kongjwi/ragged/pour-sheet.png": false,
-    "assets/art/game-scene/kongjwi/night-court/pour-sheet.png": false,
+    "assets/art/game-scene/kongjwi/underlayer/pour-sheet.png": true,
+    "assets/art/game-scene/kongjwi/classic-red/pour-sheet.png": true,
+    "assets/art/game-scene/kongjwi/blue-scholar/pour-sheet.png": true,
+    "assets/art/game-scene/kongjwi/field-work/pour-sheet.png": true,
+    "assets/art/game-scene/kongjwi/ragged/pour-sheet.png": true,
+    "assets/art/game-scene/kongjwi/night-court/pour-sheet.png": true,
     "assets/art/game-scene/tools/wood/pour-sheet.png": true,
     "assets/art/game-scene/tools/brass/pour-sheet.png": true,
     "assets/art/game-scene/tools/celadon/pour-sheet.png": true,
