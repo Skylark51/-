@@ -1,4 +1,5 @@
 const EVENT_TARGET = globalThis;
+const TRANSIENT_FEEDBACK_STATES = new Set(["correct", "wrong", "timeout"]);
 
 const EVENT_TO_STATE = Object.freeze({
   "game:start": "idle",
@@ -42,7 +43,14 @@ export class LayeredSceneStateController {
 
   bindEvents() {
     for (const [eventName, state] of Object.entries(EVENT_TO_STATE)) {
-      const handler = event => this.apply(state, event?.detail || {});
+      const handler = event => {
+        const detail = event?.detail || {};
+        if (eventName === "question:changed" && TRANSIENT_FEEDBACK_STATES.has(this.state)) {
+          this.syncWater(detail);
+          return;
+        }
+        this.apply(state, detail);
+      };
       EVENT_TARGET.addEventListener(eventName, handler);
       this.removers.push(() => EVENT_TARGET.removeEventListener(eventName, handler));
     }
@@ -137,11 +145,11 @@ export class LayeredSceneStateController {
         const combo = Number(detail.combo || detail.streak || 0);
         this.renderer.setExpression(combo >= 3 ? "combo" : "correct");
         const plan = sequences.answerCorrect || {};
-        this.playSequence("kongjwi", plan.kongjwi || [2, 3, 4, 5, 6], 940);
-        this.playSequence("tool", plan.tool || [2, 3, 4, 5, 6], 940);
-        this.playSequence("waterStream", plan.waterStream || [1, 2, 3, 4, 5, 6, 7], 760);
-        this.playSequence("waterSplash", plan.waterSplash || [1, 2, 3, 4, 5], 650);
-        this.schedule(() => this.renderer.setExpression("default"), 1100);
+        this.playSequence("kongjwi", plan.kongjwi || [2, 3, 4, 5, 6], 1180);
+        this.playSequence("tool", plan.tool || [2, 3, 4, 5, 6], 1180);
+        this.playSequence("waterStream", plan.waterStream || [1, 2, 3, 4, 5, 6, 7], 1040);
+        this.playSequence("waterSplash", plan.waterSplash || [1, 2, 3, 4, 5], 900);
+        this.schedule(() => this.apply("question"), 1240);
         break;
       }
 
@@ -150,15 +158,17 @@ export class LayeredSceneStateController {
         this.renderer.setExpression(
           this.wrongStreak >= 3 ? "rage" : this.wrongStreak === 2 ? "angry" : "wrong"
         );
-        this.playSequence("kongjwi", sequences.answerWrong?.kongjwi || [7], 520, { hold: true });
-        this.playSequence("tool", [7], 520, { hold: true });
+        this.playSequence("kongjwi", sequences.answerWrong?.kongjwi || [7], 560, { hold: true });
+        this.playSequence("tool", [7], 560, { hold: true });
+        this.schedule(() => this.apply("question"), 680);
         break;
 
       case "timeout":
         this.wrongStreak += 1;
         this.renderer.setExpression("timeout");
-        this.playSequence("kongjwi", [7], 760, { hold: true });
-        this.playSequence("tool", [7], 760, { hold: true });
+        this.playSequence("kongjwi", [7], 700, { hold: true });
+        this.playSequence("tool", [7], 700, { hold: true });
+        this.schedule(() => this.apply("question"), 820);
         break;
 
       case "warning":
@@ -174,13 +184,17 @@ export class LayeredSceneStateController {
         this.renderer.setExpression("combo");
         break;
 
-      case "clear":
+      case "clear": {
         this.wrongStreak = 0;
         this.renderer.setWaterLevel(100);
         this.renderer.setExpression(Number(detail.combo || 0) >= 3 ? "combo" : "correct");
-        this.playSequence("kongjwi", [2, 3, 4, 5, 6], 980, { hold: true });
-        this.playSequence("tool", [2, 3, 4, 5, 6], 980, { hold: true });
+        const plan = sequences.answerCorrect || {};
+        this.playSequence("kongjwi", plan.kongjwi || [2, 3, 4, 5, 6], 1180, { hold: true });
+        this.playSequence("tool", plan.tool || [2, 3, 4, 5, 6], 1180, { hold: true });
+        this.playSequence("waterStream", plan.waterStream || [1, 2, 3, 4, 5, 6, 7], 1040);
+        this.playSequence("waterSplash", plan.waterSplash || [1, 2, 3, 4, 5], 900);
         break;
+      }
 
       case "over":
         this.renderer.setExpression(detail.reason === "timeout" ? "timeout" : "wrong");
