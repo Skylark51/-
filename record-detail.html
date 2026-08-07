@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko" data-page="record-detail">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#15110d">
+  <title>장독대 상세 기록 · 콩쥐야 줘때써</title>
+  <link rel="stylesheet" href="assets/css/lobby-scene.css?v=20260803-cohesive1">
+  <link rel="stylesheet" href="assets/css/record-detail.css?v=20260807-records-analytics1">
+</head>
+<body class="record-detail-page">
+  <main class="record-detail-shell">
+    <header class="record-detail-topbar">
+      <a class="record-back" href="index.html?view=records" aria-label="장독대 기록으로 돌아가기">←</a>
+      <div><small>DETAIL RECORD</small><strong id="recordTitle">장독대 상세 기록</strong></div>
+      <a class="record-beans" href="shop.html"><span>콩</span><strong id="recordBeans">0</strong></a>
+    </header>
+    <section class="record-detail-hero"><p class="eyebrow">JAR ANALYTICS</p><h1 id="recordJarName">장독대 기록</h1><p id="recordSummary">저장된 학습 기록을 불러오고 있습니다.</p></section>
+    <section class="record-detail-metrics" aria-label="장독대 주요 기록">
+      <article><span>총 풀이 문제</span><strong id="recordAttempts">0</strong><small>누적 답안</small></article>
+      <article><span>평균 정답률</span><strong id="recordAccuracy">—</strong><small>전체 답안 기준</small></article>
+      <article><span>평균 반응 속도</span><strong id="recordAverageResponse">—</strong><small>전체 응답 평균</small></article>
+      <article><span>최고 반응 속도</span><strong id="recordBestResponse">—</strong><small>가장 빠른 응답</small></article>
+      <article><span>최고 콤보</span><strong id="recordBestCombo">0</strong><small>연속 정답</small></article>
+      <article><span>최고 점수</span><strong id="recordBestScore">0</strong><small>역대 최고</small></article>
+    </section>
+    <section class="record-detail-panel" aria-labelledby="activityTitle"><div class="record-panel-heading"><div><p class="eyebrow">PLAY DATES</p><h2 id="activityTitle">플레이 날짜</h2></div><span id="recordPlayCount">0회</span></div><div id="recordActivityChart" class="record-activity-chart" aria-live="polite"></div></section>
+    <section class="record-detail-panel" aria-labelledby="difficultyTitle"><div class="record-panel-heading"><div><p class="eyebrow">DIFFICULTY</p><h2 id="difficultyTitle">난도별 기록</h2></div></div><div id="recordDifficultyGrid" class="record-difficulty-grid"></div></section>
+    <section class="record-detail-panel" aria-labelledby="sessionsTitle"><div class="record-panel-heading"><div><p class="eyebrow">RECENT RUNS</p><h2 id="sessionsTitle">최근 플레이</h2></div><span id="recordLastPlayed">—</span></div><div id="recordRecentRuns" class="record-run-list"></div></section>
+  </main>
+  <script type="module" src="assets/js/record-detail.js?v=20260807-records-analytics1"></script>
+</body>
+</html>

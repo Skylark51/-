@@ -1,0 +1,25 @@
+name: Records analytics regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - "record-detail.html"
+      - "assets/js/records-enhancements.js"
+      - "assets/js/game-records-runtime.js"
+      - "assets/js/record-detail.js"
+      - "assets/js/lobby-navigation.js"
+      - "assets/js/visible-water-pour.js"
+      - "assets/css/records-enhancements.css"
+      - "assets/css/record-detail.css"
+      - "tests/records-analytics-enhancements.test.mjs"
+      - ".github/workflows/records-analytics-regression.yml"
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/records-dashboard-regression.test.mjs tests/records-analytics-enhancements.test.mjs

@@ -1,0 +1,18 @@
+.question-count-setting {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  align-items: center;
+  gap: 6px 12px;
+}
+
+.question-count-setting > span { font-weight: 800; }
+.question-count-setting input {
+  width: 100%; min-height: 42px; box-sizing: border-box;
+  border: 1px solid var(--line, rgba(235, 205, 117, .25)); border-radius: 10px;
+  padding: 0 10px; background: #100d0a; color: var(--ink, #f4ecd9); font: inherit; text-align: right;
+}
+.question-count-setting small { grid-column: 1 / -1; color: var(--muted, #a99c87); font-size: 10px; line-height: 1.45; }
+.record-card-link { cursor: pointer; position: relative; transition: transform .16s ease, border-color .16s ease, background-color .16s ease; }
+.record-card-link:hover, .record-card-link:focus-visible { transform: translateY(-2px); border-color: rgba(229, 199, 80, .5); outline: none; }
+.record-detail-cue { display: block; margin-top: 14px; color: var(--gold-2, #e8d96a); font-size: 11px; font-weight: 900; text-align: right; }
+@media (max-width: 760px) { .question-count-setting { grid-template-columns: minmax(0, 1fr) 88px; } .record-card-link:hover { transform: none; } }

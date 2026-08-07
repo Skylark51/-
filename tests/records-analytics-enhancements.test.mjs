@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+const root=resolve(import.meta.dirname,".."),read=path=>readFile(resolve(root,path),"utf8");
+const[records,runtime,detail,detailJs,navigation,water]=await Promise.all([read("assets/js/records-enhancements.js"),read("assets/js/game-records-runtime.js"),read("record-detail.html"),read("assets/js/record-detail.js"),read("assets/js/lobby-navigation.js"),read("assets/js/visible-water-pour.js")]);
+assert.match(records,/dashboardTotalAnswers/);assert.match(records,/기본 문항 수/);assert.match(records,/questionCountSetting/);assert.match(records,/record-detail\.html\?training=/);assert.match(records,/총 풀이 문제/);assert.match(records,/최고 반응/);
+assert.match(runtime,/correctAnswersToClear:\s*questionCount/);assert.match(runtime,/bestResponseMs/);assert.match(runtime,/MAX_RECENT_RUNS\s*=\s*200/);assert.match(runtime,/questionCount/);
+for(const id of["recordAttempts","recordAccuracy","recordAverageResponse","recordBestResponse","recordActivityChart","recordDifficultyGrid","recordRecentRuns"])assert.match(detail,new RegExp(`id=["']${id}["']`));
+assert.match(detailJs,/최근 플레이 날짜별 플레이 횟수|renderActivity/);assert.match(detailJs,/bestResponseMs/);assert.match(detailJs,/byDifficulty/);
+assert.match(navigation,/records-enhancements\.js\?v=20260807-records-analytics1/);assert.match(water,/game-records-runtime\.js\?v=20260807-records-analytics1/);
+console.log("records-analytics-enhancements: question target and per-jar detail analytics locked");
