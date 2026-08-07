@@ -53,11 +53,13 @@ test("oxidation-number bank covers the intended high-school categories without e
   }
 });
 
-test("negative oxidation numbers automatically receive the signed keypad", () => {
-  const negative = oxidationNumberQuestions.filter(q => Number(q.answers[0]) < 0);
-  assert.ok(negative.length >= 8);
-  for (const question of negative) {
-    assert.equal(question.inputMode, "signed_numeric_keypad");
-    assert.ok(question.allowedKeys.includes("-"));
+test("every oxidation-number question exposes the same signed keypad", () => {
+  for (const question of oxidationNumberQuestions) {
+    assert.equal(question.inputMode, "signed_numeric_keypad", `${question.id}: 산화수 문제의 키패드는 항상 동일해야 합니다.`);
+    assert.ok(question.allowedKeys.includes("+"), `${question.id}: + 입력이 항상 보여야 합니다.`);
+    assert.ok(question.allowedKeys.includes("-"), `${question.id}: - 입력이 항상 보여야 합니다.`);
+    for (const digit of ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]) {
+      assert.ok(question.allowedKeys.includes(digit), `${question.id}: 숫자 ${digit} 입력이 필요합니다.`);
+    }
   }
 });
