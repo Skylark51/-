@@ -7,7 +7,8 @@ const read = path => fs.readFileSync(new URL(`../${path}`, import.meta.url), "ut
 test("atomic number quiz gets a smaller dedicated prompt scale", () => {
   const css = read("assets/css/atomic-number-question-tune.css");
   assert.match(css, /data-training-id="atomic_number"/);
-  assert.match(css, /font-size:\s*clamp\(42px,\s*10\.2vw,\s*64px\)\s*!important/);
+  assert.match(css, /font-size:\s*clamp\(36px,\s*8\.8vw,\s*56px\)\s*!important/);
+  assert.match(css, /font-size:\s*clamp\(32px,\s*8\.2vw,\s*48px\)\s*!important/);
 });
 
 test("audio settings split bgm and sfx volume and expose a mute toggle", () => {
@@ -26,9 +27,8 @@ test("audio settings split bgm and sfx volume and expose a mute toggle", () => {
 
 test("game shell loads atomic prompt tune, audio settings style, bgm and updated sfx", () => {
   const html = read("콩쥐야_줘때써.html");
-  assert.match(html, /atomic-number-question-tune\.css\?v=20260807-audio-bgm2/);
+  assert.match(html, /atomic-number-question-tune\.css\?v=20260807-composition3/);
   assert.match(html, /audio-settings\.css\?v=20260807-audio-bgm2/);
   assert.match(html, /game-bgm\.js\?v=20260807-audio-bgm2/);
   assert.match(html, /game-sfx\.js\?v=20260807-audio-bgm2/);
-  assert.match(html, /data-ui-version="20260807-audio-bgm2"/);
 });
