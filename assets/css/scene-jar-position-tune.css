@@ -1,0 +1,28 @@
+/*
+ * Mobile composition tune: move the complete jar/toad cluster slightly right
+ * and down without breaking the internal hole, water, or reaction alignment.
+ */
+@media (max-width: 900px), (pointer: coarse) {
+  #layeredScene {
+    --jar-cluster-offset-x: 2.7%;
+    --jar-cluster-offset-y: 2.6%;
+  }
+
+  #layeredScene > .scene-jar-back,
+  #layeredScene > .scene-water-fill,
+  #layeredScene > .scene-toad-skin,
+  #layeredScene > .scene-toad-expression,
+  #layeredScene > .scene-jar-front,
+  #layeredScene > .scene-water-splash,
+  #layeredScene > .scene-water-leak {
+    left: calc(var(--scene-x, 0%) + var(--jar-cluster-offset-x)) !important;
+    top: calc(var(--scene-y, 0%) + var(--jar-cluster-offset-y)) !important;
+  }
+
+  /* Keep the pour origin at Kongjwi's bucket while extending the stream to the
+   * jar's new mouth position. */
+  #layeredScene > .scene-water-stream {
+    width: calc(var(--scene-width, 100%) + var(--jar-cluster-offset-x)) !important;
+    height: calc(var(--scene-height, 100%) + var(--jar-cluster-offset-y)) !important;
+  }
+}
