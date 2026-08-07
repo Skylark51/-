@@ -1,0 +1,147 @@
+/*
+ * Toad/jar hole integration pass.
+ * Keeps authored PNG bytes untouched while removing the oversized synthetic
+ * black oval seen in the enlarged mobile capture.
+ */
+
+.scene-layer-stack {
+  --toad-cavity-inner: rgba(12, 8, 5, 0.80);
+  --toad-cavity-mid: rgba(38, 25, 15, 0.52);
+}
+
+#ui-gameApp[data-jar-skin="onggi"] .scene-layer-stack {
+  --toad-cavity-inner: rgba(17, 9, 5, 0.84);
+  --toad-cavity-mid: rgba(64, 36, 18, 0.48);
+}
+
+#ui-gameApp[data-jar-skin="celadon"] .scene-layer-stack {
+  --toad-cavity-inner: rgba(7, 12, 8, 0.82);
+  --toad-cavity-mid: rgba(37, 55, 39, 0.48);
+}
+
+#ui-gameApp[data-jar-skin="moon-white"] .scene-layer-stack {
+  --toad-cavity-inner: rgba(18, 17, 15, 0.78);
+  --toad-cavity-mid: rgba(67, 63, 55, 0.42);
+}
+
+#ui-gameApp[data-jar-skin="night-lacquer"] .scene-layer-stack {
+  --toad-cavity-inner: rgba(8, 6, 5, 0.86);
+  --toad-cavity-mid: rgba(43, 27, 22, 0.46);
+}
+
+/*
+ * The wrapper is only a clipping viewport. It must never itself become the
+ * visible black hole. The old full-size radial fill caused the sticker effect.
+ */
+#layeredScene .scene-toad-skin,
+#layeredScene .scene-toad-expression {
+  overflow: hidden !important;
+  border-radius: 48% 46% 50% 47% !important;
+  clip-path: ellipse(44% 42% at 50% 52%) !important;
+  background: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Small feathered cavity behind the PNG. It is deliberately smaller than the
+ * viewport and fades to transparent before reaching the clipping boundary. */
+#layeredScene .scene-toad-skin::before,
+#layeredScene .scene-toad-expression::before {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 17% 14% 10% !important;
+  display: block !important;
+  border-radius: 46% 50% 48% 52% !important;
+  background:
+    radial-gradient(
+      ellipse at 50% 56%,
+      var(--toad-cavity-inner) 0 36%,
+      var(--toad-cavity-mid) 54%,
+      rgba(0, 0, 0, 0.16) 66%,
+      transparent 78%
+    ) !important;
+  box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.24) !important;
+  filter: blur(0.35px);
+  pointer-events: none;
+}
+
+/* Remove the hard artificial ring. Jar-front is the real foreground rim. */
+#layeredScene .scene-toad-skin::after,
+#layeredScene .scene-toad-expression::after {
+  content: none !important;
+  display: none !important;
+}
+
+#layeredScene .scene-toad-skin .scene-layer-image,
+#layeredScene .scene-toad-expression .scene-layer-image {
+  z-index: 1 !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.30));
+}
+
+/* Make the character larger while shrinking the synthetic opening itself. */
+#layeredScene[data-toad-mode="full-fallback"] {
+  --toad-image-scale: 2.42 !important;
+  --toad-image-y: 11% !important;
+  --toad-image-origin-y: 49% !important;
+}
+
+#layeredScene[data-toad-mode="skin-only"] {
+  --toad-image-scale: 1.44 !important;
+  --toad-image-y: 3% !important;
+  --toad-image-origin-y: 57% !important;
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  /*
+   * Smaller viewport box + larger image scale = less black cavity and a more
+   * readable toad. Values stay inside the jar-front silhouette on all skins.
+   */
+  #layeredScene .scene-toad-skin,
+  #layeredScene .scene-toad-expression {
+    --scene-x: 70.2% !important;
+    --scene-y: 58.4% !important;
+    --scene-width: 13.2% !important;
+    --scene-height: 17.8% !important;
+  }
+
+  #ui-gameApp[data-jar-skin="onggi"] #layeredScene .scene-toad-skin,
+  #ui-gameApp[data-jar-skin="onggi"] #layeredScene .scene-toad-expression {
+    --scene-x: 70.0% !important;
+    --scene-y: 58.2% !important;
+  }
+
+  #ui-gameApp[data-jar-skin="celadon"] #layeredScene .scene-toad-skin,
+  #ui-gameApp[data-jar-skin="celadon"] #layeredScene .scene-toad-expression {
+    --scene-x: 70.5% !important;
+    --scene-y: 58.1% !important;
+    --scene-width: 13.4% !important;
+    --scene-height: 18.0% !important;
+  }
+
+  #ui-gameApp[data-jar-skin="moon-white"] #layeredScene .scene-toad-skin,
+  #ui-gameApp[data-jar-skin="moon-white"] #layeredScene .scene-toad-expression {
+    --scene-x: 70.1% !important;
+    --scene-y: 58.5% !important;
+    --scene-width: 13.0% !important;
+    --scene-height: 17.6% !important;
+  }
+
+  #ui-gameApp[data-jar-skin="night-lacquer"] #layeredScene .scene-toad-skin,
+  #ui-gameApp[data-jar-skin="night-lacquer"] #layeredScene .scene-toad-expression {
+    --scene-x: 70.5% !important;
+    --scene-y: 58.2% !important;
+    --scene-width: 13.4% !important;
+    --scene-height: 18.0% !important;
+  }
+}
+
+@media (max-width: 360px) {
+  #layeredScene .scene-toad-skin,
+  #layeredScene .scene-toad-expression {
+    --scene-width: 13.5% !important;
+    --scene-height: 18.2% !important;
+  }
+}
