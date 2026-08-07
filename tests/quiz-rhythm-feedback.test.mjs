@@ -35,9 +35,9 @@ test("answer feedback sound is short Web Audio and never leaks the timeout event
 test("game shell loads jar tune, audio settings, bgm and answer SFX with cache-busted URLs", () => {
   const html = read("콩쥐야_줘때써.html");
   assert.match(html, /scene-jar-position-tune\.css\?v=20260807-jar-sfx1/);
-  assert.match(html, /atomic-number-question-tune\.css\?v=20260807-audio-bgm1/);
-  assert.match(html, /audio-settings\.css\?v=20260807-audio-bgm1/);
-  assert.match(html, /game-bgm\.js\?v=20260807-audio-bgm1/);
-  assert.match(html, /game-sfx\.js\?v=20260807-audio-bgm1/);
-  assert.match(html, /data-ui-version="20260807-audio-bgm1"/);
+  assert.match(html, /atomic-number-question-tune\.css\?v=20260807-audio-bgm2/);
+  assert.match(html, /audio-settings\.css\?v=20260807-audio-bgm2/);
+  assert.match(html, /game-bgm\.js\?v=20260807-audio-bgm2/);
+  assert.match(html, /game-sfx\.js\?v=20260807-audio-bgm2/);
+  assert.match(html, /data-ui-version="20260807-audio-bgm2"/);
 });
