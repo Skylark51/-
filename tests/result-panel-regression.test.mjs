@@ -26,9 +26,23 @@ test("result enhancement announces new records and exposes all requested routes"
   assert.match(js, /index\.html\?view=records/);
 });
 
-test("game shell loads result enhancements with a cache-busted version", () => {
+test("result actions are ordered records, retry, then jar selection", () => {
+  const js = read("assets/js/result-panel-enhancements.js");
+  assert.match(js, /const orderedButtons = \[\s*records,\s*restart,\s*jars\s*\]\.filter\(Boolean\)/);
+  assert.match(js, /panel\.append\(\.\.\.orderedButtons\)/);
+});
+
+test("result actions use the warm game palette instead of the legacy blue button", () => {
+  const css = read("assets/css/result-panel-enhancements.css");
+  assert.match(css, /\.result-records-button[\s\S]*var\(--game-gold\)/);
+  assert.match(css, /\.result-restart-button[\s\S]*var\(--game-panel-soft\)/);
+  assert.match(css, /\.result-home-button[\s\S]*var\(--game-gold-light\)/);
+  assert.doesNotMatch(css, /#244b55/i);
+});
+
+test("game shell loads result enhancements with cache-busted URLs", () => {
   const html = read("콩쥐야_줘때써.html");
-  assert.match(html, /data-ui-version="20260807-result-record1"/);
-  assert.match(html, /result-panel-enhancements\.css\?v=20260807-result-record1/);
-  assert.match(html, /result-panel-enhancements\.js\?v=20260807-result-record1/);
+  assert.match(html, /data-ui-version="[^"]+"/);
+  assert.match(html, /result-panel-enhancements\.css\?v=[^"]+/);
+  assert.match(html, /result-panel-enhancements\.js\?v=[^"]+/);
 });

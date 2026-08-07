@@ -87,17 +87,19 @@ function ensureRecordBanner(panel, detail = {}) {
 
 function ensureResultButtons(panel) {
   const restart = panel?.querySelector("#ui-restartGameButton");
-  if (restart) restart.textContent = "다시하기";
+  if (restart) {
+    restart.textContent = "다시하기";
+    restart.classList.add("result-action-button", "result-restart-button");
+  }
 
   let jars = panel?.querySelector(".result-home-button");
   if (!jars) {
     jars = document.createElement("button");
     jars.type = "button";
-    jars.className = "result-home-button";
+    jars.className = "result-home-button result-action-button";
     jars.addEventListener("click", () => {
       location.href = "index.html?view=jars";
     });
-    panel.append(jars);
   }
   jars.textContent = "다른 장독대 고르기";
 
@@ -105,13 +107,20 @@ function ensureResultButtons(panel) {
   if (!records) {
     records = document.createElement("button");
     records.type = "button";
-    records.className = "result-records-button";
+    records.className = "result-records-button result-action-button";
     records.addEventListener("click", () => {
       location.href = "index.html?view=records";
     });
-    panel.append(records);
   }
   records.textContent = "기록으로 이동";
+
+  const orderedButtons = [
+    records,
+    restart,
+    jars
+  ].filter(Boolean);
+
+  panel.append(...orderedButtons);
 }
 
 function enhanceResult(detail = {}) {
