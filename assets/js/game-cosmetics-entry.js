@@ -1,4 +1,5 @@
 import "./redox-single-line.js?v=20260806-mobile-scene-fix1";
+import "./asset-debug-viewer.js?v=20260807-scene-aspect1";
 import { GameStorage } from "./storage.js";
 import { CosmeticSystem, COSMETIC_STORAGE_KEY } from "./cosmetic-system.js";
 import { mountSceneRenderer } from "./scene-renderer.js?v=20260806-mobile-scene-fix1";

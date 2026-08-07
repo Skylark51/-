@@ -1,0 +1,49 @@
+/* Preserve the authored asset proportions in the layered quiz scene.
+ *
+ * Kongjwi's authored sheet cells are 512x768, while the historical placement
+ * box was 620x820. A CSS background sprite fills that box, so it was widened
+ * by ~13%. The correction below restores the source-cell aspect without
+ * moving the character's feet/center anchor.
+ *
+ * The four jar source pairs were authored on different canvases. Their open
+ * source bodies are slightly narrower than the paired no-toad shop masters.
+ * The per-skin factors below are derived from the alpha body bounding-box
+ * aspect ratios stored in parts.json. Both jar back/front layers receive the
+ * same correction so the broken-hole foreground remains registered.
+ */
+
+.scene-kongjwi[data-sprite-mode="sheet"] > .scene-sprite {
+  transform: scaleX(0.88293);
+  transform-origin: center bottom;
+}
+
+#ui-gameApp[data-jar-skin="onggi"] {
+  --jar-source-aspect-x: 1.03462;
+}
+
+#ui-gameApp[data-jar-skin="celadon"] {
+  --jar-source-aspect-x: 1.12102;
+}
+
+#ui-gameApp[data-jar-skin="moon-white"] {
+  --jar-source-aspect-x: 1.09463;
+}
+
+#ui-gameApp[data-jar-skin="night-lacquer"] {
+  --jar-source-aspect-x: 1.03438;
+}
+
+#ui-gameApp .scene-jar-back > .scene-sprite,
+#ui-gameApp .scene-jar-front > .scene-sprite {
+  transform: scaleX(var(--jar-source-aspect-x, 1));
+  transform-origin: center bottom;
+}
+
+/* Never stretch static PNG fallbacks. */
+#ui-gameApp .scene-kongjwi > .scene-layer-image,
+#ui-gameApp .scene-tool > .scene-layer-image,
+#ui-gameApp .scene-jar-back > .scene-layer-image,
+#ui-gameApp .scene-jar-front > .scene-layer-image {
+  object-fit: contain !important;
+  object-position: center bottom !important;
+}
