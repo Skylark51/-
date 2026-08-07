@@ -22,9 +22,11 @@ test("water fill is lowered into the jar mouth and kept shallow", () => {
   assert.doesNotMatch(polishCss, /clip-path:\s*polygon\(/);
 });
 
-test("celadon receives dedicated mouth and toad-hole calibration", () => {
+test("celadon receives dedicated mouth and unobstructed toad-hole calibration", () => {
   assert.match(polishCss, /data-jar-skin="celadon"[\s\S]*--scene-y:\s*33\.9%\s*!important;/);
-  assert.match(polishCss, /data-jar-skin="celadon"[\s\S]*scene-toad-skin[\s\S]*clip-path:\s*ellipse\(48% 45% at 50% 56%\)/);
+  assert.match(polishCss, /data-jar-skin="celadon"[\s\S]*scene-toad-skin[\s\S]*clip-path:\s*ellipse\(50% 48% at 50% 54%\)/);
+  assert.match(polishCss, /scene-jar-front[\s\S]*z-index:\s*80\s*!important;/);
+  assert.match(polishCss, /scene-toad-skin,[\s\S]*scene-toad-expression[\s\S]*z-index:\s*86\s*!important;/);
   assert.match(polishCss, /data-toad-mode="full-fallback"[\s\S]*--toad-image-scale:\s*2\.56\s*!important;/);
   assert.match(polishCss, /data-toad-mode="skin-only"[\s\S]*--toad-image-scale:\s*1\.50\s*!important;/);
 });
