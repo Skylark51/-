@@ -46,24 +46,38 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
+          import numpy as np
 
           skins = ("underlayer", "classic-red", "blue-scholar", "field-work", "ragged", "night-court")
           tools = ("wood", "brass", "celadon", "moon")
 
           for skin in skins:
               path = Path("assets/art/game-scene/kongjwi") / skin / "pour-sheet.png"
-              image = Image.open(path)
+              image = Image.open(path).convert("RGBA")
               assert image.format == "PNG", (skin, image.format)
               assert image.mode == "RGBA", (skin, image.mode)
               assert image.size == (4096, 768), (skin, image.size)
 
+          underlayer = Image.open("assets/art/game-scene/kongjwi/underlayer/pour-sheet.png").convert("RGBA")
+          idle = np.asarray(underlayer.crop((0, 0, 512, 768)), dtype=np.int16)
+          pour = np.asarray(underlayer.crop((5 * 512, 0, 6 * 512, 768)), dtype=np.int16)
+          wrong = np.asarray(underlayer.crop((7 * 512, 0, 8 * 512, 768)), dtype=np.int16)
+          pour_changed = np.count_nonzero(np.any(np.abs(idle - pour) > 12, axis=2))
+          wrong_changed = np.count_nonzero(np.any(np.abs(idle - wrong) > 12, axis=2))
+          assert pour_changed > 500, f"pour pose is not materially different: {pour_changed} pixels"
+          assert wrong_changed > 500, f"wrong pose is not materially different: {wrong_changed} pixels"
+
           for tool in tools:
               path = Path("assets/art/game-scene/tools") / tool / "pour-sheet.png"
-              image = Image.open(path)
+              image = Image.open(path).convert("RGBA")
               assert image.format == "PNG", (tool, image.format)
               assert image.mode == "RGBA", (tool, image.mode)
               assert image.size == (4096, 768), (tool, image.size)
               assert image.getchannel("A").getbbox(), f"{tool} bucket sheet must contain visible pixels"
+              first = np.asarray(image.crop((0, 0, 512, 768)), dtype=np.int16)
+              fifth = np.asarray(image.crop((5 * 512, 0, 6 * 512, 768)), dtype=np.int16)
+              changed = np.count_nonzero(np.any(np.abs(first - fifth) > 12, axis=2))
+              assert changed > 100, f"{tool} bucket does not visibly move: {changed} pixels"
           PY
           git diff --check
 
@@ -90,5 +104,5 @@ jobs:
             echo "No Kongjwi motion changes."
             exit 0
           fi
-          git commit -m "feat: articulate underlayer and align equipped buckets [skip ci]"
+          git commit -m "fix: force refreshed Kongjwi motion assets [skip ci]"
           git push
