@@ -1,0 +1,30 @@
+.header-audio-settings {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.audio-settings-dialog {
+  width: min(92vw, 360px);
+}
+
+.audio-settings-form {
+  display: grid;
+  gap: 14px;
+}
+
+.audio-setting-row {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.audio-setting-row input[type="range"] {
+  width: 100%;
+}
+
+.audio-setting-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
