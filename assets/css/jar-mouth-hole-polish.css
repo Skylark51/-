@@ -49,9 +49,19 @@
   clip-path: ellipse(47% 36% at 50% 58%) !important;
 }
 
-#ui-gameApp[data-jar-skin="celadon"] #layeredScene .scene-toad-skin,
-#ui-gameApp[data-jar-skin="celadon"] #layeredScene .scene-toad-expression {
-  clip-path: ellipse(48% 45% at 50% 56%) !important;
+/*
+ * The authored celadon front frame contains body artwork around the lower hole.
+ * That frame must never cover the character itself. The ellipse viewport is the
+ * hole boundary, so keep the toad above jar-front while still below splash/leak.
+ */
+#ui-gameApp[data-jar-skin="celadon"] #layeredScene > .scene-jar-front {
+  z-index: 80 !important;
+}
+
+#ui-gameApp[data-jar-skin="celadon"] #layeredScene > .scene-toad-skin,
+#ui-gameApp[data-jar-skin="celadon"] #layeredScene > .scene-toad-expression {
+  z-index: 86 !important;
+  clip-path: ellipse(50% 48% at 50% 54%) !important;
 }
 
 #ui-gameApp[data-jar-skin="celadon"] #layeredScene[data-toad-mode="full-fallback"] {
