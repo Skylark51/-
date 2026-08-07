@@ -1,0 +1,368 @@
+/*
+ * Screenshot-driven mobile quiz polish (target capture: 367 x 662).
+ * This file changes presentation only. Quiz rules, scoring, storage, cosmetics,
+ * authored PNG bytes and answer submission semantics are untouched.
+ */
+
+@media (max-width: 900px), (pointer: coarse) {
+  :root {
+    --quiz-mobile-separator: rgba(224, 189, 119, 0.20);
+    --quiz-mobile-separator-strong: rgba(231, 197, 126, 0.42);
+    --quiz-mobile-panel: rgba(8, 11, 14, 0.94);
+    --quiz-mobile-muted: #9da8b3;
+  }
+
+  /* Use the dead center of the top bar for orientation instead of leaving it blank. */
+  .jar-game-header {
+    grid-template-columns: 36px minmax(0, 1fr) auto !important;
+    gap: 4px !important;
+    padding: 3px 5px !important;
+    border-bottom-width: 1px !important;
+  }
+
+  .header-title {
+    visibility: visible !important;
+    min-width: 0;
+    padding-inline: 4px;
+  }
+
+  .header-title small {
+    display: none !important;
+  }
+
+  .header-title strong {
+    display: block !important;
+    overflow: hidden;
+    color: #cdd5de !important;
+    font-family: Pretendard, "Noto Sans KR", system-ui, sans-serif !important;
+    font-size: clamp(10px, 2.9vw, 12px) !important;
+    font-weight: 800;
+    letter-spacing: -0.02em !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-status {
+    gap: 1px !important;
+  }
+
+  .header-button,
+  .header-home,
+  .header-focus,
+  .header-fullscreen,
+  #ui-pauseButton {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0 !important;
+  }
+
+  .header-home {
+    font-size: 27px !important;
+  }
+
+  .header-focus::before,
+  .header-focus::after {
+    width: 9px !important;
+    height: 9px !important;
+    border-top-width: 3px !important;
+    border-left-width: 3px !important;
+  }
+
+  .header-focus::before { top: 8px !important; }
+  .header-focus::after { top: 14px !important; }
+  .header-fullscreen { font-size: 20px !important; }
+  #ui-pauseButton { font-size: 15px !important; }
+
+  /* HUD: one compact instrument strip, not four competing cards. */
+  .game-hud {
+    gap: 0 !important;
+    overflow: hidden;
+    border: 1px solid var(--quiz-mobile-separator-strong);
+    border-radius: 10px;
+    background: rgba(12, 13, 11, 0.96);
+  }
+
+  .hud-card {
+    min-height: 0 !important;
+    padding: 3px 7px !important;
+    border: 0 !important;
+    border-right: 1px solid var(--quiz-mobile-separator) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .hud-card:last-child {
+    border-right: 0 !important;
+  }
+
+  .hud-card small {
+    color: #a69e8f !important;
+    font-size: 7.5px !important;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .hud-card strong {
+    margin-top: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.05;
+  }
+
+  /* The stage is the visual focus; reduce ornamental borders and keep the prompt readable. */
+  .game-stage {
+    border-color: rgba(225, 190, 120, 0.34) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24) !important;
+  }
+
+  .scene-question-bubble {
+    top: 5px !important;
+    left: 5px !important;
+    width: calc(100% - 10px) !important;
+    min-height: 64px !important;
+    padding: 5px 9px 6px !important;
+    border: 1px solid rgba(235, 205, 140, 0.58) !important;
+    border-radius: 12px !important;
+    background: linear-gradient(145deg, rgba(20, 21, 19, 0.82), rgba(5, 10, 14, 0.76)) !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+
+  .scene-question-topline,
+  .scene-question-bubble .question-progress-line {
+    color: #c2cad2 !important;
+    font-size: 9px !important;
+    line-height: 1.1;
+  }
+
+  .scene-question-bubble h1,
+  .jar-game-shell[data-question-length="short"] .scene-question-bubble h1 {
+    min-height: 34px !important;
+    max-height: 2.3em !important;
+    font-size: clamp(18px, 5vw, 22px) !important;
+    line-height: 1.14 !important;
+    letter-spacing: -0.045em !important;
+  }
+
+  .jar-game-shell[data-question-length="medium"] .scene-question-bubble h1 {
+    font-size: clamp(16px, 4.45vw, 20px) !important;
+  }
+
+  .jar-game-shell[data-question-length="long"] .scene-question-bubble h1 {
+    max-height: 3.2em !important;
+    font-size: clamp(13px, 3.55vw, 17px) !important;
+    line-height: 1.18 !important;
+  }
+
+  .scene-question-bubble .timer-track {
+    height: 3px !important;
+    margin-top: 2px !important;
+  }
+
+  /*
+   * Screenshot correction: Kongjwi was visually tiny while the jar/toad dominated.
+   * Keep both principals at comparable scene heights, leave a real pouring corridor,
+   * and seat the toad deeper in the jar opening. Percentages are viewport-relative
+   * because the layered renderer uses one shared 2048 x 1152 coordinate system.
+   */
+  #layeredScene .scene-kongjwi {
+    --scene-x: 7.5% !important;
+    --scene-y: 21.5% !important;
+    --scene-width: 32.5% !important;
+    --scene-height: 72% !important;
+  }
+
+  #layeredScene .scene-tool {
+    --scene-x: 23% !important;
+    --scene-y: 46% !important;
+    --scene-width: 20% !important;
+    --scene-height: 28% !important;
+  }
+
+  #layeredScene .scene-jar-back,
+  #layeredScene .scene-jar-front {
+    --scene-x: 55.5% !important;
+    --scene-y: 24% !important;
+    --scene-width: 37% !important;
+    --scene-height: 68% !important;
+  }
+
+  #layeredScene .scene-water-fill {
+    --scene-x: 63.5% !important;
+    --scene-y: 43.5% !important;
+    --scene-width: 19% !important;
+    --scene-height: 30% !important;
+  }
+
+  #layeredScene .scene-toad-skin,
+  #layeredScene .scene-toad-expression,
+  #ui-gameApp[data-jar-skin="onggi"] #layeredScene .scene-toad-skin,
+  #ui-gameApp[data-jar-skin="onggi"] #layeredScene .scene-toad-expression,
+  #ui-gameApp[data-jar-skin="celadon"] #layeredScene .scene-toad-skin,
+  #ui-gameApp[data-jar-skin="celadon"] #layeredScene .scene-toad-expression,
+  #ui-gameApp[data-jar-skin="moon-white"] #layeredScene .scene-toad-skin,
+  #ui-gameApp[data-jar-skin="moon-white"] #layeredScene .scene-toad-expression,
+  #ui-gameApp[data-jar-skin="night-lacquer"] #layeredScene .scene-toad-skin,
+  #ui-gameApp[data-jar-skin="night-lacquer"] #layeredScene .scene-toad-expression {
+    --scene-x: 69.5% !important;
+    --scene-y: 57.5% !important;
+    --scene-width: 15% !important;
+    --scene-height: 20% !important;
+  }
+
+  #layeredScene[data-toad-mode="full-fallback"] {
+    --toad-image-scale: 1.95 !important;
+    --toad-image-y: 10% !important;
+  }
+
+  #layeredScene[data-toad-mode="skin-only"] {
+    --toad-image-scale: 1.08 !important;
+    --toad-image-y: 1% !important;
+  }
+
+  #layeredScene .scene-water-leak {
+    --scene-x: 68% !important;
+    --scene-y: 58% !important;
+    --scene-width: 24% !important;
+    --scene-height: 38% !important;
+  }
+
+  /* Make the lower status area readable without stealing height from the scene. */
+  .question-panel {
+    border-color: rgba(225, 190, 120, 0.18) !important;
+    background: #080c10 !important;
+  }
+
+  .fever-panel {
+    min-height: 19px;
+    padding: 2px 6px 3px !important;
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .fever-copy,
+  .fever-panel strong,
+  .fever-panel span {
+    font-size: 9px !important;
+    line-height: 1.1 !important;
+  }
+
+  .fever-track {
+    height: 4px !important;
+    margin-top: 2px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .question-answer-card .feedback,
+  .question-panel:not(.has-mobile-keypad) .feedback {
+    min-height: 23px !important;
+    margin-inline: 5px !important;
+    padding: 3px 7px !important;
+    color: var(--quiz-mobile-muted) !important;
+    font-size: 9.5px !important;
+    line-height: 15px !important;
+  }
+
+  .question-answer-card .feedback.correct { color: #a7e6bd !important; }
+  .question-answer-card .feedback.wrong { color: #ffada3 !important; }
+
+  /* Answer display and keypad: stronger hierarchy, clearer destructive label. */
+  .mobile-keypad {
+    gap: 4px !important;
+    padding: 4px !important;
+    border-color: rgba(225, 190, 130, 0.24) !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-keypad[data-input-mode="integer_keypad"],
+  .mobile-keypad[data-input-mode="numeric_keypad"],
+  .mobile-keypad[data-input-mode="signed_numeric_keypad"],
+  .mobile-keypad[data-input-mode="coefficient_keypad"] {
+    grid-template-rows: 34px minmax(0, 1fr) !important;
+  }
+
+  .keypad-display-row,
+  .keypad-display {
+    height: 34px !important;
+  }
+
+  .keypad-display {
+    justify-content: center !important;
+    padding-inline: 10px !important;
+    border-width: 1px !important;
+    border-radius: 8px !important;
+    font-size: 15px !important;
+    line-height: 1;
+  }
+
+  .keypad-keys {
+    gap: 5px !important;
+  }
+
+  .mobile-keypad button,
+  .keypad-actions button {
+    min-height: 40px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+  }
+
+  .keypad-clear {
+    font-size: 0 !important;
+  }
+
+  .keypad-clear::after {
+    content: "지우기";
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .keypad-submit,
+  .keypad-confirm {
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 700px),
+       (pointer: coarse) and (max-height: 700px) {
+  .scene-question-bubble {
+    min-height: 62px !important;
+  }
+
+  .mobile-keypad[data-input-mode="integer_keypad"],
+  .mobile-keypad[data-input-mode="numeric_keypad"],
+  .mobile-keypad[data-input-mode="signed_numeric_keypad"],
+  .mobile-keypad[data-input-mode="coefficient_keypad"] {
+    grid-template-rows: 32px minmax(0, 1fr) !important;
+  }
+
+  .keypad-display-row,
+  .keypad-display {
+    height: 32px !important;
+  }
+
+  .mobile-keypad button,
+  .keypad-actions button {
+    min-height: 40px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .header-title strong {
+    font-size: 9.5px !important;
+  }
+
+  #layeredScene .scene-kongjwi {
+    --scene-x: 6.5% !important;
+    --scene-width: 33.5% !important;
+  }
+
+  #layeredScene .scene-jar-back,
+  #layeredScene .scene-jar-front {
+    --scene-x: 56% !important;
+    --scene-width: 36.5% !important;
+  }
+}

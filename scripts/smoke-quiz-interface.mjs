@@ -1,0 +1,114 @@
+#!/usr/bin/env node
+import { chromium } from "playwright";
+
+const baseUrl = process.env.SCENE_BASE_URL || "http://127.0.0.1:4173";
+const path = "/%EC%BD%A9%EC%A5%90%EC%95%BC_%EC%A4%98%EB%95%8C%EC%8D%A8.html?training=atomic_number";
+const viewport = { width: 367, height: 662 };
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+const browser = await chromium.launch({ headless: true });
+try {
+  const context = await browser.newContext({ viewport });
+  const page = await context.newPage();
+  const consoleErrors = [];
+  const failedResponses = [];
+
+  page.on("console", message => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+  page.on("pageerror", error => consoleErrors.push(error.message));
+  page.on("response", response => {
+    if (response.status() >= 400) failedResponses.push(`${response.status()} ${response.url()}`);
+  });
+
+  await page.goto(`${baseUrl}${path}`, { waitUntil: "networkidle" });
+  await page.waitForFunction(() => {
+    const api = globalThis.KongJuiYaGame;
+    const app = document.getElementById("ui-gameApp");
+    return api?.game?.state?.status === "running" && Boolean(api.game.question) && app?.dataset.sceneRenderer === "layered-png";
+  }, null, { timeout: 15000 });
+  await page.waitForSelector("#ui-mobileKeypad:not([hidden])", { state: "visible" });
+
+  const metrics = await page.evaluate(() => {
+    const rect = selector => {
+      const node = document.querySelector(selector);
+      if (!node) return null;
+      const box = node.getBoundingClientRect();
+      return { left: box.left, top: box.top, right: box.right, bottom: box.bottom, width: box.width, height: box.height };
+    };
+    const px = (selector, property = "fontSize") => {
+      const node = document.querySelector(selector);
+      return node ? Number.parseFloat(getComputedStyle(node)[property]) || 0 : 0;
+    };
+    const visibleToad = [...document.querySelectorAll("#layeredScene .scene-toad-skin, #layeredScene .scene-toad-expression")]
+      .find(node => !node.hidden && getComputedStyle(node).display !== "none");
+    const numericButtons = [...document.querySelectorAll("#ui-mobileKeypad .keypad-keys.is-numeric > button")];
+    const clear = document.querySelector("#ui-mobileKeypad .keypad-clear");
+    const title = document.querySelector(".header-title");
+    const titleStrong = document.querySelector(".header-title strong");
+    const titleStyle = title ? getComputedStyle(title) : null;
+    const toadBox = visibleToad?.getBoundingClientRect();
+
+    return {
+      viewport: { width: innerWidth, height: innerHeight },
+      document: {
+        width: document.documentElement.scrollWidth,
+        height: document.documentElement.scrollHeight
+      },
+      headerTitle: {
+        visibility: titleStyle?.visibility || "missing",
+        display: titleStyle?.display || "missing",
+        width: title?.getBoundingClientRect().width || 0,
+        text: titleStrong?.textContent?.trim() || ""
+      },
+      stage: rect("#visualStage"),
+      questionBubble: rect(".scene-question-bubble"),
+      fever: rect(".fever-panel"),
+      feedback: rect("#feedback"),
+      keypad: rect("#ui-mobileKeypad"),
+      display: rect("#ui-mobileKeypad .keypad-display"),
+      kongjwi: rect("#layeredScene .scene-kongjwi"),
+      jar: rect("#layeredScene .scene-jar-back"),
+      toad: toadBox ? { width: toadBox.width, height: toadBox.height, left: toadBox.left, top: toadBox.top, right: toadBox.right, bottom: toadBox.bottom } : null,
+      feverFont: px(".fever-copy"),
+      feedbackFont: px("#feedback"),
+      minKeyHeight: numericButtons.length ? Math.min(...numericButtons.map(button => button.getBoundingClientRect().height)) : 0,
+      clearLabel: clear?.textContent?.trim() || "",
+      clearAfter: clear ? getComputedStyle(clear, "::after").content : "",
+      clearFont: clear ? Number.parseFloat(getComputedStyle(clear).fontSize) || 0 : -1
+    };
+  });
+
+  assert(metrics.document.width <= metrics.viewport.width + 1, `367x662: horizontal overflow ${metrics.document.width} > ${metrics.viewport.width}`);
+  assert(metrics.document.height <= metrics.viewport.height + 1, `367x662: vertical overflow ${metrics.document.height} > ${metrics.viewport.height}`);
+  assert(metrics.headerTitle.visibility === "visible" && metrics.headerTitle.display !== "none", "367x662: training title remains hidden");
+  assert(metrics.headerTitle.width >= 70 && metrics.headerTitle.text.length > 0, "367x662: training title has no usable width/text");
+  assert(metrics.stage?.height >= 260, `367x662: scene collapsed to ${metrics.stage?.height || 0}px`);
+  assert(metrics.questionBubble && metrics.questionBubble.height <= metrics.stage.height * 0.32, "367x662: question card consumes too much of the scene");
+  assert(metrics.feverFont >= 8.5, `367x662: FEVER copy too small (${metrics.feverFont}px)`);
+  assert(metrics.feedbackFont >= 9, `367x662: feedback too small (${metrics.feedbackFont}px)`);
+  assert(metrics.display?.height >= 31, `367x662: answer display too short (${metrics.display?.height || 0}px)`);
+  assert(metrics.minKeyHeight >= 40, `367x662: keypad touch target too short (${metrics.minKeyHeight}px)`);
+  assert(metrics.clearLabel === "전체", "367x662: clear button behavior/source label changed unexpectedly");
+  assert(/지우기/.test(metrics.clearAfter), `367x662: clear button visual label is not 지우기 (${metrics.clearAfter})`);
+  assert(metrics.clearFont === 0, `367x662: legacy 전체 text is still visible (${metrics.clearFont}px)`);
+
+  const stageWidth = metrics.stage.width;
+  const ratio = box => box.width / stageWidth;
+  assert(metrics.kongjwi && ratio(metrics.kongjwi) >= 0.30 && ratio(metrics.kongjwi) <= 0.35, `367x662: Kongjwi width ratio ${ratio(metrics.kongjwi).toFixed(3)}`);
+  assert(metrics.jar && ratio(metrics.jar) >= 0.34 && ratio(metrics.jar) <= 0.40, `367x662: jar width ratio ${ratio(metrics.jar).toFixed(3)}`);
+  assert(metrics.toad && ratio(metrics.toad) >= 0.12 && ratio(metrics.toad) <= 0.18, `367x662: toad width ratio ${ratio(metrics.toad).toFixed(3)}`);
+  assert(metrics.toad.right <= metrics.stage.right + 1 && metrics.toad.bottom <= metrics.stage.bottom + 1, "367x662: toad is cropped outside the stage");
+
+  assert(failedResponses.length === 0, `367x662: HTTP failures\n${failedResponses.join("\n")}`);
+  assert(consoleErrors.length === 0, `367x662: console errors\n${consoleErrors.join("\n")}`);
+
+  await page.screenshot({ path: "/tmp/quiz-interface-367x662.png", fullPage: false });
+  console.log("367x662 screenshot-driven quiz interface checks passed.");
+  await context.close();
+} finally {
+  await browser.close();
+}

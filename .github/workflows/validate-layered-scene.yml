@@ -16,13 +16,16 @@ on:
       - "assets/css/game-asset-animation.css"
       - "assets/css/toad-composition-fix.css"
       - "assets/css/mobile-quiz-balance.css"
+      - "assets/css/quiz-mobile-polish.css"
       - "assets/css/quiz-scene-actors.css"
       - "assets/css/layered-scene-runtime.css"
       - "scripts/validate-layered-scene.mjs"
       - "scripts/smoke-layered-scene.mjs"
+      - "scripts/smoke-quiz-interface.mjs"
       - "tests/layered-scene.test.mjs"
       - "tests/mobile-scene-regression.test.mjs"
       - "tests/toad-composition-regression.test.mjs"
+      - "docs/prompts/QUIZ_MOBILE_INTERFACE_POLISH_20260807.md"
       - ".github/workflows/validate-layered-scene.yml"
 
 permissions:
@@ -43,6 +46,7 @@ jobs:
           node --check assets/js/scene-state-machine.js
           node --check assets/js/game-cosmetics-entry.js
           node --check assets/js/quiz-scene-actors.js
+          node --check scripts/smoke-quiz-interface.mjs
       - name: Layer architecture tests
         run: >-
           node --test
@@ -86,6 +90,19 @@ jobs:
             echo "::error title=Layered browser smoke::$message"
             exit "$status"
           fi
+      - name: 367x662 screenshot interface regression
+        shell: bash
+        run: |
+          set +e
+          node scripts/smoke-quiz-interface.mjs > /tmp/quiz-interface-smoke.out 2> /tmp/quiz-interface-smoke.err
+          status=$?
+          cat /tmp/quiz-interface-smoke.out
+          cat /tmp/quiz-interface-smoke.err >&2
+          if [ "$status" -ne 0 ]; then
+            message=$(tail -40 /tmp/quiz-interface-smoke.err | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g')
+            echo "::error title=367x662 quiz interface::$message"
+            exit "$status"
+          fi
       - name: Upload smoke diagnostics on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -95,4 +112,7 @@ jobs:
             /tmp/layered-scene-http.log
             /tmp/layered-smoke.out
             /tmp/layered-smoke.err
+            /tmp/quiz-interface-smoke.out
+            /tmp/quiz-interface-smoke.err
+            /tmp/quiz-interface-367x662.png
           if-no-files-found: ignore
