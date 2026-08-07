@@ -23,8 +23,6 @@ def patch(path: str, old: str, new: str) -> None:
 
 
 def main() -> None:
-    # Renderer: remove the wood-only integrated grip.  Every equipped bucket
-    # now uses its own authored sheet while Kongjwi keeps her pose-only sheet.
     patch(
         "assets/js/scene-renderer.js",
         'const MANIFEST_URL = "assets/art/game-scene/manifest.json?v=20260807-underlayer-grip1";',
@@ -66,9 +64,6 @@ def main() -> None:
         '    stack.dataset.kongjwiMode = motionRig ? "sheet" : "static";\n    stack.dataset.toolRig = motionRig ? "co-registered" : "static";\n    root.dataset.toolRig = stack.dataset.toolRig;\n    stack.dataset.jarMode = chosen.jar.authored ? "layers" : "static";\n    stack.dataset.toadMode = expressionMode;\n    stack.dataset.assetMode = motionRig && chosen.jar.authored && expressionMode === "overlay"',
     )
 
-    # The SVG water overlay starts at the final pouring bucket area in the
-    # co-registered Kongjwi/tool cell.  This remains independent of the faint
-    # authored water sprite and is therefore always visible on small phones.
     patch(
         "assets/js/visible-water-pour.js",
         '  const stack = host.querySelector("#layeredScene");\n  const tool = localRect(stack?.querySelector(".scene-tool"), hostRect);\n  const kongjwi = localRect(stack?.querySelector(".scene-kongjwi"), hostRect);\n  const integratedGrip = Boolean(stack?.dataset.integratedToolGrip);\n  const jar = localRect(stack?.querySelector(".scene-jar-back"), hostRect);',
@@ -80,8 +75,6 @@ def main() -> None:
         '  const start = kongjwi\n    ? { x: kongjwi.left + kongjwi.width * 0.93, y: kongjwi.top + kongjwi.height * 0.35 }\n    : { x: width * 0.38, y: height * 0.49 };',
     )
 
-    # The tool sheet now uses the same 512x768 authored cell and exact scene
-    # box as Kongjwi, so frame-to-frame bucket movement is registered to hand.
     patch(
         "assets/css/scene-source-aspect-fix.css",
         '#ui-gameApp .scene-tool[data-sprite-mode="sheet"] {\n  --scene-x: 17.08984375% !important;\n  --scene-y: 29.07986111% !important;\n  --scene-width: 19.53125% !important;\n  --scene-height: 34.72222222% !important;\n}',
@@ -93,7 +86,6 @@ def main() -> None:
         f'@import url("./scene-source-aspect-fix.css?v={VERSION}");',
     )
 
-    # Cache chain.
     patch(
         "assets/js/game-cosmetics-entry.js",
         'import { mountSceneRenderer } from "./scene-renderer.js?v=20260807-underlayer-grip1";',
@@ -126,7 +118,7 @@ def main() -> None:
     )
     patch(
         "콩쥐야_줘때써.html",
-        'assets/js/ui-effects.js?v=20260807-underlayer-grip1',
+        'assets/js/ui-effects.js?v=20260807-metal-reactivity-route1',
         f'assets/js/ui-effects.js?v={VERSION}',
     )
 
