@@ -10,6 +10,7 @@ const oxidation = (id, difficulty, formula, formulaHtml, answer, explanation, ta
   ["산화수", target, kind],
   {
     answerMode: "integer",
+    inputMode: "signed_numeric_keypad",
     promptHtml: `<span class="oxidation-formula">${formulaHtml}</span>`
   }
 );
