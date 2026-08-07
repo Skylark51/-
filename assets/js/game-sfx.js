@@ -1,15 +1,32 @@
-import { GameStorage } from "./storage.js";
+const AUDIO_SETTINGS_KEY = "kongjuiya-audio-settings";
+const DEFAULT_SETTINGS = Object.freeze({
+  bgmVolume: 0.62,
+  sfxVolume: 0.78,
+  mute: false
+});
 
-const storage = new GameStorage();
 const clamp = value => Math.max(0, Math.min(1, Number(value) || 0));
-let volume = clamp(storage.data.settings?.volume ?? 0.5);
+const normalize = raw => ({
+  bgmVolume: clamp(raw?.bgmVolume ?? DEFAULT_SETTINGS.bgmVolume),
+  sfxVolume: clamp(raw?.sfxVolume ?? DEFAULT_SETTINGS.sfxVolume),
+  mute: Boolean(raw?.mute)
+});
+const readSettings = () => {
+  try {
+    return normalize(JSON.parse(localStorage.getItem(AUDIO_SETTINGS_KEY) || "null"));
+  } catch {
+    return { ...DEFAULT_SETTINGS };
+  }
+};
+
+let settings = readSettings();
 let context = null;
 let output = null;
 let noiseBuffer = null;
 let starting = null;
 const activeSources = new Set();
 
-function makeNoiseBuffer(audioContext, seconds = 0.5) {
+function makeNoiseBuffer(audioContext, seconds = 0.7) {
   const buffer = audioContext.createBuffer(1, Math.ceil(audioContext.sampleRate * seconds), audioContext.sampleRate);
   const data = buffer.getChannelData(0);
   let seed = 20260807;
@@ -28,13 +45,13 @@ function track(source) {
 
 function stopActive() {
   for (const source of activeSources) {
-    try { source.stop(); } catch { /* already stopped */ }
+    try { source.stop(); } catch {}
   }
   activeSources.clear();
 }
 
 async function ensureAudio() {
-  if (volume <= 0) return false;
+  if (settings.mute || settings.sfxVolume <= 0) return false;
   if (context && context.state !== "closed") {
     await context.resume().catch(() => {});
     return context.state === "running";
@@ -49,16 +66,18 @@ async function ensureAudio() {
     } catch {
       context = new AudioContextClass();
     }
+
     output = context.createGain();
     const compressor = context.createDynamicsCompressor();
-    compressor.threshold.value = -14;
+    compressor.threshold.value = -16;
     compressor.knee.value = 16;
-    compressor.ratio.value = 3;
+    compressor.ratio.value = 2.4;
     compressor.attack.value = 0.004;
-    compressor.release.value = 0.15;
-    output.gain.value = 0.36;
+    compressor.release.value = 0.18;
+    output.gain.value = 0.42;
     output.connect(compressor);
     compressor.connect(context.destination);
+
     noiseBuffer = makeNoiseBuffer(context);
     await context.resume().catch(() => {});
     document.documentElement.dataset.sfx = context.state === "running" ? "ready" : "blocked";
@@ -70,39 +89,73 @@ async function ensureAudio() {
   return starting;
 }
 
-function playWaterFill() {
+function sfxLevel(scale = 1) {
+  return clamp(settings.sfxVolume) ** 0.82 * scale;
+}
+
+function playSpringWater() {
   const now = context.currentTime;
+
   const wash = track(context.createBufferSource());
   const washFilter = context.createBiquadFilter();
   const washGain = context.createGain();
   wash.buffer = noiseBuffer;
   washFilter.type = "bandpass";
-  washFilter.frequency.setValueAtTime(1450, now);
-  washFilter.frequency.exponentialRampToValueAtTime(2600, now + 0.28);
-  washFilter.Q.value = 0.7;
+  washFilter.frequency.setValueAtTime(1100, now);
+  washFilter.frequency.exponentialRampToValueAtTime(2400, now + 0.22);
+  washFilter.Q.value = 0.55;
   washGain.gain.setValueAtTime(0.0001, now);
-  washGain.gain.exponentialRampToValueAtTime(0.18 * volume ** 0.85, now + 0.025);
-  washGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.34);
+  washGain.gain.exponentialRampToValueAtTime(0.18 * sfxLevel(), now + 0.018);
+  washGain.gain.exponentialRampToValueAtTime(0.028 * sfxLevel(), now + 0.18);
+  washGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
   wash.connect(washFilter);
   washFilter.connect(washGain);
   washGain.connect(output);
-  wash.start(now, 0, 0.36);
-  wash.stop(now + 0.36);
+  wash.start(now, 0, 0.42);
+  wash.stop(now + 0.42);
 
-  [[880, 0.045, 0.11], [1320, 0.12, 0.085], [1760, 0.19, 0.055]].forEach(([frequency, delay, peak]) => {
+  const droplets = [
+    [1240, 0.045, 0.09],
+    [1510, 0.085, 0.082],
+    [1770, 0.135, 0.074],
+    [1420, 0.205, 0.068],
+    [1970, 0.255, 0.055]
+  ];
+  droplets.forEach(([frequency, delay, peak], index) => {
     const osc = track(context.createOscillator());
     const gain = context.createGain();
-    osc.type = frequency > 1400 ? "sine" : "triangle";
+    const filter = context.createBiquadFilter();
+    osc.type = index % 2 === 0 ? "sine" : "triangle";
     osc.frequency.setValueAtTime(frequency, now + delay);
-    osc.frequency.exponentialRampToValueAtTime(frequency * 0.76, now + delay + 0.13);
+    osc.frequency.exponentialRampToValueAtTime(frequency * 0.72, now + delay + 0.12);
+    filter.type = "highpass";
+    filter.frequency.value = 580;
     gain.gain.setValueAtTime(0.0001, now + delay);
-    gain.gain.exponentialRampToValueAtTime(peak * volume ** 0.85, now + delay + 0.009);
+    gain.gain.exponentialRampToValueAtTime(peak * sfxLevel(), now + delay + 0.012);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.16);
-    osc.connect(gain);
+    osc.connect(filter);
+    filter.connect(gain);
     gain.connect(output);
     osc.start(now + delay);
-    osc.stop(now + delay + 0.17);
+    osc.stop(now + delay + 0.18);
   });
+
+  const body = track(context.createOscillator());
+  const bodyGain = context.createGain();
+  const bodyFilter = context.createBiquadFilter();
+  body.type = "triangle";
+  body.frequency.setValueAtTime(380, now);
+  body.frequency.exponentialRampToValueAtTime(260, now + 0.24);
+  bodyFilter.type = "lowpass";
+  bodyFilter.frequency.value = 700;
+  bodyGain.gain.setValueAtTime(0.0001, now);
+  bodyGain.gain.exponentialRampToValueAtTime(0.045 * sfxLevel(), now + 0.02);
+  bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+  body.connect(bodyFilter);
+  bodyFilter.connect(bodyGain);
+  bodyGain.connect(output);
+  body.start(now);
+  body.stop(now + 0.28);
 }
 
 function playToadHit() {
@@ -112,7 +165,7 @@ function playToadHit() {
   body.type = "sine";
   body.frequency.setValueAtTime(145, now);
   body.frequency.exponentialRampToValueAtTime(54, now + 0.14);
-  bodyGain.gain.setValueAtTime(0.24 * volume ** 0.85, now);
+  bodyGain.gain.setValueAtTime(0.22 * sfxLevel(), now);
   bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
   body.connect(bodyGain);
   bodyGain.connect(output);
@@ -126,7 +179,7 @@ function playToadHit() {
   filter.type = "lowpass";
   filter.frequency.setValueAtTime(720, now);
   filter.frequency.exponentialRampToValueAtTime(220, now + 0.12);
-  thudGain.gain.setValueAtTime(0.17 * volume ** 0.85, now);
+  thudGain.gain.setValueAtTime(0.16 * sfxLevel(), now);
   thudGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
   thud.connect(filter);
   filter.connect(thudGain);
@@ -138,24 +191,25 @@ function playToadHit() {
 async function play(kind) {
   if (!(await ensureAudio())) return;
   stopActive();
-  if (kind === "correct") playWaterFill();
+  if (kind === "correct") playSpringWater();
   else if (kind === "wrong") playToadHit();
 }
 
 window.addEventListener("answer:correct", () => { void play("correct"); });
 window.addEventListener("answer:wrong", () => { void play("wrong"); });
-
-const volumeInput = document.getElementById("volumeSetting");
-if (volumeInput) {
-  const syncVolume = event => { volume = clamp(event.currentTarget.value); };
-  volumeInput.addEventListener("input", syncVolume);
-  volumeInput.addEventListener("change", syncVolume);
-}
+window.addEventListener("kongjui:audio-settings", event => {
+  settings = normalize(event.detail || readSettings());
+  if (context && settings.mute) context.suspend().catch(() => {});
+  else if (context && settings.sfxVolume > 0) context.resume().catch(() => {});
+});
+window.addEventListener("storage", event => {
+  if (event.key === AUDIO_SETTINGS_KEY) settings = readSettings();
+});
 
 document.addEventListener("visibilitychange", () => {
   if (!context) return;
-  if (document.hidden) context.suspend().catch(() => {});
-  else if (volume > 0) context.resume().catch(() => {});
+  if (document.hidden || settings.mute) context.suspend().catch(() => {});
+  else if (settings.sfxVolume > 0) context.resume().catch(() => {});
 });
 
 document.documentElement.dataset.sfx = "idle";
