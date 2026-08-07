@@ -1,11 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { oxidationNumberQuestions } from "../data/questions/oxidation-number.js";
 
 const ALLOWED_TARGETS = new Set([
   "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
   "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca"
 ]);
+const read = path => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const stripMarkup = html => html
   .replace(/^<span class="oxidation-formula">/, "")
   .replace(/<\/span>$/, "")
@@ -62,4 +64,16 @@ test("every oxidation-number question exposes the same signed keypad", () => {
       assert.ok(question.allowedKeys.includes(digit), `${question.id}: 숫자 ${digit} 입력이 필요합니다.`);
     }
   }
+});
+
+test("oxidation-number signed keypad gives half of the header to large sign controls", () => {
+  const css = read("assets/css/oxidation-number-keypad.css");
+  const html = read("콩쥐야_줘때써.html");
+
+  assert.match(css, /data-training-id="oxidation_number"/);
+  assert.match(css, /data-input-mode="signed_numeric_keypad"/);
+  assert.match(css, /grid-template-columns:\s*minmax\(0,\s*0\.9fr\)\s*minmax\(0,\s*1\.1fr\)/);
+  assert.match(css, /\.keypad-modifiers\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s);
+  assert.match(css, /\.keypad-modifier\s*\{[^}]*width:\s*100%/s);
+  assert.match(html, /oxidation-number-keypad\.css\?v=20260807-oxidation-keypad1/);
 });
