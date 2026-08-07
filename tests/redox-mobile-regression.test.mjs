@@ -12,6 +12,8 @@ test("redox pool contains only complete underlined reaction equations and three 
     const htmlArrows = question.promptHtml.match(/→/g) || [];
     assert.equal(promptArrows.length, 1, `${question.id}: 반응식 화살표는 정확히 하나여야 합니다.`);
     assert.equal(htmlArrows.length, 1, `${question.id}: 표시용 반응식 화살표는 정확히 하나여야 합니다.`);
+    assert.doesNotMatch(question.prompt, /[\r\n]/, `${question.id}: 반응식에는 개행 문자가 없어야 합니다.`);
+    assert.doesNotMatch(question.promptHtml, /<br\b[^>]*>|[\r\n]/i, `${question.id}: 표시용 반응식에는 명시적 개행이 없어야 합니다.`);
 
     const [reactants, products] = question.prompt.split("→");
     assert.ok(reactants.trim(), `${question.id}: 반응물이 비어 있습니다.`);
@@ -34,6 +36,7 @@ test("game entry keeps the complete redox question cache chain", () => {
   for (const source of [html, uiEffects, main, questions, questionIndex]) {
     assert.match(source, /20260805-redox-mobile2/);
   }
+  assert.match(html, /redox-quiz\.css\?v=20260807-redox-one-line1/);
 });
 
 test("redox mobile layout keeps every reaction equation on one line above three buttons", () => {
@@ -45,6 +48,8 @@ test("redox mobile layout keeps every reaction equation on one line above three 
   assert.match(css, /grid-template-columns:\s*repeat\(3,/);
   assert.match(css, /grid-template-rows:\s*38px minmax\(0, 1fr\) auto/);
   assert.match(css, /\.feedback\s*\{\s*display:\s*none;/s);
+  assert.match(css, /#ui-gameApp\[data-training-id="redox"\] #questionText\s*\{[^}]*display:\s*block\s*!important/s);
+  assert.match(css, /#ui-gameApp\[data-training-id="redox"\] #questionText\s*\{[^}]*align-content:\s*center/s);
   assert.match(css, /white-space:\s*nowrap\s*!important/);
   assert.match(css, /word-break:\s*keep-all\s*!important/);
   assert.match(css, /--redox-fit-font-size/);

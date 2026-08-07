@@ -1,5 +1,8 @@
 /* Oxidation-reduction classification: one-line equation and three compact answers. */
 #ui-gameApp[data-training-id="redox"] #questionText {
+  /* promptHtml contains an inline <u>; override the generic grid h1 so the whole equation stays in one inline formatting context. */
+  display: block !important;
+  align-content: center;
   width: 100%;
   max-width: 100%;
   min-width: 0;
