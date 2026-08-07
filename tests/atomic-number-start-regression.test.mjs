@@ -31,7 +31,7 @@ test("atomic-number flash prompt and countdown stylesheet are wired with cache-b
   assert.match(css, /game-start-countdown-number/);
   assert.match(html, /atomic-number-speed-start\.css\?v=[^"]+/);
   assert.match(html, /ui-effects\.js\?v=[^"]+/);
-  assert.match(mainSource, /questions\.js\?v=20260807-atomic-number-flash1/);
-  assert.match(questionsFacade, /questions\/index\.js\?v=20260807-atomic-number-flash1/);
-  assert.match(indexSource, /atomic-number\.js\?v=20260807-atomic-number-flash1/);
+  assert.match(mainSource, /questions\.js\?v=[^"]+/);
+  assert.match(questionsFacade, /questions\/index\.js\?v=[^']+/);
+  assert.match(indexSource, /atomic-number\.js\?v=[^']+/);
 });
