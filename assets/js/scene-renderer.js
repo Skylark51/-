@@ -1,6 +1,6 @@
 import { createSceneStateController } from "./scene-state-machine.js?v=20260807-pour-feedback1";
 
-const MANIFEST_URL = "assets/art/game-scene/manifest.json?v=20260807-underlayer-rig2";
+const MANIFEST_URL = "assets/art/game-scene/manifest.json?v=20260807-underlayer-rig3";
 const RUNTIME_STYLE_ID = "layered-scene-animation-runtime";
 const RUNTIME_STYLE_URL = new URL("../css/game-asset-animation.css?v=20260806-mobile-scene-fix1", import.meta.url).href;
 const ORDER = [
@@ -16,9 +16,14 @@ const ALIAS = {
 
 const key = (value, aliases, fallback) => aliases?.[String(value || "").trim()] || String(value || "").trim() || fallback;
 const layer = (stack, name) => stack?.querySelector(`.${name}`) || null;
+const versionedAssetUrl = (url, version) => {
+  if (!url) return "";
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}scene=${encodeURIComponent(version || "unversioned")}`;
+};
 const target = (manifest, primary, fallback = null) => manifest.availability?.[primary] === true
-  ? { url: primary, authored: true }
-  : fallback ? { url: fallback, authored: false } : { url: "", authored: false };
+  ? { url: versionedAssetUrl(primary, manifest.version), authored: true }
+  : fallback ? { url: versionedAssetUrl(fallback, manifest.version), authored: false } : { url: "", authored: false };
 const emptyAsset = () => ({ url: "", authored: false });
 
 function ensureRuntimeStylesheet() {
@@ -324,6 +329,8 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
     root.dataset.toolSkin = toolKey;
     root.dataset.jarSkin = jarKey;
     root.dataset.toadSkin = toadKey;
+    root.dataset.sceneAssetVersion = manifest.version;
+    stack.dataset.assetVersion = manifest.version;
     stack.dataset.kongjwiMode = motionRig ? "sheet" : "static";
     stack.dataset.toolRig = motionRig ? "co-registered" : "static";
     root.dataset.toolRig = stack.dataset.toolRig;
