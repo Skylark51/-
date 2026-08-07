@@ -1,0 +1,53 @@
+/* Universal three-second breathing countdown: only the authored animation zone is veiled. */
+.scene-animation-zone {
+  position: relative;
+}
+
+.scene-animation-zone > #startOverlay.game-start-countdown {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 40 !important;
+  display: grid !important;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 14px !important;
+  overflow: hidden;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(96, 80, 32, .18), transparent 40%),
+    rgba(4, 7, 10, .78) !important;
+  backdrop-filter: blur(5px) !important;
+  -webkit-backdrop-filter: blur(5px) !important;
+  pointer-events: auto;
+}
+
+.scene-animation-zone > #startOverlay.game-start-countdown.hidden {
+  display: none !important;
+}
+
+.scene-animation-zone > #startOverlay.game-start-countdown .game-start-countdown-card {
+  width: min(88%, 430px);
+  max-height: calc(100% - 24px);
+  padding: clamp(18px, 4vh, 28px) 18px;
+}
+
+.scene-animation-zone > #startOverlay.game-start-countdown .game-start-countdown-message {
+  font-size: clamp(15px, 4vw, 21px);
+}
+
+.scene-animation-zone > #startOverlay.game-start-countdown .game-start-countdown-number {
+  font-size: clamp(54px, 18vw, 104px);
+}
+
+/* The keypad stays visible for hand placement but cannot submit before the countdown ends. */
+#ui-gameApp.is-opening-countdown #ui-pausedCurtain {
+  display: none !important;
+}
+
+#ui-gameApp.is-opening-countdown .question-panel,
+#ui-gameApp.is-opening-countdown #ui-mobileInputDock,
+#ui-gameApp.is-opening-countdown #ui-mobileKeypad {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
