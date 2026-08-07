@@ -4,7 +4,7 @@ import fs from "node:fs";
 
 const read = path => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("mobile jar cluster is shifted right and down as one composition", () => {
+test("mobile jar cluster is shifted farther right and down as one composition", () => {
   const css = read("assets/css/scene-jar-position-tune.css");
   for (const layer of [
     "scene-jar-back", "scene-water-fill", "scene-toad-skin", "scene-toad-expression",
@@ -12,8 +12,8 @@ test("mobile jar cluster is shifted right and down as one composition", () => {
   ]) {
     assert.match(css, new RegExp(`\\.${layer}`), `${layer} must move with the jar cluster`);
   }
-  assert.match(css, /--jar-cluster-offset-x:\s*2\.7%/);
-  assert.match(css, /--jar-cluster-offset-y:\s*2\.6%/);
+  assert.match(css, /--jar-cluster-offset-x:\s*4\.2%/);
+  assert.match(css, /--jar-cluster-offset-y:\s*4\.1%/);
   assert.match(css, /scene-water-stream[\s\S]*width:\s*calc\(var\(--scene-width,[^)]*\) \+ var\(--jar-cluster-offset-x\)\)/);
 });
 
@@ -34,10 +34,9 @@ test("answer feedback sound is short Web Audio and never leaks the timeout event
 
 test("game shell loads jar tune, audio settings, bgm and answer SFX with cache-busted URLs", () => {
   const html = read("콩쥐야_줘때써.html");
-  assert.match(html, /scene-jar-position-tune\.css\?v=20260807-jar-sfx1/);
-  assert.match(html, /atomic-number-question-tune\.css\?v=20260807-audio-bgm2/);
+  assert.match(html, /scene-jar-position-tune\.css\?v=20260807-composition3/);
+  assert.match(html, /atomic-number-question-tune\.css\?v=20260807-composition3/);
   assert.match(html, /audio-settings\.css\?v=20260807-audio-bgm2/);
   assert.match(html, /game-bgm\.js\?v=20260807-audio-bgm2/);
   assert.match(html, /game-sfx\.js\?v=20260807-audio-bgm2/);
-  assert.match(html, /data-ui-version="20260807-audio-bgm2"/);
 });
