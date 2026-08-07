@@ -57,3 +57,14 @@ test("CSS physically seats existing toad PNGs for each jar and removes duplicate
   assert.match(mobileCss, /\.scene-animation-zone \.scene-water-meter\s*\{\s*display:\s*none\s*!important;/s);
   assert.match(html, /id="layered-scene-animation-runtime"[^>]*existing-toad-composition1/);
 });
+
+test("celadon front artwork can never cover the toad", () => {
+  const polishCss = read("assets/css/jar-mouth-hole-polish.css");
+  const front = polishCss.match(/data-jar-skin="celadon"[^\{]*\.scene-jar-front\s*\{[\s\S]*?z-index:\s*(\d+)\s*!important;/);
+  const toad = polishCss.match(/data-jar-skin="celadon"[^\{]*\.scene-toad-skin,[\s\S]*?z-index:\s*(\d+)\s*!important;/);
+
+  assert.ok(front, "celadon jar-front z-index override is missing");
+  assert.ok(toad, "celadon toad z-index override is missing");
+  assert.ok(Number(toad[1]) > Number(front[1]), "toad must render above celadon jar-front artwork");
+  assert.match(polishCss, /clip-path:\s*ellipse\(50% 48% at 50% 54%\)\s*!important;/);
+});
