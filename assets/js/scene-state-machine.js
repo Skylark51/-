@@ -1,3 +1,5 @@
+import { isCourtServantMode, playCourtServantPour, resetCourtServantPour } from "./court-servant-effect.js?v=20260808-court-servants1";
+
 const EVENT_TARGET = globalThis;
 const TRANSIENT_FEEDBACK_STATES = new Set(["correct", "wrong", "timeout"]);
 
@@ -116,6 +118,27 @@ export class LayeredSceneStateController {
     }
   }
 
+  playCorrectFeedback(detail = {}, { hold = false } = {}) {
+    const sequences = this.manifest.frames?.sequences || {};
+    const plan = sequences.answerCorrect || {};
+    const courtMode = isCourtServantMode();
+
+    if (courtMode) {
+      playCourtServantPour();
+      this.renderer.setFrame("kongjwi", 0);
+      this.renderer.setFrame("tool", 0);
+      this.playSequence("waterStream", plan.waterStream || [1, 2, 3, 4, 5, 6, 7], 1040, { hold });
+      this.playSequence("waterSplash", plan.waterSplash || [1, 2, 3, 4, 5], 900, { hold });
+      return;
+    }
+
+    resetCourtServantPour();
+    this.playSequence("kongjwi", plan.kongjwi || [2, 3, 4, 5, 6], 1180, { hold });
+    this.playSequence("tool", plan.tool || [2, 3, 4, 5, 6], 1180, { hold });
+    this.playSequence("waterStream", plan.waterStream || [1, 2, 3, 4, 5, 6, 7], 1040, { hold });
+    this.playSequence("waterSplash", plan.waterSplash || [1, 2, 3, 4, 5], 900, { hold });
+  }
+
   apply(nextState, detail = {}) {
     if (this.disposed) return;
     this.clearTimers();
@@ -127,6 +150,7 @@ export class LayeredSceneStateController {
     switch (nextState) {
       case "idle":
       case "resume":
+        resetCourtServantPour();
         this.wrongStreak = 0;
         this.renderer.setExpression("default");
         this.playSequence("kongjwi", sequences.idle?.kongjwi || [0, 1, 0], 1800, { loop: true });
@@ -134,6 +158,7 @@ export class LayeredSceneStateController {
         break;
 
       case "question":
+        resetCourtServantPour();
         this.renderer.setExpression("idle-blink");
         this.playSequence("kongjwi", [0, 1, 0], 620);
         this.playSequence("tool", [0, 1, 0], 620);
@@ -144,16 +169,13 @@ export class LayeredSceneStateController {
         this.wrongStreak = 0;
         const combo = Number(detail.combo || detail.streak || 0);
         this.renderer.setExpression(combo >= 3 ? "combo" : "correct");
-        const plan = sequences.answerCorrect || {};
-        this.playSequence("kongjwi", plan.kongjwi || [2, 3, 4, 5, 6], 1180);
-        this.playSequence("tool", plan.tool || [2, 3, 4, 5, 6], 1180);
-        this.playSequence("waterStream", plan.waterStream || [1, 2, 3, 4, 5, 6, 7], 1040);
-        this.playSequence("waterSplash", plan.waterSplash || [1, 2, 3, 4, 5], 900);
+        this.playCorrectFeedback(detail);
         this.schedule(() => this.apply("question"), 1240);
         break;
       }
 
       case "wrong":
+        resetCourtServantPour();
         this.wrongStreak += 1;
         this.renderer.setExpression(
           this.wrongStreak >= 3 ? "rage" : this.wrongStreak === 2 ? "angry" : "wrong"
@@ -164,6 +186,7 @@ export class LayeredSceneStateController {
         break;
 
       case "timeout":
+        resetCourtServantPour();
         this.wrongStreak += 1;
         this.renderer.setExpression("timeout");
         this.playSequence("kongjwi", [7], 700, { hold: true });
@@ -188,27 +211,26 @@ export class LayeredSceneStateController {
         this.wrongStreak = 0;
         this.renderer.setWaterLevel(100);
         this.renderer.setExpression(Number(detail.combo || 0) >= 3 ? "combo" : "correct");
-        const plan = sequences.answerCorrect || {};
-        this.playSequence("kongjwi", plan.kongjwi || [2, 3, 4, 5, 6], 1180, { hold: true });
-        this.playSequence("tool", plan.tool || [2, 3, 4, 5, 6], 1180, { hold: true });
-        this.playSequence("waterStream", plan.waterStream || [1, 2, 3, 4, 5, 6, 7], 1040);
-        this.playSequence("waterSplash", plan.waterSplash || [1, 2, 3, 4, 5], 900);
+        this.playCorrectFeedback(detail, { hold: true });
         break;
       }
 
       case "over":
+        resetCourtServantPour();
         this.renderer.setExpression(detail.reason === "timeout" ? "timeout" : "wrong");
         this.playSequence("kongjwi", [7], 700, { hold: true });
         this.playSequence("tool", [7], 700, { hold: true });
         break;
 
       case "pause":
+        resetCourtServantPour();
         this.renderer.setExpression("idle-blink");
         this.renderer.setFrame("kongjwi", 1);
         this.renderer.setFrame("tool", 1);
         break;
 
       default:
+        resetCourtServantPour();
         this.renderer.setExpression("default");
         break;
     }
@@ -217,6 +239,7 @@ export class LayeredSceneStateController {
   destroy() {
     if (this.disposed) return;
     this.disposed = true;
+    resetCourtServantPour();
     this.clearTimers();
     this.removers.splice(0).forEach(remove => remove());
   }
