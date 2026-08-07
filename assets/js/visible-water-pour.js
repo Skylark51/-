@@ -1,3 +1,5 @@
+import "./game-records-runtime.js?v=20260807-records-analytics1";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
 const OVERLAY_ID = "runtimeVisibleWaterPour";
 const STYLE_ID = "runtime-visible-water-pour-style";
@@ -128,24 +130,16 @@ function calculateEndpoints(host) {
   const height = Math.max(1, hostRect.height);
 
   const start = tool
-    ? {
-        x: tool.left + tool.width * 0.9,
-        y: tool.top + tool.height * 0.52
-      }
+    ? { x: tool.left + tool.width * 0.9, y: tool.top + tool.height * 0.52 }
     : { x: width * 0.38, y: height * 0.49 };
-
   const end = jar
-    ? {
-        x: jar.left + jar.width * 0.5,
-        y: jar.top + jar.height * 0.14
-      }
+    ? { x: jar.left + jar.width * 0.5, y: jar.top + jar.height * 0.14 }
     : { x: width * 0.74, y: height * 0.39 };
 
   start.x = clamp(start.x, 0, width);
   start.y = clamp(start.y, 0, height);
   end.x = clamp(end.x, 0, width);
   end.y = clamp(end.y, 0, height);
-
   return { width, height, start, end };
 }
 
@@ -162,32 +156,23 @@ function pathFor(start, end) {
 function playVisiblePour() {
   const host = document.querySelector("#ui-gameApp .scene-animation-zone");
   if (!host) return;
-
   ensureStyle();
   const overlay = ensureOverlay(host);
   const { width, height, start, end } = calculateEndpoints(host);
   const d = pathFor(start, end);
-
   overlay.setAttribute("viewBox", `0 0 ${width} ${height}`);
   overlay.querySelectorAll("path").forEach(path => path.setAttribute("d", d));
   overlay.querySelector(".runtime-water-splash")?.setAttribute("transform", `translate(${end.x} ${end.y})`);
-
   window.clearTimeout(hideTimer);
   overlay.classList.remove("is-pouring");
   void overlay.getBoundingClientRect();
   overlay.classList.add("is-pouring");
   overlay.dataset.lastStart = `${Math.round(start.x)},${Math.round(start.y)}`;
   overlay.dataset.lastEnd = `${Math.round(end.x)},${Math.round(end.y)}`;
-
-  hideTimer = window.setTimeout(() => {
-    overlay.classList.remove("is-pouring");
-  }, DURATION_MS + 80);
+  hideTimer = window.setTimeout(() => overlay.classList.remove("is-pouring"), DURATION_MS + 80);
 }
 
-window.addEventListener("answer:correct", () => {
-  window.setTimeout(playVisiblePour, 70);
-});
-
+window.addEventListener("answer:correct", () => window.setTimeout(playVisiblePour, 70));
 window.addEventListener("resize", () => {
   const overlay = document.getElementById(OVERLAY_ID);
   if (overlay?.classList.contains("is-pouring")) playVisiblePour();
