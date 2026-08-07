@@ -1,0 +1,36 @@
+.result-panel .result-record-banner {
+  margin: 0 0 7px;
+  color: #f5ce64;
+  font-size: 14px;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 16px rgba(245, 206, 100, 0.28);
+}
+
+.result-panel .result-metrics {
+  margin: 10px 0 16px;
+  line-height: 1.65;
+}
+
+.result-panel .result-records-button {
+  border-color: rgba(118, 188, 206, 0.44);
+  background: #244b55;
+  color: #e7fbff;
+}
+
+@media (max-height: 620px) {
+  .result-panel {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  .result-panel .result-metrics {
+    margin: 7px 0 10px;
+    line-height: 1.45;
+  }
+
+  .result-panel button {
+    min-height: 44px;
+    margin-top: 6px;
+  }
+}
