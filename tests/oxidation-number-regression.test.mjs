@@ -1,0 +1,63 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { oxidationNumberQuestions } from "../data/questions/oxidation-number.js";
+
+const ALLOWED_TARGETS = new Set([
+  "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
+  "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca"
+]);
+const stripMarkup = html => html
+  .replace(/^<span class="oxidation-formula">/, "")
+  .replace(/<\/span>$/, "")
+  .replace(/<\/?u>/g, "");
+
+test("oxidation-number bank is formula-only, underlined, and broad enough", () => {
+  assert.equal(oxidationNumberQuestions.length, 45);
+  assert.deepEqual(
+    [1, 2, 3].map(level => oxidationNumberQuestions.filter(q => q.difficulty === level).length),
+    [15, 15, 15]
+  );
+
+  for (const question of oxidationNumberQuestions) {
+    assert.doesNotMatch(question.prompt, /[가-힣?\r\n]/, `${question.id}: 발문은 화학식만 사용해야 합니다.`);
+    assert.match(question.promptHtml, /^<span class="oxidation-formula">.*<u>[^<]+<\/u>.*<\/span>$/);
+    assert.equal((question.promptHtml.match(/<u>/g) || []).length, 1, `${question.id}: 밑줄 표시는 하나여야 합니다.`);
+    assert.equal(stripMarkup(question.promptHtml), question.prompt, `${question.id}: 표시용 화학식과 원문 화학식이 달라서는 안 됩니다.`);
+    assert.equal(question.answerMode, "integer");
+    assert.equal(Number.isInteger(Number(question.answers[0])), true);
+    assert.ok(ALLOWED_TARGETS.has(question.tags[1]), `${question.id}: H~Ca 범위 밖 원소가 대상입니다.`);
+  }
+});
+
+test("oxidation-number bank covers the intended high-school categories without exception-heavy prompts", () => {
+  const kinds = new Set(oxidationNumberQuestions.map(q => q.tags[2]));
+  for (const kind of ["홑원소", "단원자 이온", "이온 결합 화합물", "공유 결합 화합물", "다원자 이온", "산"]) {
+    assert.ok(kinds.has(kind), `${kind} 유형이 필요합니다.`);
+  }
+
+  const prompts = oxidationNumberQuestions.map(q => q.prompt).join(" ");
+  assert.doesNotMatch(prompts, /H₂O₂|NaH|CaH₂|Fe|Mn|Cr|Cu|Zn|Ag|Br|I|Ba|Pb/);
+
+  const expected = new Map([
+    ["CO₂", 4],
+    ["CH₄", -4],
+    ["SO₄²⁻", 6],
+    ["NH₄⁺", -3],
+    ["H₃PO₄", 5],
+    ["Ca(NO₃)₂", 5]
+  ]);
+  for (const [formula, answer] of expected) {
+    const question = oxidationNumberQuestions.find(q => q.prompt === formula);
+    assert.ok(question, `${formula} 문항이 없습니다.`);
+    assert.equal(Number(question.answers[0]), answer, `${formula} 산화수가 잘못되었습니다.`);
+  }
+});
+
+test("negative oxidation numbers automatically receive the signed keypad", () => {
+  const negative = oxidationNumberQuestions.filter(q => Number(q.answers[0]) < 0);
+  assert.ok(negative.length >= 8);
+  for (const question of negative) {
+    assert.equal(question.inputMode, "signed_numeric_keypad");
+    assert.ok(question.allowedKeys.includes("-"));
+  }
+});
