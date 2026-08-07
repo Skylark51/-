@@ -50,6 +50,38 @@ test("correct feedback survives synchronous nextQuestion so the pour can actuall
   assert.match(stateMachine, /case "clear"[\s\S]*playSequence\("waterStream"[\s\S]*playSequence\("waterSplash"/);
 });
 
+test("scene composition no longer over-compresses Kongjwi and keeps the bucket at her hand", () => {
+  const css = fs.readFileSync(path.join(root, "assets/css/scene-source-aspect-fix.css"), "utf8");
+  assert.match(css, /scene-kongjwi\[data-sprite-mode="sheet"\][\s\S]*transform:\s*none/);
+  assert.doesNotMatch(css, /scaleX\(0\.88293\)/);
+  assert.match(css, /scene-tool\[data-sprite-mode="sheet"\][\s\S]*--scene-x:\s*17\.08984375%\s*!important/);
+  assert.match(css, /--scene-y:\s*29\.07986111%\s*!important/);
+  assert.match(css, /--scene-width:\s*19\.53125%\s*!important/);
+  assert.match(css, /--scene-height:\s*34\.72222222%\s*!important/);
+});
+
+test("a high-contrast bucket-to-jar ribbon is guaranteed for correct and clear states", () => {
+  const aspectCss = fs.readFileSync(path.join(root, "assets/css/scene-source-aspect-fix.css"), "utf8");
+  const animationCss = fs.readFileSync(path.join(root, "assets/css/game-asset-animation.css"), "utf8");
+  assert.match(aspectCss, /scene-water-stream[\s\S]*--scene-x:\s*33\.203125%\s*!important/);
+  assert.match(aspectCss, /--scene-y:\s*37\.76041667%\s*!important/);
+  assert.match(aspectCss, /--scene-width:\s*41\.50390625%\s*!important/);
+  assert.match(aspectCss, /--scene-height:\s*15\.625%\s*!important/);
+  assert.match(animationCss, /\.scene-water-stream::after/);
+  assert.match(animationCss, /data-scene-state="correct"[\s\S]*scene-water-stream::after/);
+  assert.match(animationCss, /data-scene-state="clear"[\s\S]*scene-water-stream::after/);
+  assert.match(animationCss, /@keyframes layered-visible-water-ribbon/);
+});
+
+test("game shell cache-busts the corrected composition and water-ribbon CSS", () => {
+  const html = fs.readFileSync(path.join(root, "콩쥐야_줘때써.html"), "utf8");
+  const runtime = fs.readFileSync(path.join(root, "assets/css/layered-scene-runtime.css"), "utf8");
+  assert.match(html, /data-ui-version="20260807-pour-visual2"/);
+  assert.match(html, /game-asset-animation\.css\?v=20260807-pour-visual2/);
+  assert.match(html, /layered-scene-runtime\.css\?v=20260807-pour-visual2/);
+  assert.match(runtime, /scene-source-aspect-fix\.css\?v=20260807-pour-visual2/);
+});
+
 test("generated motion pipeline stays PNG-only", () => {
   const manifestText = fs.readFileSync(path.join(root, "assets/art/game-scene/manifest.json"), "utf8");
   for (const skin of skins) {
