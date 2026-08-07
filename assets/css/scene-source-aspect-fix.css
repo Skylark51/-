@@ -1,9 +1,17 @@
 /* Preserve the authored asset proportions in the layered quiz scene.
  *
- * Kongjwi's authored sheet cells are 512x768, while the historical placement
- * box was 620x820. A CSS background sprite fills that box, so it was widened
- * by ~13%. The correction below restores the source-cell aspect without
- * moving the character's feet/center anchor.
+ * The source-derived Kongjwi pour sheets already preserve the cutout's own
+ * crop aspect inside each 512x768 cell. The earlier extra scaleX correction
+ * therefore over-compressed the character and made her look unnaturally thin.
+ * Keep the sprite cell unwarped here.
+ *
+ * The authored bucket sheet is square, but the historical scene placement sat
+ * too far to Kongjwi's lower-right. The tuned box below pulls it back toward
+ * her hand while preserving a square tool box.
+ *
+ * The water-stream layer is also repositioned as the geometric corridor from
+ * the bucket lip toward the jar mouth. A guaranteed visible water ribbon is
+ * rendered by game-asset-animation.css inside this same box.
  *
  * The four jar source pairs were authored on different canvases. Their open
  * source bodies are slightly narrower than the paired no-toad shop masters.
@@ -13,8 +21,22 @@
  */
 
 .scene-kongjwi[data-sprite-mode="sheet"] > .scene-sprite {
-  transform: scaleX(0.88293);
+  transform: none;
   transform-origin: center bottom;
+}
+
+#ui-gameApp .scene-tool[data-sprite-mode="sheet"] {
+  --scene-x: 17.08984375% !important;
+  --scene-y: 29.07986111% !important;
+  --scene-width: 19.53125% !important;
+  --scene-height: 34.72222222% !important;
+}
+
+#ui-gameApp .scene-water-stream {
+  --scene-x: 33.203125% !important;
+  --scene-y: 37.76041667% !important;
+  --scene-width: 41.50390625% !important;
+  --scene-height: 15.625% !important;
 }
 
 #ui-gameApp[data-jar-skin="onggi"] {
