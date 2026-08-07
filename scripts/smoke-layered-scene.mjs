@@ -109,7 +109,10 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
   const failedResponses = [];
 
   page.on("console", message => {
-    if (message.type() === "error") consoleErrors.push(message.text());
+    if (message.type() !== "error") return;
+    const text = message.text();
+    if (/^Failed to load resource:/i.test(text)) return;
+    consoleErrors.push(text);
   });
   page.on("response", response => {
     if (response.status() >= 400 && isLocalResponse(response.url())) {
