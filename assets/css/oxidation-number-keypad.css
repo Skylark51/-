@@ -1,0 +1,50 @@
+/* Oxidation-number rhythm keypad: the input display never reveals the answer sign. */
+@media (max-width: 900px), (pointer: coarse) {
+  #ui-gameApp[data-training-id="oxidation_number"]
+  .mobile-keypad[data-input-mode="signed_numeric_keypad"] .keypad-display-row {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 6px;
+  }
+
+  #ui-gameApp[data-training-id="oxidation_number"]
+  .mobile-keypad[data-input-mode="signed_numeric_keypad"] .keypad-display {
+    min-width: 0;
+  }
+
+  #ui-gameApp[data-training-id="oxidation_number"]
+  .mobile-keypad[data-input-mode="signed_numeric_keypad"] .keypad-modifiers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    min-width: 0;
+    gap: 6px;
+  }
+
+  #ui-gameApp[data-training-id="oxidation_number"]
+  .mobile-keypad[data-input-mode="signed_numeric_keypad"] .keypad-modifier {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 6px;
+    font-size: clamp(16px, 4.8vw, 20px) !important;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 700px),
+       (pointer: coarse) and (max-height: 700px) {
+  #ui-gameApp[data-training-id="oxidation_number"]
+  .mobile-keypad[data-input-mode="signed_numeric_keypad"] .keypad-display-row,
+  #ui-gameApp[data-training-id="oxidation_number"]
+  .mobile-keypad[data-input-mode="signed_numeric_keypad"] .keypad-modifiers {
+    gap: 4px;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 590px),
+       (pointer: coarse) and (max-height: 590px) {
+  #ui-gameApp[data-training-id="oxidation_number"]
+  .mobile-keypad[data-input-mode="signed_numeric_keypad"] .keypad-display-row,
+  #ui-gameApp[data-training-id="oxidation_number"]
+  .mobile-keypad[data-input-mode="signed_numeric_keypad"] .keypad-modifiers {
+    gap: 3px;
+  }
+}
