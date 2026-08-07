@@ -208,291 +208,79 @@
     },
     "sequences": {
       "answerCorrect": {
-        "kongjwi": [
-          2,
-          3,
-          4,
-          5,
-          6
-        ],
-        "tool": [
-          2,
-          3,
-          4,
-          5,
-          6
-        ],
-        "waterStream": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7
-        ],
-        "waterSplash": [
-          1,
-          2,
-          3,
-          4,
-          5
-        ]
+        "kongjwi": [2,3,4,5,6],
+        "tool": [2,3,4,5,6],
+        "waterStream": [1,2,3,4,5,6,7],
+        "waterSplash": [1,2,3,4,5]
       },
       "answerWrong": {
-        "kongjwi": [
-          7
-        ]
+        "kongjwi": [7]
       },
       "idle": {
-        "kongjwi": [
-          0,
-          1,
-          0
-        ]
+        "kongjwi": [0,1,0]
       }
     }
   },
   "anchors": {
-    "kongjwiFeet": {
-      "x": 500,
-      "y": 1018
-    },
-    "toolHandle": {
-      "x": 690,
-      "y": 610
-    },
-    "waterStart": {
-      "x": 780,
-      "y": 552
-    },
-    "jarMouthCenter": {
-      "x": 1500,
-      "y": 445
-    },
-    "jarHoleCenter": {
-      "x": 1596,
-      "y": 770
-    },
-    "toadFace": {
-      "x": 1596,
-      "y": 730
-    }
+    "kongjwiFeet": {"x":500,"y":1018},
+    "toolHandle": {"x":690,"y":610},
+    "waterStart": {"x":780,"y":552},
+    "jarMouthCenter": {"x":1500,"y":445},
+    "jarHoleCenter": {"x":1596,"y":770},
+    "toadFace": {"x":1596,"y":730}
   },
   "placements": {
-    "kongjwi": {
-      "x": 170,
-      "y": 260,
-      "width": 620,
-      "height": 820
-    },
-    "tool": {
-      "x": 430,
-      "y": 405,
-      "width": 430,
-      "height": 430
-    },
-    "waterStream": {
-      "x": 660,
-      "y": 340,
-      "width": 820,
-      "height": 560
-    },
-    "jar": {
-      "x": 1105,
-      "y": 215,
-      "width": 830,
-      "height": 830
-    },
-    "waterFill": {
-      "x": 1280,
-      "y": 473,
-      "width": 433,
-      "height": 378
-    },
-    "toad": {
-      "x": 1415,
-      "y": 630,
-      "width": 360,
-      "height": 280
-    },
-    "waterSplash": {
-      "x": 1195,
-      "y": 270,
-      "width": 480,
-      "height": 480
-    },
-    "waterLeak": {
-      "x": 1385,
-      "y": 600,
-      "width": 480,
-      "height": 480
-    }
+    "kongjwi": {"x":170,"y":260,"width":620,"height":820},
+    "tool": {"x":430,"y":405,"width":430,"height":430},
+    "waterStream": {"x":660,"y":340,"width":820,"height":560},
+    "jar": {"x":1105,"y":215,"width":830,"height":830},
+    "waterFill": {"x":1280,"y":473,"width":433,"height":378},
+    "toad": {"x":1415,"y":630,"width":360,"height":280},
+    "waterSplash": {"x":1195,"y":270,"width":480,"height":480},
+    "waterLeak": {"x":1385,"y":600,"width":480,"height":480}
   },
   "fallbackPlacements": {
-    "kongjwi": {
-      "x": 250,
-      "y": 300,
-      "width": 520,
-      "height": 720
-    },
-    "tool": {
-      "x": 560,
-      "y": 555,
-      "width": 220,
-      "height": 235
-    },
-    "waterStream": {
-      "x": 650,
-      "y": 390,
-      "width": 900,
-      "height": 430
-    },
-    "toad": {
-      "x": 1415,
-      "y": 630,
-      "width": 360,
-      "height": 280
-    }
+    "kongjwi": {"x":250,"y":300,"width":520,"height":720},
+    "tool": {"x":560,"y":555,"width":220,"height":235},
+    "waterStream": {"x":650,"y":390,"width":900,"height":430},
+    "toad": {"x":1415,"y":630,"width":360,"height":280}
   },
   "jarCompositions": {
     "onggi": {
-      "toad": {
-        "x": 1415,
-        "y": 630,
-        "width": 360,
-        "height": 280
-      },
-      "fullExpression": {
-        "scale": 2.15,
-        "x": 0,
-        "y": 13,
-        "originY": 48
-      },
-      "skinMotion": {
-        "scale": 1.16,
-        "x": 0,
-        "y": 3,
-        "originY": 58
-      },
-      "mask": {
-        "radiusX": 47,
-        "radiusY": 44,
-        "centerX": 50,
-        "centerY": 51
-      }
+      "toad": {"x":1415,"y":630,"width":360,"height":280},
+      "fullExpression": {"scale":2.15,"x":0,"y":13,"originY":48},
+      "skinMotion": {"scale":1.16,"x":0,"y":3,"originY":58},
+      "mask": {"radiusX":47,"radiusY":44,"centerX":50,"centerY":51}
     },
     "celadon": {
-      "toad": {
-        "x": 1410,
-        "y": 625,
-        "width": 370,
-        "height": 290
-      },
-      "fullExpression": {
-        "scale": 2.22,
-        "x": 0,
-        "y": 14,
-        "originY": 48
-      },
-      "skinMotion": {
-        "scale": 1.18,
-        "x": 0,
-        "y": 3,
-        "originY": 58
-      },
-      "mask": {
-        "radiusX": 48,
-        "radiusY": 45,
-        "centerX": 50,
-        "centerY": 51
-      }
+      "toad": {"x":1410,"y":625,"width":370,"height":290},
+      "fullExpression": {"scale":2.22,"x":0,"y":14,"originY":48},
+      "skinMotion": {"scale":1.18,"x":0,"y":3,"originY":58},
+      "mask": {"radiusX":48,"radiusY":45,"centerX":50,"centerY":51}
     },
     "moon-white": {
-      "toad": {
-        "x": 1418,
-        "y": 628,
-        "width": 356,
-        "height": 278
-      },
-      "fullExpression": {
-        "scale": 2.18,
-        "x": 0,
-        "y": 13,
-        "originY": 48
-      },
-      "skinMotion": {
-        "scale": 1.16,
-        "x": 0,
-        "y": 3,
-        "originY": 58
-      },
-      "mask": {
-        "radiusX": 47,
-        "radiusY": 44,
-        "centerX": 50,
-        "centerY": 51
-      }
+      "toad": {"x":1418,"y":628,"width":356,"height":278},
+      "fullExpression": {"scale":2.18,"x":0,"y":13,"originY":48},
+      "skinMotion": {"scale":1.16,"x":0,"y":3,"originY":58},
+      "mask": {"radiusX":47,"radiusY":44,"centerX":50,"centerY":51}
     },
     "night-lacquer": {
-      "toad": {
-        "x": 1410,
-        "y": 625,
-        "width": 370,
-        "height": 290
-      },
-      "fullExpression": {
-        "scale": 2.2,
-        "x": 0,
-        "y": 14,
-        "originY": 48
-      },
-      "skinMotion": {
-        "scale": 1.18,
-        "x": 0,
-        "y": 3,
-        "originY": 58
-      },
-      "mask": {
-        "radiusX": 48,
-        "radiusY": 45,
-        "centerX": 50,
-        "centerY": 51
-      }
+      "toad": {"x":1410,"y":625,"width":370,"height":290},
+      "fullExpression": {"scale":2.2,"x":0,"y":14,"originY":48},
+      "skinMotion": {"scale":1.18,"x":0,"y":3,"originY":58},
+      "mask": {"radiusX":48,"radiusY":45,"centerX":50,"centerY":51}
     }
   },
   "jarOffsets": {
-    "onggi": {
-      "x": 0,
-      "y": 0,
-      "scale": 1
-    },
-    "celadon": {
-      "x": 0,
-      "y": 0,
-      "scale": 1
-    },
-    "moon-white": {
-      "x": 0,
-      "y": 0,
-      "scale": 1
-    },
-    "night-lacquer": {
-      "x": 0,
-      "y": 0,
-      "scale": 1
-    }
+    "onggi": {"x":0,"y":0,"scale":1},
+    "celadon": {"x":0,"y":0,"scale":1},
+    "moon-white": {"x":0,"y":0,"scale":1},
+    "night-lacquer": {"x":0,"y":0,"scale":1}
   },
   "responsive": {
     "coordinateSystem": "shared-2048x1152",
-    "mobile": {
-      "safeInset": 24,
-      "scaleMode": "contain"
-    },
-    "desktop": {
-      "safeInset": 0,
-      "scaleMode": "contain"
-    }
+    "mobile": {"safeInset":24,"scaleMode":"contain"},
+    "desktop": {"safeInset":0,"scaleMode":"contain"}
   },
   "availability": {
     "assets/art/game-scene/background/courtyard-night-bg.png": false,
@@ -509,13 +297,13 @@
     "assets/art/game-scene/tools/moon/pour-sheet.png": true,
     "assets/art/game-scene/jars/onggi/layers.png": false,
     "assets/art/game-scene/jars/celadon/layers.png": true,
-    "assets/art/game-scene/jars/moon-white/layers.png": false,
+    "assets/art/game-scene/jars/moon-white/layers.png": true,
     "assets/art/game-scene/jars/night-lacquer/layers.png": true,
     "assets/art/game-scene/toad/skins/gold-worker.png": true,
     "assets/art/game-scene/toad/skins/jade-guard.png": true,
     "assets/art/game-scene/toad/skins/star-night.png": true,
     "assets/art/game-scene/effects/water-pour-sheet.png": true,
-    "assets/art/game-scene/effects/water-splash-sheet.png": false,
+    "assets/art/game-scene/effects/water-splash-sheet.png": true,
     "assets/art/game-scene/effects/water-leak-sheet.png": true,
     "assets/art/game-scene/effects/water-surface-tile.png": true,
     "assets/images/toad-expressions/화남.png": true,
