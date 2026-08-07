@@ -58,6 +58,7 @@ async function runUniversalCountdown() {
   const card = ensureCountdownCard();
   const animationZone = mountOverlayInAnimationZone();
   if (!card || !animationZone) {
+    app?.classList.remove("is-opening-countdown");
     api?.game?.resume?.();
     return;
   }
@@ -67,7 +68,6 @@ async function runUniversalCountdown() {
   message.textContent = INTRO_TEXT;
   number.textContent = "";
 
-  app?.classList.add("is-opening-countdown");
   overlay.classList.remove("hidden", "is-opening");
   overlay.classList.add("game-start-countdown");
   overlay.dataset.phase = "intro";
@@ -103,6 +103,10 @@ async function runUniversalCountdown() {
 window.addEventListener("game:start", () => {
   const api = globalThis.KongJuiYaGame;
   if (!api?.game) return;
+
+  // Apply the opening state synchronously so the first question never flashes
+  // before the breathing countdown takes ownership of the scene.
+  byId("ui-gameApp")?.classList.add("is-opening-countdown");
   if (api.game.state.status === "running") api.game.pause();
 
   // Let ui-effects mount the current question keypad while the game is paused.
