@@ -16,15 +16,17 @@ test("universal opening countdown runs for every game start and lasts exactly th
   assert.doesNotMatch(js, /atomic_number/);
 });
 
-test("countdown hides the first question immediately while animation overlay stays scoped", () => {
+test("countdown is mounted directly over the complete question frame", () => {
   const js = read("assets/js/opening-countdown-flow.js");
   const css = read("assets/css/opening-countdown-flow.css");
-  assert.match(js, /classList\.add\("is-opening-countdown"\)/);
-  assert.match(js, /querySelector\("\.scene-animation-zone"\)/);
-  assert.match(js, /animationZone\.append\(overlay\)/);
-  assert.match(css, /\.scene-animation-zone > #startOverlay\.game-start-countdown/);
-  assert.match(css, /#ui-gameApp\.is-opening-countdown #questionText/);
-  assert.match(css, /content:\s*"문제 준비 중"/);
+  assert.match(js, /querySelector\("\.scene-question-bubble"\)/);
+  assert.match(js, /questionFrame\.append\(overlay\)/);
+  assert.doesNotMatch(js, /querySelector\("\.scene-animation-zone"\)/);
+  assert.match(css, /\.scene-question-bubble > #startOverlay\.game-start-countdown/);
+  assert.match(css, /inset:\s*-1px\s*!important/);
+  assert.match(css, /z-index:\s*999\s*!important/);
+  assert.match(css, /\.game-start-countdown-card[\s\S]*width:\s*100%[\s\S]*height:\s*100%/);
+  assert.doesNotMatch(css, /content:\s*"문제 준비 중"/);
 });
 
 test("very short mobile layouts reserve enough stable space for the full keypad", () => {
@@ -47,11 +49,11 @@ test("mid-run exit shows ad before routing back to jar selection", () => {
 
 test("countdown assets are cache-busted and loaded before legacy ui-effects", () => {
   const html = read("콩쥐야_줘때써.html");
-  const preloader = html.indexOf("opening-countdown-flow.js?v=20260807-countdown-keypad2");
+  const preloader = html.indexOf("opening-countdown-flow.js?v=20260807-countdown-overlay3");
   const legacy = html.indexOf("ui-effects.js?v=20260807-oxidation-formula1");
   assert.ok(preloader >= 0 && legacy >= 0 && preloader < legacy);
-  assert.match(html, /opening-countdown-flow\.css\?v=20260807-countdown-keypad2/);
+  assert.match(html, /opening-countdown-flow\.css\?v=20260807-countdown-overlay3/);
   assert.match(html, /result-panel-enhancements\.js\?v=20260807-result-record1/);
   assert.match(html, /game-bgm\.js\?v=20260807-audio-bgm2/);
-  assert.match(html, /data-ui-version="20260807-countdown-keypad2"/);
+  assert.match(html, /data-ui-version="20260807-countdown-overlay3"/);
 });
