@@ -15,6 +15,8 @@ on:
       - "assets/js/quiz-scene-actors.js"
       - "assets/css/game-asset-animation.css"
       - "assets/css/toad-composition-fix.css"
+      - "assets/css/toad-hole-integration.css"
+      - "assets/css/jar-water-surface-fix.css"
       - "assets/css/mobile-quiz-balance.css"
       - "assets/css/quiz-mobile-polish.css"
       - "assets/css/quiz-scene-actors.css"
@@ -25,7 +27,10 @@ on:
       - "tests/layered-scene.test.mjs"
       - "tests/mobile-scene-regression.test.mjs"
       - "tests/toad-composition-regression.test.mjs"
+      - "tests/jar-water-surface-regression.test.mjs"
       - "docs/prompts/QUIZ_MOBILE_INTERFACE_POLISH_20260807.md"
+      - "docs/prompts/QUIZ_TOAD_HOLE_INTEGRATION_FIX_20260807.md"
+      - "docs/prompts/QUIZ_JAR_WATER_SURFACE_FIX_20260807.md"
       - ".github/workflows/validate-layered-scene.yml"
 
 permissions:
@@ -53,6 +58,7 @@ jobs:
           tests/layered-scene.test.mjs
           tests/mobile-scene-regression.test.mjs
           tests/toad-composition-regression.test.mjs
+          tests/jar-water-surface-regression.test.mjs
       - name: PNG and legacy-path validation
         shell: bash
         run: |

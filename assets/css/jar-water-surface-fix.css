@@ -1,0 +1,72 @@
+/*
+ * Jar water integration pass.
+ * Ceramic jars are opaque: dynamic water belongs inside the mouth, not as a
+ * translucent panel painted across the authored jar body.
+ */
+
+#layeredScene > .scene-water-fill {
+  --scene-x: 66.8% !important;
+  --scene-y: 31.2% !important;
+  --scene-width: 15.2% !important;
+  --scene-height: 8.2% !important;
+  overflow: hidden !important;
+  border-radius: 50% !important;
+  clip-path: ellipse(47% 35% at 50% 50%) !important;
+  opacity: .88 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+#layeredScene > .scene-water-fill > .scene-water-fill-texture {
+  left: 3% !important;
+  right: 3% !important;
+  bottom: 0 !important;
+  height: var(--scene-water-level) !important;
+  min-height: 0 !important;
+  border-top: 1px solid rgba(211, 249, 255, .72) !important;
+  border-radius: 48% 48% 42% 42% !important;
+  background-position: center top !important;
+  background-size: auto 34px !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+#ui-gameApp[data-jar-skin="celadon"] #layeredScene > .scene-water-fill {
+  --scene-x: 67.15% !important;
+  --scene-y: 30.8% !important;
+  --scene-width: 14.6% !important;
+  --scene-height: 8.0% !important;
+  clip-path: ellipse(47% 34% at 50% 51%) !important;
+}
+
+#ui-gameApp[data-jar-skin="night-lacquer"] #layeredScene > .scene-water-fill {
+  --scene-x: 67.0% !important;
+  --scene-y: 31.0% !important;
+  --scene-width: 14.9% !important;
+  --scene-height: 8.1% !important;
+  clip-path: ellipse(47% 35% at 50% 51%) !important;
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  #layeredScene > .scene-water-fill {
+    --scene-x: 67.0% !important;
+    --scene-y: 30.8% !important;
+    --scene-width: 15.0% !important;
+    --scene-height: 8.0% !important;
+  }
+
+  #ui-gameApp[data-jar-skin="celadon"] #layeredScene > .scene-water-fill {
+    --scene-x: 67.25% !important;
+    --scene-y: 30.4% !important;
+    --scene-width: 14.5% !important;
+    --scene-height: 7.8% !important;
+  }
+
+  #ui-gameApp[data-jar-skin="night-lacquer"] #layeredScene > .scene-water-fill {
+    --scene-x: 67.1% !important;
+    --scene-y: 30.6% !important;
+    --scene-width: 14.8% !important;
+    --scene-height: 7.9% !important;
+  }
+}
