@@ -16,7 +16,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-VERSION = "20260807-underlayer-rig2"
+VERSION = "20260807-underlayer-rig3"
 CELL = (512, 768)
 FRAMES = 8
 
@@ -206,7 +206,7 @@ def build_tool_sheet(root: Path, tool_key: str, hand_points):
 def update_manifest(root: Path):
     path = root / "assets/art/game-scene/manifest.json"
     manifest = json.loads(path.read_text(encoding="utf-8"))
-    manifest["version"] = "2026.08.07-underlayer-rig2"
+    manifest["version"] = VERSION
     policy = manifest.setdefault("runtimePolicy", {})
     policy["kongjwiMotionPolicy"] = "source-locked-articulated-underlayer"
     policy["kongjwiFramePolicy"] = "source-character-pixels-pose-only"
