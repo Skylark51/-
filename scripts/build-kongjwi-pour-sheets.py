@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Build the layered Kongjwi + bucket motion rig from the repository PNG masters.
+"""Build the layered Kongjwi + bucket motion rig from repository PNG masters.
 
-The underlayer rig is the first fully articulated outfit.  It keeps the exact
-source Kongjwi pixels and moves only the screen-right forearm plus a very small
-whole-body lean.  Buckets remain independent layers, so the equipped wood,
-brass, celadon or moon bucket can follow the same hand path without baking a
+The underlayer rig is the first fully articulated outfit. It keeps the source
+Kongjwi pixels and moves only the screen-right forearm plus a very small
+whole-body lean. Buckets remain independent layers, so the equipped wood,
+brass, celadon or moon bucket follows the same hand path without baking a
 specific tool into Kongjwi.
 """
 from __future__ import annotations
@@ -14,7 +14,7 @@ import json
 import math
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageOps
+from PIL import Image, ImageDraw
 
 VERSION = "20260807-underlayer-rig2"
 CELL = (512, 768)
@@ -42,18 +42,16 @@ BODY_POSES = (
     (1.4, -3, 6),
 )
 
-# First rig: articulate only the outer forearm.  The face, torso, hair, legs,
-# proportions and source canvas are left untouched.
+# First rig: articulate only the outer forearm. Face, torso, hair, legs,
+# proportions and source framing stay untouched.
 FOREARM_POLYGON = [(303, 258), (327, 258), (345, 395), (318, 406), (307, 350), (300, 300)]
 ELBOW = (314, 270)
 HAND = (333, 386)
 FOREARM_ANGLES = (0.0, -2.0, -18.0, -42.0, -68.0, -86.0, -30.0, 8.0)
-TOOL_ANGLES = (0.0, -1.0, -10.0, -25.0, -48.0, -76.0, -25.0, 12.0)
 
 
 def alpha_bbox(image: Image.Image):
-    alpha = image.getchannel("A")
-    box = alpha.getbbox()
+    box = image.getchannel("A").getbbox()
     if not box:
         raise RuntimeError("PNG alpha silhouette is empty")
     return box
@@ -93,14 +91,12 @@ def build_source_locked_sheet(base: Image.Image) -> Image.Image:
 
 
 def mask_from_polygon(base: Image.Image, polygon) -> Image.Image:
+    import numpy as np
+
     mask = Image.new("L", CELL, 0)
     ImageDraw.Draw(mask).polygon(polygon, fill=255)
-    # Do not create pixels outside Kongjwi's actual source alpha.
     return Image.fromarray(
-        __import__("numpy").minimum(
-            __import__("numpy").array(mask, dtype="uint8"),
-            __import__("numpy").array(base.getchannel("A"), dtype="uint8"),
-        ),
+        np.minimum(np.array(mask, dtype="uint8"), np.array(base.getchannel("A"), dtype="uint8")),
         "L",
     )
 
@@ -170,11 +166,8 @@ def build_kongjwi(root: Path):
     return underlayer_hands
 
 
-def fit_tool(source: Image.Image) -> Image.Image:
+def fit_tool_frame(source: Image.Image) -> Image.Image:
     crop = source.crop(alpha_bbox(source))
-    # Tool sits on the jar-facing side of Kongjwi. Mirror the shop master so
-    # the handle reaches back toward her screen-right hand.
-    crop = ImageOps.mirror(crop)
     max_w, max_h = 164, 150
     scale = min(max_w / crop.width, max_h / crop.height)
     size = (max(1, round(crop.width * scale)), max(1, round(crop.height * scale)))
@@ -182,23 +175,32 @@ def fit_tool(source: Image.Image) -> Image.Image:
 
 
 def build_tool_sheet(root: Path, tool_key: str, hand_points):
-    source = Image.open(root / f"assets/art/kongjwi-tools/{tool_key}.png").convert("RGBA")
-    tool = fit_tool(source)
-    # After mirroring, the left-side handle tip is the grip point.
-    grip = (round(tool.width * 0.12), round(tool.height * 0.48))
+    """Re-register the already-authored bucket animation to Kongjwi's hand.
+
+    Some shop-master bucket PNGs are legacy/corrupt image streams, while the
+    gameplay pour sheets are valid authored PNGs already in production. Use
+    those valid sheets as the visual master, crop each existing frame, and put
+    the selected bucket onto the same 512x768 cell as Kongjwi.
+    """
+    path = root / f"assets/art/game-scene/tools/{tool_key}/pour-sheet.png"
+    source = Image.open(path).convert("RGBA")
+    if source.width % FRAMES:
+        raise RuntimeError(f"Unexpected {tool_key} tool sheet width: {source.size}")
+    source_cell_w = source.width // FRAMES
+    source_cell_h = source.height
+
     frames = []
     for index, hand in enumerate(hand_points):
+        raw = source.crop((index * source_cell_w, 0, (index + 1) * source_cell_w, source_cell_h))
+        tool = fit_tool_frame(raw)
         hx, hy = hand
+        # Existing authored sheets are oriented toward the hand. Keep that
+        # artwork; only re-register the grip point to the articulated hand.
+        grip = (round(tool.width * 0.12), round(tool.height * 0.48))
         layer = Image.new("RGBA", CELL, (0, 0, 0, 0))
         layer.alpha_composite(tool, (round(hx - grip[0]), round(hy - grip[1])))
-        layer = layer.rotate(
-            TOOL_ANGLES[index],
-            resample=Image.Resampling.BICUBIC,
-            expand=False,
-            center=(hx, hy),
-        )
         frames.append(layer)
-    write_sheet(frames, root / f"assets/art/game-scene/tools/{tool_key}/pour-sheet.png")
+    write_sheet(frames, path)
 
 
 def update_manifest(root: Path):
