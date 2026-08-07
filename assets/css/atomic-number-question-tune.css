@@ -1,0 +1,17 @@
+/* Keep atomic-number prompts prominent without letting single-letter symbols dominate the stage. */
+#ui-gameApp[data-training-id="atomic_number"] #questionText {
+  font-size: clamp(42px, 10.2vw, 64px) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.03em;
+}
+
+#ui-gameApp[data-training-id="atomic_number"] .scene-question-bubble {
+  padding-top: clamp(12px, 2vw, 18px);
+  padding-bottom: clamp(10px, 1.8vw, 16px);
+}
+
+@media (max-width: 420px) {
+  #ui-gameApp[data-training-id="atomic_number"] #questionText {
+    font-size: clamp(38px, 9.2vw, 56px) !important;
+  }
+}
