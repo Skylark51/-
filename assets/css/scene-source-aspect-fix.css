@@ -1,23 +1,8 @@
-/* Preserve the authored asset proportions in the layered quiz scene.
+/* Preserve authored PNG proportions in the layered quiz scene.
  *
- * The source-derived Kongjwi pour sheets already preserve the cutout's own
- * crop aspect inside each 512x768 cell. The earlier extra scaleX correction
- * therefore over-compressed the character and made her look unnaturally thin.
- * Keep the sprite cell unwarped here.
- *
- * The authored bucket sheet is square, but the historical scene placement sat
- * too far to Kongjwi's lower-right. The tuned box below pulls it back toward
- * her hand while preserving a square tool box.
- *
- * The water-stream layer is also repositioned as the geometric corridor from
- * the bucket lip toward the jar mouth. The authored PNG stream renders inside
- * this same box.
- *
- * The four jar source pairs were authored on different canvases. Their open
- * source bodies are slightly narrower than the paired no-toad shop masters.
- * The per-skin factors below are derived from the alpha body bounding-box
- * aspect ratios stored in parts.json. Both jar back/front layers receive the
- * same correction so the broken-hole foreground remains registered.
+ * Every actor is now placed inside one uniformly scaled 2048x1152 canvas.
+ * No character, jar, toad, tool, or sprite is corrected with scaleX/scaleY.
+ * Position and apparent size are controlled only by logical placement boxes.
  */
 
 .scene-kongjwi[data-sprite-mode="sheet"] > .scene-sprite {
@@ -39,25 +24,11 @@
   --scene-height: 15.625% !important;
 }
 
-#ui-gameApp[data-jar-skin="onggi"] {
-  --jar-source-aspect-x: 1.03462;
-}
-
-#ui-gameApp[data-jar-skin="celadon"] {
-  --jar-source-aspect-x: 1.12102;
-}
-
-#ui-gameApp[data-jar-skin="moon-white"] {
-  --jar-source-aspect-x: 1.09463;
-}
-
-#ui-gameApp[data-jar-skin="night-lacquer"] {
-  --jar-source-aspect-x: 1.03438;
-}
-
+/* Source jar pixels must never be stretched per skin. The paired 1024x1024
+ * back/front cells stay registered by sharing the same square placement. */
 #ui-gameApp .scene-jar-back > .scene-sprite,
 #ui-gameApp .scene-jar-front > .scene-sprite {
-  transform: scaleX(var(--jar-source-aspect-x, 1));
+  transform: none !important;
   transform-origin: center bottom;
 }
 
@@ -65,7 +36,9 @@
 #ui-gameApp .scene-kongjwi > .scene-layer-image,
 #ui-gameApp .scene-tool > .scene-layer-image,
 #ui-gameApp .scene-jar-back > .scene-layer-image,
-#ui-gameApp .scene-jar-front > .scene-layer-image {
+#ui-gameApp .scene-jar-front > .scene-layer-image,
+#ui-gameApp .scene-toad-skin > .scene-layer-image,
+#ui-gameApp .scene-toad-expression > .scene-layer-image {
   object-fit: contain !important;
   object-position: center bottom !important;
 }
