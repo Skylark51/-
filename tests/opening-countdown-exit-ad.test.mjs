@@ -10,10 +10,12 @@ test("universal opening countdown runs for every game start and lasts exactly th
   assert.match(js, /COUNTDOWN_INTRO_MS = 600/);
   assert.match(js, /COUNTDOWN_STEP_MS = 700/);
   assert.match(js, /COUNTDOWN_STEPS = Object\.freeze\(\[3, 2, 1\]\)/);
-  assert.match(js, /window\.addEventListener\("game:start"/);
+  assert.match(js, /export function mountOpeningCountdown/);
+  assert.match(js, /window\.addEventListener\("game:start", handleGameStart\)/);
   assert.match(js, /api\.game\.pause\(\)/);
-  assert.match(js, /api\?\.game\?\.resume\?\.\(\)/);
+  assert.match(js, /getApi\(\)\?\.game\?\.resume\?\.\(\)/);
   assert.doesNotMatch(js, /atomic_number/);
+  assert.doesNotMatch(js, /overlay\.id\s*=/);
 });
 
 test("countdown is mounted directly over the complete question frame", () => {
@@ -47,11 +49,14 @@ test("mid-run exit shows ad before routing back to jar selection", () => {
   assert.match(js, /index\.html\?view=jars/);
 });
 
-test("countdown assets are cache-busted and loaded before the single game entry", () => {
+test("countdown is owned by the single game entry", () => {
   const html = read("콩쥐야_줘때써.html");
-  const preloader = html.indexOf("opening-countdown-flow.js?v=20260807-countdown-overlay3");
-  const entry = html.indexOf("game-page.js?v=20260808-runtime-ownership1");
-  assert.ok(preloader >= 0 && entry >= 0 && preloader < entry);
+  const entry = read("assets/js/game-page.js");
+  const ui = read("assets/js/ui-effects.js");
+  assert.match(entry, /import \{ mountOpeningCountdown \} from "\.\/opening-countdown-flow\.js"/);
+  assert.equal((entry.match(/mountOpeningCountdown\(\)/g) || []).length, 1);
+  assert.doesNotMatch(html, /<script[^>]+opening-countdown-flow\.js/);
+  assert.doesNotMatch(ui, /runOpeningCountdown|OPENING_COUNTDOWN_TRAININGS/);
   assert.match(html, /opening-countdown-flow\.css\?v=20260807-countdown-overlay3/);
   assert.match(html, /result-panel-enhancements\.js\?v=20260807-result-actions2/);
   assert.match(html, /game-bgm\.js\?v=20260807-audio-bgm2/);

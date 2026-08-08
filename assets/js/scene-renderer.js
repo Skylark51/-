@@ -58,10 +58,6 @@ function box(element, value, logical) {
 }
 
 function createStack(host, manifest) {
-  host.querySelectorAll(".scene-background-layer,.scene-cinematic-shade,.quiz-scene-actors,.scene-leak-effect").forEach(node => {
-    node.hidden = true;
-  });
-
   let stack = host.querySelector("#layeredScene");
   if (!stack) {
     stack = document.createElement("div");

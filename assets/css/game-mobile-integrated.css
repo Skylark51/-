@@ -153,13 +153,6 @@
     font-size: 8px;
   }
 
-  .scene-leak-effect {
-    right: 16%;
-    bottom: 0;
-    transform: scale(0.56) rotate(4deg);
-    transform-origin: bottom right;
-  }
-
   .scene-pour-arc {
     left: 31%;
     top: 18%;

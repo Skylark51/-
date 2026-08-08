@@ -5,12 +5,8 @@ import { mountMobileKeypad } from "./mobile-keypad.js";
 import { mountGameScene } from "./game-cosmetics-entry.js";
 
 const SELECTION_KEY = "kongjuiya-training-selection";
-const OPENING_COUNTDOWN_TRAININGS = new Set(["atomic_number"]);
-const OPENING_COUNTDOWN_INTRO = "자... 숨 고르시고.. 시작합니다";
-const OPENING_COUNTDOWN_STEPS = Object.freeze([3, 2, 1]);
 const byId = id => document.getElementById(id);
 const formatNumber = value => Math.round(Number(value) || 0).toLocaleString("ko-KR");
-const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const DIFFICULTY_NAMES = Object.freeze({ easy: "쉬움", normal: "보통", hard: "어려움" });
 
 function setOfficialTitle() {
@@ -42,67 +38,6 @@ function applyMotionPreference(storage) {
 function listen(removers, type, handler, target = window) {
   target.addEventListener(type, handler);
   removers.push(() => target.removeEventListener(type, handler));
-}
-
-async function runOpeningCountdown({ modeId, announce, scene } = {}) {
-  if (!OPENING_COUNTDOWN_TRAININGS.has(modeId)) return;
-
-  const overlay = byId("startOverlay");
-  if (!overlay) return;
-
-  if (scene?.ready) await scene.ready;
-
-  let card = overlay.querySelector(".game-start-countdown-card");
-  if (!card) {
-    card = document.createElement("div");
-    card.className = "game-start-countdown-card";
-
-    const message = document.createElement("p");
-    message.className = "game-start-countdown-message";
-    message.textContent = OPENING_COUNTDOWN_INTRO;
-
-    const number = document.createElement("strong");
-    number.className = "game-start-countdown-number";
-    number.setAttribute("aria-live", "assertive");
-    number.setAttribute("aria-atomic", "true");
-
-    card.append(message, number);
-    overlay.append(card);
-  }
-
-  const message = card.querySelector(".game-start-countdown-message");
-  const number = card.querySelector(".game-start-countdown-number");
-  message.textContent = OPENING_COUNTDOWN_INTRO;
-  number.textContent = "";
-
-  overlay.classList.remove("hidden", "is-opening");
-  overlay.classList.add("game-start-countdown");
-  overlay.dataset.phase = "intro";
-  overlay.setAttribute("aria-hidden", "false");
-  overlay.setAttribute("role", "status");
-  announce?.(OPENING_COUNTDOWN_INTRO);
-
-  await wait(1200);
-
-  for (const step of OPENING_COUNTDOWN_STEPS) {
-    overlay.dataset.phase = "countdown";
-    number.textContent = String(step);
-    announce?.(String(step));
-    await wait(700);
-  }
-
-  overlay.dataset.phase = "open";
-  number.textContent = "시작";
-  announce?.("시작");
-  await wait(320);
-
-  overlay.classList.add("is-opening");
-  await wait(260);
-  overlay.classList.add("hidden");
-  overlay.classList.remove("is-opening");
-  overlay.setAttribute("aria-hidden", "true");
-  overlay.removeAttribute("role");
-  delete overlay.dataset.phase;
 }
 
 export async function initializeGamePage(api = globalThis.KongJuiYaGame) {
@@ -267,7 +202,9 @@ export async function initializeGamePage(api = globalThis.KongJuiYaGame) {
     byId("feverTimer").textContent = "연속 정답으로 피버를 충전하세요.";
   }
 
-  byId("ui-pauseButton").addEventListener("click", () => api.game.togglePause());
+  byId("ui-pauseButton").addEventListener("click", () => {
+    if (!app.classList.contains("is-opening-countdown")) api.game.togglePause();
+  });
   byId("ui-homeButton").addEventListener("click", requestHome);
   byId("continueButton").addEventListener("click", () => {
     if (api.game.state.status === "paused") api.game.resume();
@@ -284,6 +221,7 @@ export async function initializeGamePage(api = globalThis.KongJuiYaGame) {
   listen(removers, "keydown", event => {
     if (event.key !== "Escape") return;
     event.preventDefault();
+    if (app.classList.contains("is-opening-countdown")) return;
     if (api.game.state.status === "running") api.game.pause();
     else if (api.game.state.status === "paused") api.game.resume();
   }, document);
@@ -340,7 +278,6 @@ export async function initializeGamePage(api = globalThis.KongJuiYaGame) {
   listen(removers, "fever:end", endFeverUi);
   listen(removers, "ui:device-mode", () => syncViewport());
 
-  await runOpeningCountdown({ modeId: mode.id, announce, scene });
   api.start({ difficulty, resumeState });
   keypad = mountMobileKeypad({
     api,

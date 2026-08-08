@@ -1,5 +1,4 @@
 import "./redox-single-line.js";
-import "./asset-debug-viewer.js";
 import { GameStorage } from "./storage.js";
 import { CosmeticSystem, COSMETIC_STORAGE_KEY } from "./cosmetic-system.js";
 import { mountSceneRenderer } from "./scene-renderer.js";

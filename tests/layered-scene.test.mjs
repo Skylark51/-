@@ -9,7 +9,6 @@ const manifest = JSON.parse(read("assets/art/game-scene/manifest.json"));
 const html = read("콩쥐야_줘때써.html");
 const renderer = read("assets/js/scene-renderer.js");
 const controller = read("assets/js/scene-state-machine.js");
-const actorBootstrap = read("assets/js/quiz-scene-actors.js");
 const controls = read("assets/js/quiz-shell-controls.js");
 const cosmetics = read("assets/js/game-cosmetics-entry.js");
 const themeSystem = read("assets/js/theme-system.js");
@@ -48,16 +47,17 @@ test("renderer creates exactly one ordered logical layer stack", () => {
   assert.doesNotMatch(html, /game-asset-animation\.js/);
 });
 
-test("quiz actor compatibility file only bootstraps the single renderer", () => {
-  assert.match(actorBootstrap, /Compatibility bootstrap/);
-  assert.match(actorBootstrap, /mountGameScene\(root\)/);
-  assert.doesNotMatch(actorBootstrap, /new Image|fetch\(|backgroundImage|filter|createSceneStateController/);
+test("legacy actor markup and compatibility bootstrap are removed", () => {
+  assert.doesNotMatch(html, /scene-background-layer|scene-cinematic-shade|quiz-scene-actors|sceneJarActor|sceneToadSprite|scene-leak-effect/);
+  assert.doesNotMatch(renderer, /querySelectorAll\("\.scene-background-layer/);
+  assert.equal(fs.existsSync(path.join(root, "assets/js/quiz-scene-actors.js")), false);
+  assert.equal(fs.existsSync(path.join(root, "assets/js/photoreal-scene.js")), false);
   assert.match(cosmetics, /root\.__mountedGameScene/);
 });
 
 test("runtime art path is PNG-only", () => {
   const runtime = [
-    html, renderer, controller, actorBootstrap, controls, cosmetics, themeSystem, sceneComposition
+    html, renderer, controller, controls, cosmetics, themeSystem, sceneComposition
   ].join("\n");
   assert.doesNotMatch(runtime, /data:image\/jpeg;base64/i);
   assert.doesNotMatch(runtime, /\.webp(?:["')?])/i);

@@ -114,10 +114,8 @@ const runtimeFiles = [
   'assets/js/scene-state-machine.js',
   'assets/js/game-cosmetics-entry.js',
   'assets/js/quiz-shell-controls.js',
-  'assets/js/quiz-scene-actors.js',
   'assets/css/game-asset-animation.css',
-  'assets/css/toad-composition-fix.css',
-  'assets/css/quiz-scene-actors.css'
+  'assets/css/toad-composition-fix.css'
 ];
 const forbidden = [
   ['JPEG Base64', /data:image\/jpeg;base64/i],
@@ -142,6 +140,9 @@ for (const obsolete of [
   '.github/workflows/integrate-game-animation.yml',
   'assets/js/game-asset-animation.js',
   'assets/js/scene-art-loader.js',
+  'assets/js/quiz-scene-actors.js',
+  'assets/js/photoreal-scene.js',
+  'assets/css/quiz-scene-actors.css',
   'assets/images/toad-expressions/toad-expression-sprite.webp',
   'assets/images/toad-expressions/manifest.json'
 ]) {

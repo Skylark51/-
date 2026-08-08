@@ -4,11 +4,7 @@
 @import url("./jar-mouth-hole-polish.css?v=20260807-jar-mouth-hole1");
 @import url("./scene-source-aspect-fix.css?v=20260807-underlayer-rig3");
 
-/*
- * Runtime isolation for the layered PNG quiz scene.
- * Legacy scene markup is retained temporarily for compatibility, but it must
- * never be revived by older !important composition rules.
- */
+/* Runtime isolation for the layered PNG quiz scene. */
 .scene-stage-layout {
   position: absolute !important;
   inset: 0 !important;
@@ -38,14 +34,6 @@
   min-width: 0 !important;
   min-height: 0 !important;
   overflow: hidden !important;
-}
-
-.scene-animation-zone > .scene-background-layer[hidden],
-.scene-animation-zone > .scene-cinematic-shade[hidden],
-.scene-animation-zone > .quiz-scene-actors[hidden],
-.scene-animation-zone > .scene-leak-effect[hidden] {
-  display: none !important;
-  visibility: hidden !important;
 }
 
 .scene-animation-zone > #layeredScene {

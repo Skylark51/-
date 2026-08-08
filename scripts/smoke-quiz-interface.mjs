@@ -38,6 +38,21 @@ try {
     }
   });
 
+  await page.addInitScript(() => {
+    globalThis.__openingProbe = { gameStarts: 0, statusDuring: null, timeAtPause: null, timeAfterDelay: null };
+    addEventListener("game:start", () => {
+      globalThis.__openingProbe.gameStarts += 1;
+      queueMicrotask(() => {
+        const game = globalThis.KongJuiYaGame?.game;
+        globalThis.__openingProbe.statusDuring = game?.state?.status || null;
+        globalThis.__openingProbe.timeAtPause = game?.state?.questionTimeRemaining ?? null;
+        setTimeout(() => {
+          globalThis.__openingProbe.timeAfterDelay = game?.state?.questionTimeRemaining ?? null;
+        }, 900);
+      });
+    });
+  });
+
   await page.goto(`${baseUrl}${path}`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => {
     const api = globalThis.KongJuiYaGame;
@@ -80,6 +95,12 @@ try {
         height: document.documentElement.scrollHeight
       },
       questionText,
+      runtimeInstances: globalThis.KongJuiYaGame ? 1 : 0,
+      layeredScenes: document.querySelectorAll("#layeredScene").length,
+      debugButtons: document.querySelectorAll("#ui-assetInspectorButton").length,
+      debugResources: performance.getEntriesByType("resource").filter(entry => /asset-debug-viewer\.js(?:\?|$)/.test(entry.name)).length,
+      openingProbe: globalThis.__openingProbe,
+      overlayId: startOverlay?.id || null,
       startOverlayHidden: Boolean(startOverlay?.classList.contains("hidden")),
       headerTitle: {
         visibility: titleStyle?.visibility || "missing",
@@ -114,6 +135,13 @@ try {
   assert(metrics.document.width <= metrics.viewport.width + 1, `367x662: horizontal overflow ${metrics.document.width} > ${metrics.viewport.width}`);
   assert(metrics.document.height <= metrics.viewport.height + 1, `367x662: vertical overflow ${metrics.document.height} > ${metrics.viewport.height}`);
   assert(/^[A-Z][a-z]?$/.test(metrics.questionText), `367x662: atomic-number prompt is not symbol-only (${metrics.questionText})`);
+  assert(metrics.runtimeInstances === 1, "367x662: game runtime is missing");
+  assert(metrics.layeredScenes === 1, `367x662: layered scene count is ${metrics.layeredScenes}`);
+  assert(metrics.debugButtons === 0 && metrics.debugResources === 0, "367x662: asset debug viewer loaded in production mode");
+  assert(metrics.overlayId === "startOverlay", `367x662: countdown changed overlay id to ${metrics.overlayId}`);
+  assert(metrics.openingProbe.gameStarts === 1, `367x662: game:start fired ${metrics.openingProbe.gameStarts} times`);
+  assert(metrics.openingProbe.statusDuring === "paused", `367x662: countdown status is ${metrics.openingProbe.statusDuring}`);
+  assert(Math.abs(metrics.openingProbe.timeAfterDelay - metrics.openingProbe.timeAtPause) < 0.01, "367x662: question timer changed during countdown");
   assert(metrics.startOverlayHidden, "367x662: opening countdown did not clear before gameplay");
   assert(metrics.headerTitle.visibility === "visible" && metrics.headerTitle.display !== "none", "367x662: training title remains hidden");
   assert(metrics.headerTitle.width >= 70 && metrics.headerTitle.text.length > 0, "367x662: training title has no usable width/text");
@@ -147,6 +175,18 @@ try {
   await page.screenshot({ path: "/tmp/quiz-interface-367x662.png", fullPage: false });
   console.log("367x662 atomic-number symbol prompt, countdown reveal, and quiz interface checks passed.");
   await context.close();
+
+  const debugContext = await browser.newContext({ viewport });
+  const debugPage = await debugContext.newPage();
+  await debugPage.goto(`${baseUrl}${path}&debug=assets`, { waitUntil: "networkidle" });
+  await debugPage.waitForSelector("#ui-assetInspectorButton", { state: "attached" });
+  const debugMetrics = await debugPage.evaluate(() => ({
+    buttons: document.querySelectorAll("#ui-assetInspectorButton").length,
+    resources: performance.getEntriesByType("resource").filter(entry => /asset-debug-viewer\.js(?:\?|$)/.test(entry.name)).length
+  }));
+  assert(debugMetrics.buttons === 1, `debug mode: inspector button count is ${debugMetrics.buttons}`);
+  assert(debugMetrics.resources === 1, `debug mode: inspector module loaded ${debugMetrics.resources} times`);
+  await debugContext.close();
 } finally {
   await browser.close();
 }

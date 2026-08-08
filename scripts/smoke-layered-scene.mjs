@@ -177,7 +177,6 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
     const stage = document.getElementById("visualStage").getBoundingClientRect();
     const stacks = [...document.querySelectorAll("#layeredScene")];
     const stack = stacks[0].getBoundingClientRect();
-    const legacyActors = document.querySelector(".quiz-scene-actors");
     const visible = [...document.querySelectorAll(
       "#layeredScene > .scene-kongjwi, #layeredScene > .scene-tool, #layeredScene > .scene-jar-back, #layeredScene > .scene-toad-expression"
     )].filter(element => !element.hidden).map(element => {
@@ -187,7 +186,7 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
     return {
       runtimeEntries: performance.getEntriesByType("resource").filter(entry => /\/assets\/js\/main\.js(?:\?|$)/.test(entry.name)).length,
       stackCount: stacks.length,
-      legacyDisplay: legacyActors ? getComputedStyle(legacyActors).display : "missing",
+      legacySceneNodes: document.querySelectorAll(".scene-background-layer,.scene-cinematic-shade,.quiz-scene-actors,.scene-leak-effect").length,
       stage: { left: stage.left, top: stage.top, right: stage.right, bottom: stage.bottom, width: stage.width, height: stage.height },
       stack: { left: stack.left, top: stack.top, right: stack.right, bottom: stack.bottom, width: stack.width, height: stack.height },
       visible
@@ -197,7 +196,7 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
   const tolerance = 2;
   assert(geometry.stackCount === 1, `${name}: expected one layered scene, found ${geometry.stackCount}`);
   assert(geometry.runtimeEntries === 1, `${name}: main.js loaded ${geometry.runtimeEntries} times`);
-  assert(geometry.legacyDisplay === "none", `${name}: legacy actor scene is visible (${geometry.legacyDisplay})`);
+  assert(geometry.legacySceneNodes === 0, `${name}: ${geometry.legacySceneNodes} legacy scene nodes remain`);
   assert(geometry.stage.width > 0 && geometry.stage.height > 0, `${name}: visual stage has no layout box`);
   assert(geometry.stack.width > 0 && geometry.stack.height > 0, `${name}: layered scene has no layout box`);
   assert(geometry.stack.left >= geometry.stage.left - tolerance, `${name}: stack left crop`);

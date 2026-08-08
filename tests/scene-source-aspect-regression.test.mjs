@@ -18,11 +18,15 @@ test("scene source aspect correction restores authored Kongjwi ratio and jar sou
   assert.match(read("assets/css/layered-scene-runtime.css"), /scene-source-aspect-fix\.css\?v=20260807-underlayer-rig3/);
 });
 
-test("current equipped Kongjwi, bucket, and jar source inspector is mounted with cosmetics", () => {
+test("asset inspector is isolated behind the game entry debug parameter", () => {
   const entry = read("assets/js/game-cosmetics-entry.js");
+  const gameEntry = read("assets/js/game-page.js");
+  const html = read("콩쥐야_줘때써.html");
   const viewer = read("assets/js/asset-debug-viewer.js");
-  assert.match(entry, /asset-debug-viewer\.js/);
-  assert.doesNotMatch(entry, /asset-debug-viewer\.js\?v=/);
+  assert.doesNotMatch(entry, /asset-debug-viewer\.js/);
+  assert.doesNotMatch(html, /<script[^>]+asset-debug-viewer\.js/);
+  assert.match(gameEntry, /get\("debug"\) === "assets"/);
+  assert.equal((gameEntry.match(/import\("\.\/asset-debug-viewer\.js"\)/g) || []).length, 1);
   assert.match(viewer, /현재 장착 원본 에셋/);
   assert.match(viewer, /콩쥐/);
   assert.match(viewer, /바가지/);

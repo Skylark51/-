@@ -302,15 +302,6 @@
   max-width: min(39%, 168px) !important;
 }
 
-.scene-animation-zone .scene-leak-effect {
-  right: clamp(27px, 8.4%, 48px) !important;
-  bottom: -7px !important;
-  width: 30px !important;
-  height: 64px !important;
-  opacity: 0.24 !important;
-  transform: scale(.72) rotate(2deg) !important;
-}
-
 @keyframes quiz-toad-breathe-anchored {
   from { transform: translate3d(0, 0.7%, 0) scale(1); }
   to { transform: translate3d(0, -0.7%, 0) scale(1.012, .995); }

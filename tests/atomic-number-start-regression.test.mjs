@@ -8,6 +8,8 @@ const indexSource = read("data/questions/index.js");
 const questionsFacade = read("data/questions.js");
 const mainSource = read("assets/js/main.js");
 const uiSource = read("assets/js/ui-effects.js");
+const countdownSource = read("assets/js/opening-countdown-flow.js");
+const entrySource = read("assets/js/game-page.js");
 const css = read("assets/css/atomic-number-speed-start.css");
 const html = read("콩쥐야_줘때써.html");
 
@@ -16,13 +18,12 @@ test("atomic-number questions show only the element symbol", () => {
   assert.doesNotMatch(atomicSource, /원소 기호 .*원자 번호는\?/);
 });
 
-test("atomic-number mode gets a breathing intro followed by 3 2 1 before the game clock starts", () => {
-  assert.match(uiSource, /OPENING_COUNTDOWN_TRAININGS\s*=\s*new Set\(\["atomic_number"\]\)/);
-  assert.match(uiSource, /OPENING_COUNTDOWN_INTRO\s*=\s*"자\.\.\. 숨 고르시고\.\. 시작합니다"/);
-  assert.match(uiSource, /OPENING_COUNTDOWN_STEPS\s*=\s*Object\.freeze\(\[3, 2, 1\]\)/);
-  const countdown = uiSource.indexOf("await runOpeningCountdown({ modeId: mode.id, announce, scene });");
-  const start = uiSource.indexOf("api.start({ difficulty, resumeState });");
-  assert.ok(countdown >= 0 && start > countdown, "countdown must finish before api.start starts timers/leak");
+test("atomic-number mode uses the universal paused countdown owner", () => {
+  assert.match(countdownSource, /COUNTDOWN_STEPS\s*=\s*Object\.freeze\(\[3, 2, 1\]\)/);
+  assert.match(countdownSource, /api\.game\.pause\(\)/);
+  assert.match(countdownSource, /getApi\(\)\?\.game\?\.resume\?\.\(\)/);
+  assert.match(entrySource, /mountOpeningCountdown\(\)/);
+  assert.doesNotMatch(uiSource, /runOpeningCountdown|OPENING_COUNTDOWN_TRAININGS/);
 });
 
 test("atomic-number flash prompt uses one cache-busted game entry and canonical internal modules", () => {

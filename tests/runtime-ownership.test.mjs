@@ -14,6 +14,8 @@ test("game page has one bootstrap and canonical internal module identities", () 
     .map(name => read(`assets/js/${name}`)).join("\n");
   assert.equal((html.match(/game-page\.js\?v=/g) || []).length, 1);
   assert.match(entry, /bootstrapGameRuntime\(\)/);
+  assert.match(entry, /mountOpeningCountdown\(\)/);
+  assert.doesNotMatch(html, /<script[^>]+(?:asset-debug-viewer|opening-countdown-flow)\.js/);
   assert.match(main, /if \(globalThis\.KongJuiYaGame\) return globalThis\.KongJuiYaGame/);
   assert.equal((main.match(/new GameCore\(/g) || []).length, 1);
   assert.doesNotMatch(runtimeSources, /main\.js\?v=/);

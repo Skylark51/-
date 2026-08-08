@@ -202,6 +202,7 @@ document.addEventListener("keydown", event => {
   }
   if (
     event.code === "Space" &&
+    !document.getElementById("ui-gameApp")?.classList.contains("is-opening-countdown") &&
     !["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(event.target?.tagName)
   ) {
     event.preventDefault();

@@ -306,30 +306,6 @@ button { cursor: pointer; }
   text-align: center;
   transform: translateX(-50%);
 }
-.scene-leak-effect {
-  position: absolute;
-  z-index: 5;
-  right: 20%;
-  bottom: 2%;
-  width: 70px;
-  height: 130px;
-  opacity: 0.26;
-  pointer-events: none;
-  transform: rotate(4deg);
-  transition: opacity 180ms ease;
-}
-.scene-leak-effect i {
-  position: absolute;
-  top: 0;
-  width: 12px;
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(218, 252, 255, 0.92), rgba(71, 184, 222, 0.72) 60%, transparent);
-  transform-origin: top;
-}
-.scene-leak-effect i:nth-child(1) { left: 8px; height: 82%; transform: rotate(-4deg); }
-.scene-leak-effect i:nth-child(2) { left: 30px; }
-.scene-leak-effect i:nth-child(3) { left: 52px; height: 67%; transform: rotate(7deg); }
 .scene-pour-arc {
   position: absolute;
   z-index: 6;
@@ -628,16 +604,11 @@ button { cursor: pointer; }
 .jar-game-shell[data-scene-state="correctRecovery"] .scene-pour-arc { opacity: 1; }
 .jar-game-shell[data-scene-state="pour"] .splash { animation: splash-pop 850ms ease both; }
 .jar-game-shell[data-scene-state="wrong"] .game-stage { animation: stage-hit 500ms ease; }
-.jar-game-shell[data-scene-state="wrong"] .scene-leak-effect,
-.jar-game-shell[data-scene-state="timeout"] .scene-leak-effect,
-.jar-game-shell[data-scene-state="gameOver"] .scene-leak-effect { opacity: 0.9; }
 .jar-game-shell[data-scene-state="timeout"] .danger-overlay,
 .jar-game-shell[data-scene-state="gameOver"] .danger-overlay,
 .game-stage[data-water-band="critical"] .danger-overlay { opacity: 0.58; }
 .jar-game-shell[data-scene-state="fever"] .game-stage { box-shadow: 0 0 0 2px rgba(240, 180, 58, 0.45), 0 0 45px rgba(240, 155, 33, 0.32), var(--game-shadow); }
 .jar-game-shell[data-scene-state="paused"] .paused-curtain { opacity: 1; pointer-events: auto; }
-.game-stage[data-water-band="warning"] .scene-leak-effect { opacity: 0.52; }
-.game-stage[data-water-band="critical"] .scene-leak-effect { opacity: 0.82; }
 
 @keyframes splash-pop {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
@@ -689,7 +660,6 @@ button { cursor: pointer; }
   .scene-water-meter > span { font-size: 8px; }
   .scene-cosmetic-notice { bottom: 8px; max-width: 78%; padding: 5px 8px; font-size: 8px; }
   .toad-bubble { right: 6%; bottom: 13%; max-width: 160px; padding: 7px 9px; font-size: 9px; }
-  .scene-leak-effect { right: 17%; bottom: 0; transform: scale(0.66) rotate(4deg); transform-origin: bottom right; }
   .scene-pour-arc { left: 32%; top: 20%; width: 36%; height: 37%; border-top-width: 8px; }
   .question-panel { grid-template-rows: auto minmax(96px, 0.82fr) minmax(174px, 1.18fr); gap: 5px; }
   .fever-panel { padding: 6px 9px; border-radius: 10px; }
