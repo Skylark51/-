@@ -19,10 +19,14 @@ test("jar cards always use the currently equipped jar PNG without recoloring", (
   assert.doesNotMatch(source, /hue-rotate|sepia\(|thumbnailFilter/);
 });
 
-test("layered scene loads its missing runtime stylesheet before mounting", () => {
+test("layered scene loads the current runtime stylesheet and one uniform logical scale", () => {
   const renderer = read("assets/js/scene-renderer.js");
-  assert.match(renderer, /game-asset-animation\.css\?v=20260806-mobile-scene-fix1/);
+  assert.match(renderer, /game-asset-animation\.css\?v=20260808-motion-polish1/);
   assert.match(renderer, /await ensureRuntimeStylesheet\(\)/);
+  assert.match(renderer, /function fitStackToHost/);
+  assert.match(renderer, /Math\.min\(hostWidth \/ logical\.width, hostHeight \/ logical\.height\)/);
+  assert.match(renderer, /stack\.dataset\.scaleMode = "uniform-contain"/);
+  assert.match(renderer, /new ResizeObserver/);
   assert.match(renderer, /stack\.dataset\.assetMode =/);
   assert.match(renderer, /"coherent-fallback"/);
   assert.match(renderer, /const motionRig = authoredKongjwi\.authored && authoredTool\.authored/);
@@ -33,6 +37,8 @@ test("static fallback actors use explicit shared-coordinate placements", () => {
   assert.equal(manifest.logicalSize.width, 2048);
   assert.equal(manifest.logicalSize.height, 1152);
   assert.equal(manifest.runtimePolicy.fallbackMode, "coherent-static-rig");
+  assert.equal(manifest.runtimePolicy.uniformScalePolicy, "shared-2048x1152-contain");
+  assert.equal(manifest.responsive.mobile.scaleMode, "uniform-contain");
   for (const actor of ["kongjwi", "tool", "waterStream", "toad"]) {
     assert.ok(manifest.fallbackPlacements[actor], `missing fallback placement: ${actor}`);
   }
