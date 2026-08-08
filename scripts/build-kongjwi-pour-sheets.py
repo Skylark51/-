@@ -35,8 +35,6 @@ TOOL_SOURCES = {
     "moon": "moon.png",
 }
 
-# Keep whole-body motion restrained. The hand/forearm provides the readable
-# action while the torso only anticipates and follows through.
 BODY_POSES = (
     (0.0, 0, 0),
     (0.0, 0, -1),
@@ -188,7 +186,6 @@ def build_kongjwi(root: Path, force: bool = False):
 
 
 def prepare_tool_pixels(source: Image.Image) -> Image.Image:
-    """Crop transparent canvas without upscaling or reducing color depth."""
     crop = source.crop(alpha_bbox(source))
     max_w, max_h = 164, 150
     scale = min(1.0, max_w / crop.width, max_h / crop.height)
@@ -212,9 +209,6 @@ def load_or_create_tool_master(root: Path, tool_key: str) -> Image.Image:
         tool = prepare_tool_pixels(load_rgba(master_path))
         source_label = str(master_path.relative_to(root))
     except (OSError, UnidentifiedImageError) as error:
-        # Some legacy static bucket PNGs have a valid PNG signature but a
-        # truncated image stream. Preserve the already-rendering frame-0 pixels
-        # once, instead of failing or recursively resampling whole sheets.
         sheet_path = generated_dir / "pour-sheet.png"
         sheet = load_rgba(sheet_path)
         if sheet.size != (CELL[0] * FRAMES, CELL[1]):
@@ -225,7 +219,7 @@ def load_or_create_tool_master(root: Path, tool_key: str) -> Image.Image:
         print(f"{tool_key}: legacy static PNG unreadable; preserving {source_label} as canonical master")
 
     canonical.parent.mkdir(parents=True, exist_ok=True)
-    canonical.save(canonical, format="PNG", optimize=True, compress_level=9)
+    tool.save(canonical, format="PNG", optimize=True, compress_level=9)
     print(f"{tool_key}: canonical master <- {source_label}")
     return tool
 
