@@ -39,10 +39,10 @@ function ensureMetalReactivityStyle() {
       object-position: center center !important;
     }
 
-    #ui-gameApp .scene-kongjwi[data-sprite-mode="sheet"] > .scene-sprite {
-      background-size: calc(var(--scene-frame-count) * 100%) auto !important;
-      background-position-y: bottom !important;
-    }
+    /* Horizontal sprite sheets must keep one full frame mapped to the actor box.
+   * The base scene runtime owns background-size: N*100% 100%. Setting the
+   * height to auto makes the sheet taller than the actor box and clips the
+   * top of each frame (the character head on mobile). */
 
     /* Toad reactions may scale uniformly, but never squash width or height. */
     @keyframes existing-toad-correct {

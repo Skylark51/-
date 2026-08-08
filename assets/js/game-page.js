@@ -1,4 +1,4 @@
-import { bootstrapGameRuntime } from "./main.js";
+import { bootstrapGameRuntime } from "./main.js?v=20260808-sprite-sheet1";
 import { initializeGamePage } from "./ui-effects.js";
 import { mountOpeningCountdown } from "./opening-countdown-flow.js";
 
