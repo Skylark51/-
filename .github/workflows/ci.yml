@@ -1,0 +1,76 @@
+name: Integrated regression gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: regression-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fast-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        shell: bash
+        run: git ls-files -z '*.js' '*.mjs' | xargs -0 -n1 node --check
+      - name: Validate question schema and chemistry content
+        run: node scripts/validate-questions.mjs
+      - name: Run Node regression suite
+        shell: bash
+        run: node --test tests/*.mjs
+      - name: Validate metal reactivity route
+        run: node scripts/test-metal-reactivity-route.mjs
+      - name: Validate required layered-scene assets
+        run: node scripts/validate-layered-scene.mjs
+
+  browser-smoke:
+    needs: fast-regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium smoke runtime
+        run: |
+          npm init -y
+          npm install --no-save --ignore-scripts playwright@1.55.0
+          npx playwright install chromium
+      - name: Start static server
+        shell: bash
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/regression-http.log 2>&1 &
+          echo $! > /tmp/regression-http.pid
+          curl --fail --retry 10 --retry-connrefused --retry-delay 1 http://127.0.0.1:4173/index.html > /dev/null
+      - name: Lobby and jar-selection smoke
+        run: node scripts/smoke-lobby-navigation.mjs
+      - name: Quiz interface smoke
+        run: node scripts/smoke-quiz-interface.mjs
+      - name: Layered scene smoke
+        run: node scripts/smoke-layered-scene.mjs
+      - name: Upload browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integrated-regression-diagnostics
+          path: |
+            /tmp/regression-http.log
+            /tmp/lobby-*-failure.png
+            /tmp/quiz-interface-367x662.png
+          if-no-files-found: ignore

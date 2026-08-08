@@ -34,6 +34,6 @@ assert.ok(layout.includes("grid-template-rows: repeat(2, minmax(264px, 1fr))"), 
 assert.ok(layout.includes('.shop-item[data-category="outfit"] .shop-item-visual::before'), "legacy placeholder removal must be scoped to outfit cards");
 assert.ok(!layout.includes('.shop-page .shop-item-visual::before,\n.shop-page .shop-category-visual::before'), "other shop categories must keep their visual placeholders");
 assert.ok(html.includes("shop-outfit-layout.css?v=20260805-jar-clean2"), "outfit layout cache key must be current");
-assert.ok(html.includes("shop-navigation.js?v=20260805-jar-clean2"), "shop renderer cache key must be current");
+assert.ok(html.includes("shop-navigation.js?v=20260807-underlayer-grip1"), "shop renderer cache key must be current");
 
 console.log("shop-authored-kongjwi: all checks passed");

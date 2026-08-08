@@ -61,7 +61,7 @@ for(const mode of TRAINING_MODES){
 
 const checkFixed=(bankName,table)=>{for(const item of QUESTION_BANKS[bankName]||[]){const symbol=item.tags.find(tag=>allowedElements.has(tag));if(!symbol)fail('missing_element_tag',item);else if(Number(item.answers[0])!==table[symbol])fail('fixed_value',item,symbol)}};
 if(QUESTION_BANKS.atomic_number?.length!==20)errors.push('atomic_number_count');
-for(const item of QUESTION_BANKS.atomic_number||[]){const symbol=item.tags.find(tag=>allowedElements.has(tag));if(!symbol||Number(item.answers[0])!==ATOMIC_NUMBERS[symbol]||!String(item.prompt).includes('원소 기호'))fail('atomic_number_rule',item)}
+for(const item of QUESTION_BANKS.atomic_number||[]){const symbol=item.tags.find(tag=>allowedElements.has(tag));if(!symbol||Number(item.answers[0])!==ATOMIC_NUMBERS[symbol]||String(item.prompt)!==symbol)fail('atomic_number_rule',item)}
 if(QUESTION_BANKS.atomic_mass?.length!==20)errors.push('atomic_mass_count');
 checkFixed('atomic_mass',ATOMIC_MASSES);
 checkFixed('valence_electron',VALENCE_ELECTRONS);

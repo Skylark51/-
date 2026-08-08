@@ -87,7 +87,7 @@ jobs:
             assets/art/game-scene/kongjwi \
             assets/art/game-scene/tools \
             assets/js/scene-renderer.js \
-            assets/js/visible-water-pour.js \
+            assets/js/game-page.js \
             assets/js/game-cosmetics-entry.js \
             assets/js/ui-effects.js \
             assets/css/scene-source-aspect-fix.css \

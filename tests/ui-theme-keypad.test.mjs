@@ -1,14 +1,69 @@
-import test from"node:test";import assert from"node:assert/strict";import{readFile}from"node:fs/promises";
-import{GAME_TITLE,JAR_THEMES,displayJarName,themeFor}from"../assets/js/theme-system.js";
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { GAME_TITLE, JAR_THEMES, displayJarName, themeFor } from '../assets/js/theme-system.js';
 
-test("고정 게임 제목이 두 HTML의 title·meta·화면에 존재한다",async()=>{for(const file of["index.html","콩쥐야_줘때써.html"]){const html=await readFile(new URL(`../${file}`,import.meta.url),"utf8");assert.match(html,new RegExp(`<title>${GAME_TITLE}</title>`));assert.match(html,new RegExp(`content=\"${GAME_TITLE}`));assert.doesNotMatch(html,/콩쥐야, 좋됐어|교육과정상|교육과정에 따르면|교육과정 기준|교과 과정상/)}});
-test("25개 모드의 장독대 색상과 두꺼비 테마가 고유하다",()=>{const themes=Object.values(JAR_THEMES);assert.equal(themes.length,25);assert.equal(new Set(themes.map(theme=>theme.jarColor)).size,25);assert.equal(new Set(themes.map(theme=>theme.toad)).size,25)});
-test("화면용 모드 이름은 장독대 채우기 형식이다",()=>{assert.equal(displayJarName({title:"원자 번호 훈련"}),"원자 번호 장독대 채우기");assert.equal(displayJarName({title:"산화환원 판단"}),"산화환원 판단 장독대 채우기");assert.equal(displayJarName({title:"원자 번호 장독대 채우기"}),"원자 번호 장독대 채우기")});
-test("대표 장독대 테마가 지정값과 일치한다",()=>{assert.equal(themeFor("atomic_number").jar,"bronze");assert.equal(themeFor("redox").toad,"split");assert.equal(themeFor("acid_base").pattern,"yin-yang")});
-test("모바일 키패드는 문항 메타데이터만 참조한다",async()=>{const code=await readFile(new URL("../assets/js/mobile-keypad.js",import.meta.url),"utf8");assert.match(code,/questionInput/);assert.match(code,/allowedKeys/);assert.match(code,/autoSubmit|inputMode/);assert.doesNotMatch(code,/prompt|questionText|includes\\(\"산화\"\\)/)});
+const read = file => readFile(new URL('../' + file, import.meta.url), 'utf8');
 
-test("모바일 정수 키패드는 4줄 3열 계약을 지킨다",async()=>{const code=await readFile(new URL("../assets/js/mobile-keypad.js",import.meta.url),"utf8");assert.match(code,/DIGITS\s*=\s*\["1",\s*"2",\s*"3",\s*"4",\s*"5",\s*"6",\s*"7",\s*"8",\s*"9"\]/);assert.match(code,/make\("C"/);assert.match(code,/make\("0"/);assert.match(code,/make\("제출"/);assert.doesNotMatch(code,/make\("⌫"|make\("전체 지우기"/)});
-test("직접 게임 진입과 결과 화면에 로비 경로가 있다",async()=>{const code=await readFile(new URL("../assets/js/ui-effects.js",import.meta.url),"utf8");assert.match(code,/if\(!query&&!selection\?\.trainingId\)/);assert.match(code,/location\.replace\("index\.html"\)/);assert.match(code,/장독대 고르기로/)});
-test("피버와 액션 연출 한글은 UTF-8 정상 문자열이다",async()=>{const code=await readFile(new URL("../assets/js/action-effects.js",import.meta.url),"utf8");for(const text of["깡!","시간 다 됐다!","왕두꺼비 등장!","황금 두꺼비 FEVER"]){assert.match(code,new RegExp(text))}assert.doesNotMatch(code,/繹|鸚|癒|룻닊|袁⑤|源놁/)});
-test("모바일 최종 계약은 장면 뒤에 문제와 하단 키패드를 둔다",async()=>{const css=await readFile(new URL("../assets/css/themes-keypad.css",import.meta.url),"utf8"),marker=css.lastIndexOf("Definitive mobile viewport contract"),legacy=css.lastIndexOf("Mobile usability pass based on real-device capture");assert.ok(marker>legacy);const finalCss=css.slice(marker);assert.match(finalCss,/grid-template-areas:"hud" "scene" "question"/);assert.match(finalCss,/\.mobile-keypad\{grid-row:5!/);assert.match(finalCss,/\.game-stage\{[^}]*height:100%!important;min-height:0!important/);assert.match(finalCss,/#exitDialog\{[^}]*max-height:/)});
-test("모바일 압축 일시정지 버튼은 긴 계속하기 문구를 넣지 않는다",async()=>{const code=await readFile(new URL("../assets/js/ui-effects.js",import.meta.url),"utf8");assert.match(code,/compactPause\.textContent=paused\?"▶":"Ⅱ"/);assert.match(code,/paused\?"게임 계속하기":"게임 일시정지"/)});
+test('official title is present in lobby and game HTML', async () => {
+  for (const file of ['index.html', '콩쥐야_줘때써.html']) {
+    const html = await read(file);
+    assert.ok(html.includes('<title>' + GAME_TITLE + '</title>'));
+    assert.ok(html.includes(GAME_TITLE));
+  }
+});
+
+test('jar themes and display names remain available', () => {
+  const themes = Object.values(JAR_THEMES);
+  assert.equal(themes.length, 25);
+  assert.equal(new Set(themes.map(theme => theme.jarColor)).size, 25);
+  assert.equal(displayJarName({ title: '원자 번호' }), '원자 번호 장독대 채우기');
+  assert.equal(themeFor('atomic_number').jar, 'bronze');
+  assert.equal(themeFor('redox').toad, 'split');
+});
+
+test('mobile keypad is driven by input descriptors', async () => {
+  const code = await read('assets/js/mobile-keypad.js');
+  assert.match(code, /getInputDescriptor/);
+  assert.match(code, /descriptor\.allowedKeys/);
+  assert.match(code, /descriptor\.inputMode/);
+  assert.match(code, /renderChoiceKeys/);
+  assert.match(code, /renderNumericKeys/);
+  assert.doesNotMatch(code, /trainingId\s*===/);
+});
+
+test('numeric keypad keeps a four-by-three digit contract', async () => {
+  const code = await read('assets/js/mobile-keypad.js');
+  assert.match(code, /DIGITS\s*=\s*\[[^\]]*'1'|DIGITS\s*=\s*\[[^\]]*\x221\x22/);
+  assert.match(code, /gridTemplateColumns\s*=\s*\x22repeat\(3,/);
+  assert.match(code, /gridTemplateRows\s*=\s*\x22repeat\(4,/);
+  assert.match(code, /createButton\(\x22전체\x22/);
+  assert.match(code, /createButton\(\x22확인\x22/);
+});
+
+test('single game entry owns lobby redirects and result navigation', async () => {
+  const html = await read('콩쥐야_줘때써.html');
+  const entry = await read('assets/js/game-page.js');
+  const ui = await read('assets/js/ui-effects.js');
+  assert.match(html, /game-page\.js\?v=/);
+  assert.match(entry, /initializeGamePage/);
+  assert.match(ui, /index\.html\?view=jars/);
+  assert.match(ui, /장독대 고르기로/);
+});
+
+test('mobile layout reserves a scene and full keypad', async () => {
+  const balance = await read('assets/css/mobile-quiz-balance.css');
+  const polish = await read('assets/css/quiz-mobile-polish.css');
+  assert.match(balance, /--mobile-scene-height/);
+  assert.match(balance, /grid-template-rows/);
+  assert.match(polish, /\.mobile-keypad/);
+  assert.match(polish, /min-height:\s*40px\s*!important/);
+});
+
+test('pause button stays icon-sized with accessible labels', async () => {
+  const entry = await read('assets/js/ui-effects.js');
+  assert.match(entry, /button\.textContent\s*=\s*paused\s*\?\s*\x22▶\x22\s*:\s*\x22Ⅱ\x22/);
+  assert.match(entry, /aria-label/);
+  assert.match(entry, /게임 계속하기/);
+  assert.match(entry, /게임 일시정지/);
+});

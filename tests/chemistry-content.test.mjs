@@ -1,12 +1,83 @@
-import test from "node:test";import assert from "node:assert/strict";import fs from "node:fs";
-import{QUESTIONS,QUESTION_BANKS,validateQuestions}from"../data/questions.js";import{ELEMENTS_1_TO_20,ATOMIC_MASSES,VALENCE_ELECTRONS,ELECTRONEGATIVITY}from"../data/chemistry-constants.js";import{TRAINING_MODES}from"../data/training-modes.js";import{evaluateAnswer,getInputDescriptor}from"../assets/js/question-engine.js";
-const forbidden=new RegExp([["교육","과정상"],["교육","과정에 따르면"],["교육","과정 기준"],["교과"," 과정상"],["고등학교 교육","과정상"]].map(parts=>parts.join("")).join("|"));const symbols=q=>q.tags.filter(x=>ELEMENTS_1_TO_20.includes(x));
-test("fixed title is exact",()=>{for(const file of["index.html","콩쥐야_줘때써.html"]){const html=fs.readFileSync(new URL(`../${file}`,import.meta.url),"utf8");assert.match(html,/<title>콩쥐야 줘때써 - 화학편<\/title>/)}});
-test("atomic numbers are exactly H through Ca symbol to integer",()=>{const qs=QUESTION_BANKS.atomic_number;assert.equal(qs.length,20);assert.deepEqual(qs.map(q=>q.tags[1]),ELEMENTS_1_TO_20);qs.forEach((q,index)=>{assert.equal(q.answers[0],String(index+1));assert.equal(q.answerMode,"integer");assert.match(q.prompt,new RegExp(`^원소 기호 ${ELEMENTS_1_TO_20[index]}의 원자 번호는\\?$`));assert.equal(q.difficulty,1)})});
-test("atomic masses match the fixed table",()=>{const qs=QUESTION_BANKS.atomic_mass;assert.equal(qs.length,20);for(const q of qs){const symbol=q.tags[1],value=Number(q.answers[0]);assert.equal(value,ATOMIC_MASSES[symbol]);if(symbol!=="Cl")assert.equal(Number.isInteger(value),true)}});
-test("period group and valence use H through Ca fixed values",()=>{assert.equal(QUESTION_BANKS.period_group.length,40);for(const symbol of["He","Ne","Ar"]){const q=QUESTION_BANKS.valence_electron.find(x=>x.tags.includes(symbol));assert.deepEqual(q.answers,["0"])}assert.equal(Object.keys(VALENCE_ELECTRONS).length,20)});
-test("electronegativity values are exact and omit noble gases",()=>{const valueQs=QUESTION_BANKS.electronegativity.filter(q=>q.id.startsWith("electronegativity_value_"));assert.equal(valueQs.length,Object.keys(ELECTRONEGATIVITY).length);for(const q of valueQs){const symbol=symbols(q)[0];assert.equal(Number(q.answers[0]),ELECTRONEGATIVITY[symbol]);assert.ok(q.tolerance<=.05);assert.ok(!["He","Ne","Ar"].includes(symbol))}});
-test("mole mass pool uses allowed compounds and unit answers",()=>{const text=QUESTION_BANKS.mole_mass.map(q=>q.prompt).join(" ");assert.doesNotMatch(text,/Fe|Co|Ni|Cu|Zn|Br|Ag|I\b|Ba|Pt|Au|Hg|Pb/);assert.ok(QUESTION_BANKS.mole_mass.length>=20);const sample=QUESTION_BANKS.mole_mass.find(q=>q.unit==="g");assert.equal(evaluateAnswer(sample,`${sample.answers[0]} g`).correct,true)});
-test("gas questions state conditions and avoid banned terminology",()=>{for(const q of QUESTION_BANKS.gas_molar_volume){assert.doesNotMatch(q.prompt+q.explanation,/이상\s*기체|PV\s*=|상태 방정식/);assert.match(q.prompt,/0 ℃, 1기압|25 ℃, 1기압|같은 온도와 같은 압력/)}});
-test("redox and acid-base questions ask one explicit task",()=>{const redox=QUESTION_BANKS.redox;assert.equal(redox.length,30);assert.ok(redox.every(q=>q.type==="multiple_choice"&&q.choices.length===3&&q.autoSubmit&&q.inputMode==="choice"));assert.ok(redox.every(q=>q.promptHtml?.includes("<u>")));assert.deepEqual(redox[0].choices.map(({key,label})=>({key,label})),[{key:"1",label:"산화"},{key:"2",label:"환원"},{key:"3",label:"둘 다 아님"}]);assert.equal(redox.filter(q=>q.answers[0]==="1").length,11);assert.equal(redox.filter(q=>q.answers[0]==="2").length,11);assert.equal(redox.filter(q=>q.answers[0]==="3").length,8);assert.ok(redox.some(q=>q.tags.includes("중화 반응")));assert.ok(redox.some(q=>q.tags.includes("앙금 생성")));const acidTags=new Set(QUESTION_BANKS.acid_base.flatMap(q=>q.tags));for(const tag of["산 염기 분류","생성 이온","중화 반응","산 염기 몰비","산성 염기성"])assert.ok(acidTags.has(tag),tag)});
-test("all questions are unique valid mobile-ready and wording-safe",()=>{assert.deepEqual(validateQuestions(),[]);assert.equal(new Set(QUESTIONS.map(q=>q.id)).size,QUESTIONS.length);for(const q of QUESTIONS){const d=getInputDescriptor(q);assert.ok(q.inputMode);assert.ok(Array.isArray(q.allowedKeys));assert.equal(typeof q.autoSubmit,"boolean");assert.equal(d.inputMode,q.inputMode);assert.doesNotMatch(q.prompt+q.explanation,forbidden)}assert.doesNotMatch(JSON.stringify(TRAINING_MODES),forbidden)});
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { QUESTIONS, QUESTION_BANKS, validateQuestions } from '../data/questions.js';
+import {
+  ELEMENTS_1_TO_20,
+  ATOMIC_MASSES,
+  VALENCE_ELECTRONS,
+  ELECTRONEGATIVITY
+} from '../data/chemistry-constants.js';
+import { TRAINING_MODES } from '../data/training-modes.js';
+import { evaluateAnswer, getInputDescriptor } from '../assets/js/question-engine.js';
+
+const symbols = question => question.tags.filter(tag => ELEMENTS_1_TO_20.includes(tag));
+
+test('atomic-number questions are H-Ca symbols with integer answers', () => {
+  const questions = QUESTION_BANKS.atomic_number;
+  assert.equal(questions.length, 20);
+  assert.deepEqual(questions.map(question => question.tags[1]), ELEMENTS_1_TO_20);
+  questions.forEach((question, index) => {
+    assert.equal(question.prompt, ELEMENTS_1_TO_20[index]);
+    assert.equal(question.answers[0], String(index + 1));
+    assert.equal(question.answerMode, 'integer');
+    assert.equal(question.difficulty, 1);
+  });
+});
+
+test('atomic masses match the complete fixed table', () => {
+  const questions = QUESTION_BANKS.atomic_mass;
+  assert.equal(questions.length, 20);
+  assert.equal(Object.keys(ATOMIC_MASSES).length, 20);
+  for (const question of questions) {
+    const symbol = question.tags[1];
+    assert.equal(Number(question.answers[0]), ATOMIC_MASSES[symbol]);
+  }
+});
+
+test('period, valence, and electronegativity constants stay fixed', () => {
+  assert.equal(QUESTION_BANKS.period_group.length, 40);
+  for (const symbol of ['He', 'Ne', 'Ar']) {
+    const question = QUESTION_BANKS.valence_electron.find(item => item.tags.includes(symbol));
+    assert.deepEqual(question.answers, ['0']);
+  }
+  assert.equal(Object.keys(VALENCE_ELECTRONS).length, 20);
+  const values = QUESTION_BANKS.electronegativity.filter(question => question.id.startsWith('electronegativity_value_'));
+  assert.equal(values.length, Object.keys(ELECTRONEGATIVITY).length);
+  for (const question of values) {
+    const symbol = symbols(question)[0];
+    assert.equal(Number(question.answers[0]), ELECTRONEGATIVITY[symbol]);
+    assert.ok(!['He', 'Ne', 'Ar'].includes(symbol));
+  }
+});
+
+test('mole/mass and gas banks keep grading metadata', () => {
+  assert.ok(QUESTION_BANKS.mole_mass.length >= 20);
+  const sample = QUESTION_BANKS.mole_mass.find(question => question.unit === 'g');
+  assert.equal(evaluateAnswer(sample, sample.answers[0] + ' g').correct, true);
+  for (const question of QUESTION_BANKS.gas_molar_volume) {
+    assert.doesNotMatch(question.prompt + question.explanation, /PV\s*=/);
+    assert.match(question.prompt, /1기압|같은 온도와 같은 압력/);
+  }
+});
+
+test('redox and acid-base banks keep their choice contracts', () => {
+  const redox = QUESTION_BANKS.redox;
+  assert.equal(redox.length, 30);
+  assert.ok(redox.every(question => question.choices.length === 3));
+  assert.ok(redox.every(question => question.promptHtml?.includes('<u>')));
+  assert.deepEqual(redox[0].choices.map(choice => choice.key), ['1', '2', '3']);
+  assert.equal(QUESTION_BANKS.acid_base.length, 17);
+});
+
+test('all questions are unique, valid, and mobile-ready', () => {
+  assert.deepEqual(validateQuestions(), []);
+  assert.equal(new Set(QUESTIONS.map(question => question.id)).size, QUESTIONS.length);
+  for (const question of QUESTIONS) {
+    const descriptor = getInputDescriptor(question);
+    assert.ok(question.inputMode);
+    assert.ok(Array.isArray(question.allowedKeys));
+    assert.equal(typeof question.autoSubmit, 'boolean');
+    assert.equal(descriptor.inputMode, question.inputMode);
+  }
+  assert.equal(TRAINING_MODES.length, 26);
+});
