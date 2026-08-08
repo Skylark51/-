@@ -15,13 +15,15 @@ function pngSize(file) {
   return [buffer.readUInt32BE(16), buffer.readUInt32BE(20)];
 }
 
-test("underlayer motion manifest is current", () => {
+test("all-outfit motion manifest uses the uniform scene policy", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "assets/art/game-scene/manifest.json"), "utf8"));
-  assert.equal(manifest.version, "20260808-runtime-ownership1");
-  assert.equal(manifest.runtimePolicy.kongjwiMotionPolicy, "source-locked-articulated-underlayer");
-  assert.equal(manifest.runtimePolicy.toolMotionPolicy, "equipped-tool-co-registered-with-kongjwi");
+  assert.equal(manifest.version, "20260808-motion-polish1");
+  assert.equal(manifest.runtimePolicy.kongjwiMotionPolicy, "source-locked-articulated-all-outfits");
+  assert.equal(manifest.runtimePolicy.toolMotionPolicy, "source-master-grip-pivot-co-registered");
+  assert.equal(manifest.runtimePolicy.uniformScalePolicy, "shared-2048x1152-contain");
+  assert.equal(manifest.runtimePolicy.waterAnimationPolicy, "synchronized-pour-fill-leak");
+  assert.equal(manifest.responsive.mobile.scaleMode, "uniform-contain");
   assert.deepEqual(manifest.sprites.kongjwi.cell, { width: 512, height: 768 });
-  assert.deepEqual(pngSize(path.join(root, manifest.assets.kongjwi.underlayer.sheet)), [4096, 768]);
 });
 
 test("all bucket sheets remain co-registered", () => {
@@ -35,37 +37,52 @@ test("all bucket sheets remain co-registered", () => {
   }
 });
 
-test("renderer cache-busts scene PNGs from manifest version", () => {
+test("renderer keeps one logical aspect and cache-busts scene PNGs", () => {
   const renderer = fs.readFileSync(path.join(root, "assets/js/scene-renderer.js"), "utf8");
   assert.ok(renderer.includes("const versionedAssetUrl ="));
-  assert.ok(renderer.includes("versionedAssetUrl(primary, manifest.version)"));
-  assert.ok(renderer.includes("versionedAssetUrl(fallback, manifest.version)"));
+  assert.ok(renderer.includes("const scale = Math.min(hostWidth / logical.width, hostHeight / logical.height)"));
+  assert.ok(renderer.includes('stack.dataset.scaleMode = "uniform-contain"'));
+  assert.ok(renderer.includes("new ResizeObserver"));
   assert.ok(renderer.includes("sceneAssetVersion = manifest.version"));
-  assert.ok(renderer.includes("assetVersion = manifest.version"));
 });
 
-test("correct and wrong states drive character and tool", () => {
+test("correct state stages character, stream, splash and leak", () => {
   const stateMachine = fs.readFileSync(path.join(root, "assets/js/scene-state-machine.js"), "utf8");
-  assert.ok(stateMachine.includes('playSequence("kongjwi", plan.kongjwi || [2, 3, 4, 5, 6], 1180, { hold })'));
-  assert.ok(stateMachine.includes('playSequence("tool", plan.tool || [2, 3, 4, 5, 6], 1180, { hold })'));
-  assert.ok(stateMachine.includes('case "wrong"'));
-  assert.ok(stateMachine.includes('[7]'));
+  assert.ok(stateMachine.includes("POUR_CHARACTER_FRAMES"));
+  assert.ok(stateMachine.includes('setFlowPhase("pour")'));
+  assert.ok(stateMachine.includes('playSequence("waterStream"'));
+  assert.ok(stateMachine.includes('playSequence("waterSplash"'));
+  assert.ok(stateMachine.includes('playSequence("waterLeak"'));
+  assert.ok(stateMachine.includes("delay: 410"));
+  assert.ok(stateMachine.includes("startLeakLoop"));
 });
 
-test("cache chain contains the independent rig3 scene version", () => {
-  const html = fs.readFileSync(path.join(root, "콩쥐야_줘때써.html"), "utf8");
-  const runtime = fs.readFileSync(path.join(root, "assets/css/layered-scene-runtime.css"), "utf8");
-  const uiEffects = fs.readFileSync(path.join(root, "assets/js/ui-effects.js"), "utf8");
-  assert.ok(html.includes("20260807-underlayer-rig3"));
-  assert.ok(html.includes("game-asset-animation.css?v=20260807-underlayer-rig3"));
-  assert.ok(html.includes("layered-scene-runtime.css?v=20260807-underlayer-rig3"));
-  assert.ok(html.includes("game-page.js?v=20260808-runtime-ownership1"));
-  assert.ok(!html.includes("visible-water-pour.js"));
-  assert.ok(runtime.includes("scene-source-aspect-fix.css?v=20260807-underlayer-rig3"));
-  assert.ok(uiEffects.includes('game-cosmetics-entry.js'));
+test("builder articulates every outfit and rebuilds tools from authored masters", () => {
+  const builder = fs.readFileSync(path.join(root, "scripts/build-kongjwi-pour-sheets.py"), "utf8");
+  assert.ok(builder.includes("def build_articulated_frames"));
+  assert.ok(builder.includes("frames, hand_points = build_articulated_frames(base)"));
+  assert.ok(builder.includes('master_path = root / "assets/art/kongjwi-tools" / TOOL_SOURCES[tool_key]'));
+  assert.ok(builder.includes("arm_hand = rotate_point(HAND, ELBOW, arm_angle)"));
+  assert.ok(builder.includes("hand_points.append(pose_point(arm_hand, body_angle, dx, dy))"));
 });
 
-test("all Kongjwi sheets remain available", () => {
+test("no actor is corrected with nonuniform jar scaling", () => {
+  const aspect = fs.readFileSync(path.join(root, "assets/css/scene-source-aspect-fix.css"), "utf8");
+  assert.ok(!aspect.includes("--jar-source-aspect-x"));
+  assert.ok(!aspect.includes("scaleX(var(--jar-source-aspect-x"));
+  assert.ok(aspect.includes("transform: none !important"));
+});
+
+test("item and night-court effects are data keyed", () => {
+  const registry = fs.readFileSync(path.join(root, "assets/js/scene-cosmetic-effects.js"), "utf8");
+  const css = fs.readFileSync(path.join(root, "assets/css/scene-motion-polish.css"), "utf8");
+  assert.ok(registry.includes('"night-court": "night-court-moon-aura"'));
+  for (const tool of tools) assert.ok(registry.includes(`${tool}:`));
+  assert.ok(css.includes('data-outfit-fx="night-court-moon-aura"'));
+  assert.ok(css.includes('data-tool-fx="moon-silver-stream"'));
+});
+
+test("all Kongjwi sheets remain PNG and available", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "assets/art/game-scene/manifest.json"), "utf8"));
   for (const skin of skins) {
     const sheet = manifest.assets.kongjwi[skin].sheet;
