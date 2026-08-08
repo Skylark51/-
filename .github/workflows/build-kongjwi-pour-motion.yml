@@ -88,15 +88,15 @@ jobs:
           builder = importlib.util.module_from_spec(spec)
           spec.loader.exec_module(builder)
 
-          current_head, donor_head = builder.night_head_coverage(Path("."))
-          minimum_head = round(donor_head * builder.NIGHT_HEAD_REQUIRED_RATIO)
-          assert donor_head >= builder.NIGHT_HEAD_MIN_DONOR_COVERAGE, donor_head
-          assert current_head >= minimum_head, (
-              f"night-court head alpha is incomplete: {current_head} < {minimum_head}"
+          current_face, donor_face = builder.night_head_coverage(Path("."))
+          minimum_face = round(donor_face * builder.NIGHT_FACE_REQUIRED_RATIO)
+          assert donor_face >= builder.NIGHT_FACE_MIN_DONOR_COVERAGE, donor_face
+          assert current_face >= minimum_face, (
+              f"night-court face/head alpha is incomplete: {current_face} < {minimum_face}"
           )
 
           manifest = json.loads(Path("assets/art/game-scene/manifest.json").read_text(encoding="utf-8"))
-          assert manifest["version"] == "20260808-head-safe1"
+          assert manifest["version"] == "20260808-head-safe2"
           assert manifest["runtimePolicy"]["anatomySafetyPolicy"] == "complete-source-required-no-headless-cutouts"
           assert manifest["layers"]["scene-tool"] > manifest["layers"]["scene-kongjwi"], (
               "equipped bucket must render in front of the character grip region"

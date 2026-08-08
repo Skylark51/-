@@ -9,10 +9,10 @@ uses only a small rigid whole-body pose around the feet. Buckets remain a
 separate layer and rotate around the shared hand anchor.
 
 The royal-night source was originally decoded from an opaque PNG and then
-background-matted. If that matte drops the head, the "intact source" invariant
-would faithfully preserve a headless character. Before building the motion
-sheet, repair only missing head alpha from the aligned classic-red silhouette
-while taking every restored RGB pixel from the authored royal-night source.
+background-matted. If that matte drops the face/head, the "intact source"
+invariant would faithfully preserve a headless character. Detect that defect in
+the face core, then repair the broader head alpha from an aligned authored
+silhouette while taking every restored RGB pixel from the royal-night source.
 
 Bucket pixels are preserved in a canonical master.png the first time a valid
 source is available; if a legacy static bucket PNG is truncated, frame 0 of the
@@ -56,9 +56,16 @@ NIGHT_HEAD_POLYGON = (
     (176, 149), (164, 181), (148, 170), (143, 107), (113, 107),
     (108, 170), (92, 181), (80, 149), (87, 111), (92, 83),
 )
+# Face-core polygon is intentionally much tighter than the full head. The old
+# defective matte still contained collar/hair pixels, so broad head coverage
+# could look healthy numerically while the visible face was completely absent.
+NIGHT_FACE_POLYGON = (
+    (114, 36), (123, 32), (135, 33), (143, 40), (146, 55), (144, 74),
+    (137, 87), (128, 92), (118, 88), (111, 76), (109, 56), (111, 43),
+)
 NIGHT_HEAD_DONOR_SHIFT = (0, -1)
-NIGHT_HEAD_MIN_DONOR_COVERAGE = 1200
-NIGHT_HEAD_REQUIRED_RATIO = 0.72
+NIGHT_FACE_MIN_DONOR_COVERAGE = 700
+NIGHT_FACE_REQUIRED_RATIO = 0.72
 
 # The source character is kept intact in every frame. These are deliberately
 # small rigid poses around the feet: they create anticipation / pour / recovery
@@ -94,7 +101,8 @@ def load_rgba(path: Path) -> Image.Image:
 
 
 def alpha_coverage(mask: Image.Image, threshold: int = 16) -> int:
-    return sum(1 for value in mask.getdata() if value > threshold)
+    histogram = mask.histogram()
+    return sum(histogram[threshold + 1:])
 
 
 def polygon_mask(size: tuple[int, int], points) -> Image.Image:
@@ -110,26 +118,26 @@ def shifted_alpha(alpha: Image.Image, dx: int, dy: int) -> Image.Image:
 
 
 def night_head_coverage(root: Path) -> tuple[int, int]:
-    """Return current and donor head alpha coverage in the authored 256x384 space."""
+    """Return current/donor face-core alpha coverage for head completeness validation."""
     source_dir = root / "assets/art/kongjwi"
     current = load_rgba(source_dir / SOURCES["night-court"])
     donor = load_rgba(source_dir / NIGHT_HEAD_DONOR)
     if current.size != donor.size:
         raise RuntimeError(f"Night-court/donor size mismatch: {current.size} vs {donor.size}")
 
-    head_window = polygon_mask(current.size, NIGHT_HEAD_POLYGON)
+    face_window = polygon_mask(current.size, NIGHT_FACE_POLYGON)
     donor_alpha = shifted_alpha(
         donor.getchannel("A"),
         NIGHT_HEAD_DONOR_SHIFT[0],
         NIGHT_HEAD_DONOR_SHIFT[1],
     )
-    donor_head = ImageChops.multiply(donor_alpha, head_window)
-    current_head = ImageChops.multiply(current.getchannel("A"), head_window)
-    return alpha_coverage(current_head), alpha_coverage(donor_head)
+    donor_face = ImageChops.multiply(donor_alpha, face_window)
+    current_face = ImageChops.multiply(current.getchannel("A"), face_window)
+    return alpha_coverage(current_face), alpha_coverage(donor_face)
 
 
 def ensure_night_court_head(root: Path) -> tuple[int, int, bool]:
-    """Repair a dropped royal-night head matte without repainting source RGB pixels."""
+    """Repair a dropped royal-night face/head matte without repainting source RGB pixels."""
     source_dir = root / "assets/art/kongjwi"
     cutout_path = source_dir / SOURCES["night-court"]
     raw_path = source_dir / NIGHT_RAW_SOURCE
@@ -145,23 +153,25 @@ def ensure_night_court_head(root: Path) -> tuple[int, int, bool]:
         )
 
     head_window = polygon_mask(current.size, NIGHT_HEAD_POLYGON)
+    face_window = polygon_mask(current.size, NIGHT_FACE_POLYGON)
     donor_alpha = shifted_alpha(
         donor.getchannel("A"),
         NIGHT_HEAD_DONOR_SHIFT[0],
         NIGHT_HEAD_DONOR_SHIFT[1],
     )
     donor_head = ImageChops.multiply(donor_alpha, head_window)
+    donor_face = ImageChops.multiply(donor_alpha, face_window)
     current_alpha = current.getchannel("A")
-    current_head = ImageChops.multiply(current_alpha, head_window)
+    current_face = ImageChops.multiply(current_alpha, face_window)
 
-    donor_coverage = alpha_coverage(donor_head)
-    current_coverage = alpha_coverage(current_head)
-    if donor_coverage < NIGHT_HEAD_MIN_DONOR_COVERAGE:
+    donor_coverage = alpha_coverage(donor_face)
+    current_coverage = alpha_coverage(current_face)
+    if donor_coverage < NIGHT_FACE_MIN_DONOR_COVERAGE:
         raise RuntimeError(
-            f"Night-court head donor is unexpectedly sparse: {donor_coverage} pixels"
+            f"Night-court face donor is unexpectedly sparse: {donor_coverage} pixels"
         )
 
-    minimum = round(donor_coverage * NIGHT_HEAD_REQUIRED_RATIO)
+    minimum = round(donor_coverage * NIGHT_FACE_REQUIRED_RATIO)
     if current_coverage >= minimum:
         return current_coverage, donor_coverage, False
 
@@ -177,16 +187,16 @@ def ensure_night_court_head(root: Path) -> tuple[int, int, bool]:
     repaired_alpha = ImageChops.lighter(current_alpha, donor_head)
     repaired.putalpha(repaired_alpha)
 
-    repaired_head = ImageChops.multiply(repaired_alpha, head_window)
-    repaired_coverage = alpha_coverage(repaired_head)
+    repaired_face = ImageChops.multiply(repaired_alpha, face_window)
+    repaired_coverage = alpha_coverage(repaired_face)
     if repaired_coverage < minimum:
         raise RuntimeError(
-            f"Night-court head repair failed: {repaired_coverage} < {minimum} pixels"
+            f"Night-court head repair failed: {repaired_coverage} < {minimum} face pixels"
         )
 
     repaired.save(cutout_path, format="PNG", optimize=True, compress_level=9)
     print(
-        "night-court: restored missing head alpha "
+        "night-court: restored missing head alpha; face coverage "
         f"{current_coverage}->{repaired_coverage} pixels "
         f"(donor reference {donor_coverage})"
     )
@@ -353,7 +363,7 @@ def build_tool_sheet(root: Path, tool_key: str, hand_points, force: bool = False
 def update_manifest(root: Path):
     path = root / "assets/art/game-scene/manifest.json"
     manifest = json.loads(path.read_text(encoding="utf-8"))
-    manifest["version"] = "20260808-head-safe1"
+    manifest["version"] = "20260808-head-safe2"
 
     policy = manifest.setdefault("runtimePolicy", {})
     policy["kongjwiMotionPolicy"] = "source-locked-intact-all-outfits"

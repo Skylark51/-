@@ -18,7 +18,7 @@ function pngSize(file) {
 test("all-outfit motion manifest uses the anatomy-safe uniform scene policy", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "assets/art/game-scene/manifest.json"), "utf8"));
   assert.ok(
-    ["20260808-anatomy-safe1", "20260808-head-safe1"].includes(manifest.version),
+    ["20260808-anatomy-safe1", "20260808-head-safe1", "20260808-head-safe2"].includes(manifest.version),
     `unexpected migration version ${manifest.version}`
   );
   assert.equal(manifest.runtimePolicy.kongjwiMotionPolicy, "source-locked-intact-all-outfits");
@@ -58,18 +58,18 @@ test("correct state stages character, stream, splash and leak", () => {
   const stateMachine = fs.readFileSync(path.join(root, "assets/js/scene-state-machine.js"), "utf8");
   assert.ok(stateMachine.includes("POUR_CHARACTER_FRAMES"));
   assert.ok(stateMachine.includes('setFlowPhase("pour")'));
-  assert.ok(stateMachine.includes('playSequence("waterStream")'));
-  assert.ok(stateMachine.includes('playSequence("waterSplash")'));
-  assert.ok(stateMachine.includes('playSequence("waterLeak")'));
+  assert.ok(stateMachine.includes('this.playSequence("waterStream"'));
+  assert.ok(stateMachine.includes('this.playSequence("waterSplash"'));
+  assert.ok(stateMachine.includes("this.startLeakLoop({ energetic: true })"));
   assert.ok(stateMachine.includes("delay: 410"));
-  assert.ok(stateMachine.includes("startLeakLoop"));
 });
 
-test("builder preserves complete flattened outfits and repairs a dropped night-court head matte", () => {
+test("builder preserves complete flattened outfits and repairs a dropped night-court face/head matte", () => {
   const builder = fs.readFileSync(path.join(root, "scripts/build-kongjwi-pour-sheets.py"), "utf8");
   assert.ok(builder.includes("def ensure_night_court_head"));
   assert.ok(builder.includes("ensure_night_court_head(root)"));
-  assert.ok(builder.includes("NIGHT_HEAD_REQUIRED_RATIO"));
+  assert.ok(builder.includes("NIGHT_FACE_POLYGON"));
+  assert.ok(builder.includes("NIGHT_FACE_REQUIRED_RATIO"));
   assert.ok(builder.includes("added_alpha = ImageChops.subtract(donor_head, current_alpha)"));
   assert.ok(builder.includes('manifest["layers"]["scene-tool"] = 11'));
   assert.ok(builder.includes("def build_intact_frames"));
