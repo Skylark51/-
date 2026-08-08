@@ -1,26 +1,104 @@
-name: Diagnose Kongjwi runtime crop
+name: Apply Kongjwi sprite crop fix
 on:
   push:
     branches: [main]
     paths:
       - ".github/workflows/diag-kongjwi-runtime.yml"
 permissions:
-  contents: read
+  contents: write
 jobs:
-  diagnose:
+  fix:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Collect runtime sources
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Patch runtime sprite sizing and cache keys
         shell: bash
         run: |
-          mkdir -p diagnostics
-          cp -R assets/js diagnostics/js
-          cp -R assets/css diagnostics/css
-          cp "콩쥐야_줘때써.html" diagnostics/game.html
-          cp assets/art/game-scene/manifest.json diagnostics/manifest.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: kongjwi-runtime-sources
-          path: diagnostics
-          retention-days: 1
+          python3 - <<'PY'
+          from pathlib import Path
+
+          choice = Path("assets/js/metal-reactivity-choice-ui.js")
+          text = choice.read_text(encoding="utf-8")
+          bad = '''    #ui-gameApp .scene-kongjwi[data-sprite-mode="sheet"] > .scene-sprite {
+              background-size: calc(var(--scene-frame-count) * 100%) auto !important;
+              background-position-y: bottom !important;
+            }
+
+          '''
+          # Keep indentation-independent fallback because this rule is inside a JS template literal.
+          bad_exact = '''    #ui-gameApp .scene-kongjwi[data-sprite-mode="sheet"] > .scene-sprite {
+              background-size: calc(var(--scene-frame-count) * 100%) auto !important;
+              background-position-y: bottom !important;
+            }
+
+          '''
+          actual = '''    #ui-gameApp .scene-kongjwi[data-sprite-mode="sheet"] > .scene-sprite {
+              background-size: calc(var(--scene-frame-count) * 100%) auto !important;
+              background-position-y: bottom !important;
+            }
+
+          '''
+          # Normalize the known source block literally with its actual six-space property indent.
+          target = '    #ui-gameApp .scene-kongjwi[data-sprite-mode="sheet"] > .scene-sprite {\n      background-size: calc(var(--scene-frame-count) * 100%) auto !important;\n      background-position-y: bottom !important;\n    }\n\n'
+          replacement = '''    /* Horizontal sprite sheets must keep one full frame mapped to the actor box.
+             * The base scene runtime owns background-size: N*100% 100%. Setting the
+             * height to auto makes the sheet taller than the actor box and clips the
+             * top of each frame (the character head on mobile). */
+
+          '''
+          if target not in text:
+              raise SystemExit("Known head-cropping sprite override was not found")
+          choice.write_text(text.replace(target, replacement, 1), encoding="utf-8")
+
+          main = Path("assets/js/main.js")
+          text = main.read_text(encoding="utf-8")
+          old = 'import { installMetalReactivityChoiceLabels } from "./metal-reactivity-choice-ui.js";'
+          new = 'import { installMetalReactivityChoiceLabels } from "./metal-reactivity-choice-ui.js?v=20260808-sprite-sheet1";'
+          if old not in text:
+              raise SystemExit("main.js metal reactivity import not found")
+          main.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          page = Path("assets/js/game-page.js")
+          text = page.read_text(encoding="utf-8")
+          old = 'import { bootstrapGameRuntime } from "./main.js";'
+          new = 'import { bootstrapGameRuntime } from "./main.js?v=20260808-sprite-sheet1";'
+          if old not in text:
+              raise SystemExit("game-page.js main import not found")
+          page.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          html = Path("콩쥐야_줘때써.html")
+          text = html.read_text(encoding="utf-8")
+          old = 'assets/js/game-page.js?v=20260808-motion-polish1'
+          new = 'assets/js/game-page.js?v=20260808-sprite-sheet1'
+          if old not in text:
+              raise SystemExit("game-page module cache key not found")
+          html.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          test = Path("tests/kongjwi-sprite-sheet-sizing.test.mjs")
+          test.write_text('''import test from "node:test";\nimport assert from "node:assert/strict";\nimport fs from "node:fs";\n\nconst choiceUi = fs.readFileSync("assets/js/metal-reactivity-choice-ui.js", "utf8");\nconst spriteCss = fs.readFileSync("assets/css/game-asset-animation.css", "utf8");\nconst main = fs.readFileSync("assets/js/main.js", "utf8");\nconst gamePage = fs.readFileSync("assets/js/game-page.js", "utf8");\nconst html = fs.readFileSync("콩쥐야_줘때써.html", "utf8");\n\ntest("Kongjwi horizontal sprite sheets never use auto height", () => {\n  assert.ok(!choiceUi.includes("background-size: calc(var(--scene-frame-count) * 100%) auto"), "auto sprite-sheet height crops the top of Kongjwi frames");\n  assert.ok(spriteCss.includes("background-size: calc(var(--scene-frame-count) * 100%) 100%"), "base sprite runtime must map one full horizontal cell into the actor box");\n});\n\ntest("game module chain cache-busts the sprite sizing repair", () => {\n  assert.ok(main.includes('./metal-reactivity-choice-ui.js?v=20260808-sprite-sheet1'));\n  assert.ok(gamePage.includes('./main.js?v=20260808-sprite-sheet1'));\n  assert.ok(html.includes('assets/js/game-page.js?v=20260808-sprite-sheet1'));\n});\n''', encoding="utf-8")
+          PY
+      - name: Validate targeted regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check assets/js/metal-reactivity-choice-ui.js
+          node --check assets/js/main.js
+          node --check assets/js/game-page.js
+          node --test tests/kongjwi-sprite-sheet-sizing.test.mjs
+          git diff --check
+      - name: Commit fix and remove temporary diagnostic workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/diag-kongjwi-runtime.yml
+          git add assets/js/metal-reactivity-choice-ui.js assets/js/main.js assets/js/game-page.js "콩쥐야_줘때써.html" tests/kongjwi-sprite-sheet-sizing.test.mjs
+          git commit -m "fix: stop mobile sprite sizing from clipping Kongjwi head [skip ci]"
+          git pull --rebase origin main
+          git push
