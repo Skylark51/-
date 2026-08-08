@@ -8,7 +8,7 @@ import { GameStorage } from "./storage.js";
 import { UpgradeSystem } from "./upgrade-system.js";
 import { ActionSystem } from "./action-system.js";
 import { UIAdapter } from "./ui-adapter.js";
-import { installMetalReactivityChoiceLabels } from "./metal-reactivity-choice-ui.js?v=20260808-sprite-sheet1";
+import { installMetalReactivityChoiceLabels } from "./metal-reactivity-choice-ui.js";
 
 export const DEFAULT_QUESTION_COUNT = 10;
 export const MIN_QUESTION_COUNT = 5;
