@@ -15,10 +15,12 @@ function pngSize(file) {
   return [buffer.readUInt32BE(16), buffer.readUInt32BE(20)];
 }
 
-test("all-outfit motion manifest uses the uniform scene policy", () => {
+test("all-outfit motion manifest uses the anatomy-safe uniform scene policy", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "assets/art/game-scene/manifest.json"), "utf8"));
-  assert.equal(manifest.version, "20260808-motion-polish1");
-  assert.equal(manifest.runtimePolicy.kongjwiMotionPolicy, "source-locked-articulated-all-outfits");
+  assert.equal(manifest.version, "20260808-anatomy-safe1");
+  assert.equal(manifest.runtimePolicy.kongjwiMotionPolicy, "source-locked-intact-all-outfits");
+  assert.equal(manifest.runtimePolicy.kongjwiFramePolicy, "source-character-pixels-whole-body-pose-only");
+  assert.equal(manifest.runtimePolicy.anatomySafetyPolicy, "never-segment-flattened-character-png");
   assert.equal(manifest.runtimePolicy.toolMotionPolicy, "source-master-grip-pivot-co-registered");
   assert.equal(manifest.runtimePolicy.uniformScalePolicy, "shared-2048x1152-contain");
   assert.equal(manifest.runtimePolicy.waterAnimationPolicy, "synchronized-pour-fill-leak");
@@ -57,13 +59,16 @@ test("correct state stages character, stream, splash and leak", () => {
   assert.ok(stateMachine.includes("startLeakLoop"));
 });
 
-test("builder articulates every outfit and rebuilds tools from authored masters", () => {
+test("builder preserves each flattened outfit as one intact image", () => {
   const builder = fs.readFileSync(path.join(root, "scripts/build-kongjwi-pour-sheets.py"), "utf8");
-  assert.ok(builder.includes("def build_articulated_frames"));
-  assert.ok(builder.includes("frames, hand_points = build_articulated_frames(base)"));
+  assert.ok(builder.includes("def build_intact_frames"));
+  assert.ok(builder.includes("frames, hand_points = build_intact_frames(base)"));
+  assert.ok(builder.includes("frames.append(pose_frame(base, body_angle, dx, dy))"));
+  assert.ok(builder.includes("hand_points.append(pose_point(HAND, body_angle, dx, dy))"));
   assert.ok(builder.includes('master_path = root / "assets/art/kongjwi-tools" / TOOL_SOURCES[tool_key]'));
-  assert.ok(builder.includes("arm_hand = rotate_point(HAND, ELBOW, arm_angle)"));
-  assert.ok(builder.includes("hand_points.append(pose_point(arm_hand, body_angle, dx, dy))"));
+  for (const destructiveToken of ["FOREARM_POLYGON", "FOREARM_ANGLES", "mask_from_polygon", "forearm_mask", "elbow_patch"]) {
+    assert.ok(!builder.includes(destructiveToken), `builder must never segment character art with ${destructiveToken}`);
+  }
 });
 
 test("no actor is corrected with nonuniform jar scaling", () => {
