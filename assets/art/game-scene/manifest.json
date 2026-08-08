@@ -1,5 +1,5 @@
 {
-  "version": "20260808-motion-polish1",
+  "version": "20260808-anatomy-safe1",
   "logicalSize": {
     "width": 2048,
     "height": 1152
@@ -13,12 +13,13 @@
     "loadStrategy": "selected-cosmetics-first",
     "fallbackMode": "coherent-static-rig",
     "jarFramePolicy": "source-locked-paired-png",
-    "kongjwiMotionPolicy": "source-locked-articulated-all-outfits",
-    "kongjwiFramePolicy": "source-character-pixels-articulated-pose-only",
+    "kongjwiMotionPolicy": "source-locked-intact-all-outfits",
+    "kongjwiFramePolicy": "source-character-pixels-whole-body-pose-only",
     "toolMotionPolicy": "source-master-grip-pivot-co-registered",
     "uniformScalePolicy": "shared-2048x1152-contain",
     "waterAnimationPolicy": "synchronized-pour-fill-leak",
-    "cosmeticFxPolicy": "data-keyed-runtime-effects"
+    "cosmeticFxPolicy": "data-keyed-runtime-effects",
+    "anatomySafetyPolicy": "never-segment-flattened-character-png"
   },
   "layers": {
     "scene-background": 0,
