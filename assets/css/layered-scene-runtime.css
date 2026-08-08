@@ -2,7 +2,8 @@
 @import url("./toad-hole-integration.css?v=20260807-hole-integration1");
 @import url("./jar-water-surface-fix.css?v=20260807-mouth-surface1");
 @import url("./jar-mouth-hole-polish.css?v=20260807-jar-mouth-hole1");
-@import url("./scene-source-aspect-fix.css?v=20260807-underlayer-rig3");
+@import url("./scene-source-aspect-fix.css?v=20260808-motion-polish1");
+@import url("./scene-motion-polish.css?v=20260808-motion-polish1");
 
 /* Runtime isolation for the layered PNG quiz scene. */
 .scene-stage-layout {
@@ -36,15 +37,23 @@
   overflow: hidden !important;
 }
 
+/* The renderer supplies --scene-render-width/height from one uniform scale.
+ * Do not force the 2048x1152 stack to inherit the host's unrelated aspect. */
 .scene-animation-zone > #layeredScene {
   display: block !important;
   position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
+  inset: auto !important;
+  left: 50% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: 0 !important;
+  width: var(--scene-render-width, 100%) !important;
+  height: var(--scene-render-height, 100%) !important;
   min-width: 0;
   min-height: 0;
   z-index: 1;
+  transform: translateX(-50%) translateZ(0) !important;
+  transform-origin: center bottom;
 }
 
 .scene-animation-zone > #layeredScene > .scene-layer[hidden] {
