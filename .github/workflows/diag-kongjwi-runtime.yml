@@ -1,0 +1,45 @@
+name: Diagnose Kongjwi runtime crop
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/diag-kongjwi-runtime.yml"
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check pillow
+      - name: Find all Kongjwi CSS selectors
+        shell: bash
+        run: |
+          grep -R -n -E 'scene-kongjwi|scene-sprite|kongjwi.*overflow|kongjwi.*clip|kongjwi.*mask' assets/css || true
+      - name: Inspect night-court source and sheet geometry
+        shell: bash
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          paths = [
+            Path('assets/art/kongjwi/kongjwi-night-court-cutout.png'),
+            Path('assets/art/kongjwi-parts/royal-night/reconstructed-neutral.png'),
+            Path('assets/art/game-scene/kongjwi/night-court/pour-sheet.png'),
+          ]
+          for p in paths:
+            im=Image.open(p).convert('RGBA')
+            print('FILE',p,'size',im.size,'bbox',im.getchannel('A').getbbox())
+            if im.width == 4096:
+              im=im.crop((0,0,512,768))
+              print('FRAME0 bbox',im.getchannel('A').getbbox())
+            a=im.getchannel('A')
+            bbox=a.getbbox()
+            if bbox:
+              cx=(bbox[0]+bbox[2])//2
+              ys=[y for y in range(im.height) if a.getpixel((cx,y))>16]
+              print(' center x',cx,'alpha y range', (min(ys),max(ys)) if ys else None)
+          PY
