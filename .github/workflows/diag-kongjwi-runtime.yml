@@ -11,45 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-      - run: python -m pip install --disable-pip-version-check pillow
-      - name: Build visual diagnostic
+      - name: Collect runtime sources
         shell: bash
         run: |
-          python - <<'PY'
-          from PIL import Image, ImageOps, ImageDraw
-          from pathlib import Path
-          sheet=Image.open('assets/art/game-scene/kongjwi/night-court/pour-sheet.png').convert('RGBA').crop((0,0,512,768))
-          cutout=Image.open('assets/art/kongjwi/kongjwi-night-court-cutout.png').convert('RGBA')
-          recon=Image.open('assets/art/kongjwi-parts/royal-night/reconstructed-neutral.png').convert('RGBA')
-          items=[('sheet frame0',sheet),('cutout',cutout),('reconstructed',recon)]
-          panel=Image.new('RGB',(900,900),(40,40,40))
-          d=ImageDraw.Draw(panel)
-          for i,(label,im) in enumerate(items):
-            bg=Image.new('RGBA',im.size,(180,180,180,255)); bg.alpha_composite(im)
-            thumb=ImageOps.contain(bg.convert('RGB'),(280,820),Image.Resampling.LANCZOS)
-            x=10+i*295; y=50
-            panel.paste(thumb,(x+(280-thumb.width)//2,y))
-            d.text((x+8,15),label,fill='white')
-          Path('diagnostics').mkdir(exist_ok=True)
-          panel.save('diagnostics/night-court-contact.jpg',quality=92)
-          PY
-      - name: Inspect CSS and geometry
-        shell: bash
-        run: |
-          grep -R -n -E 'scene-kongjwi|scene-sprite|kongjwi.*overflow|kongjwi.*clip|kongjwi.*mask' assets/css || true
-          python - <<'PY'
-          from PIL import Image
-          for p in ['assets/art/kongjwi/kongjwi-night-court-cutout.png','assets/art/kongjwi-parts/royal-night/reconstructed-neutral.png','assets/art/game-scene/kongjwi/night-court/pour-sheet.png']:
-            im=Image.open(p).convert('RGBA')
-            print('FILE',p,'size',im.size,'bbox',im.getchannel('A').getbbox())
-            if im.width==4096:
-              im=im.crop((0,0,512,768)); print('FRAME0 bbox',im.getchannel('A').getbbox())
-          PY
+          mkdir -p diagnostics
+          cp -R assets/js diagnostics/js
+          cp -R assets/css diagnostics/css
+          cp "콩쥐야_줘때써.html" diagnostics/game.html
+          cp assets/art/game-scene/manifest.json diagnostics/manifest.json
       - uses: actions/upload-artifact@v4
         with:
-          name: kongjwi-visual-diagnostic
-          path: diagnostics/night-court-contact.jpg
+          name: kongjwi-runtime-sources
+          path: diagnostics
           retention-days: 1
