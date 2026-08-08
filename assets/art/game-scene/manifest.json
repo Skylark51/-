@@ -1,5 +1,5 @@
 {
-  "version": "20260808-runtime-ownership1",
+  "version": "20260808-motion-polish1",
   "logicalSize": {
     "width": 2048,
     "height": 1152
@@ -13,9 +13,12 @@
     "loadStrategy": "selected-cosmetics-first",
     "fallbackMode": "coherent-static-rig",
     "jarFramePolicy": "source-locked-paired-png",
-    "kongjwiMotionPolicy": "source-locked-articulated-underlayer",
-    "kongjwiFramePolicy": "source-character-pixels-pose-only",
-    "toolMotionPolicy": "equipped-tool-co-registered-with-kongjwi"
+    "kongjwiMotionPolicy": "source-locked-articulated-all-outfits",
+    "kongjwiFramePolicy": "source-character-pixels-articulated-pose-only",
+    "toolMotionPolicy": "source-master-grip-pivot-co-registered",
+    "uniformScalePolicy": "shared-2048x1152-contain",
+    "waterAnimationPolicy": "synchronized-pour-fill-leak",
+    "cosmeticFxPolicy": "data-keyed-runtime-effects"
   },
   "layers": {
     "scene-background": 0,
@@ -273,6 +276,32 @@
           3,
           4,
           5
+        ],
+        "kongjwiTimeline": [
+          2,
+          2,
+          3,
+          3,
+          4,
+          4,
+          5,
+          5,
+          5,
+          6,
+          6
+        ],
+        "toolTimeline": [
+          2,
+          2,
+          3,
+          3,
+          4,
+          4,
+          5,
+          5,
+          5,
+          6,
+          6
         ]
       },
       "answerWrong": {
@@ -286,7 +315,17 @@
           1,
           0
         ]
-      }
+      },
+      "leak": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
     }
   },
   "anchors": {
@@ -523,11 +562,11 @@
     "coordinateSystem": "shared-2048x1152",
     "mobile": {
       "safeInset": 24,
-      "scaleMode": "contain"
+      "scaleMode": "uniform-contain"
     },
     "desktop": {
       "safeInset": 0,
-      "scaleMode": "contain"
+      "scaleMode": "uniform-contain"
     }
   },
   "availability": {
