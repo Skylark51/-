@@ -25,13 +25,16 @@ test("atomic-number mode gets a breathing intro followed by 3 2 1 before the gam
   assert.ok(countdown >= 0 && start > countdown, "countdown must finish before api.start starts timers/leak");
 });
 
-test("atomic-number flash prompt and countdown stylesheet are wired with cache-busted modules", () => {
+test("atomic-number flash prompt uses one cache-busted game entry and canonical internal modules", () => {
   assert.match(css, /data-training-id="atomic_number"[\s\S]*scene-question-bubble h1/);
   assert.match(css, /#startOverlay\.game-start-countdown/);
   assert.match(css, /game-start-countdown-number/);
   assert.match(html, /atomic-number-speed-start\.css\?v=[^"]+/);
-  assert.match(html, /ui-effects\.js\?v=[^"]+/);
-  assert.match(mainSource, /questions\.js\?v=[^"]+/);
-  assert.match(questionsFacade, /questions\/index\.js\?v=[^']+/);
-  assert.match(indexSource, /atomic-number\.js\?v=[^']+/);
+  assert.match(html, /game-page\.js\?v=[^"]+/);
+  assert.doesNotMatch(mainSource, /questions\.js\?v=/);
+  assert.doesNotMatch(uiSource, /main\.js\?v=/);
+  assert.match(questionsFacade, /questions\/index\.js/);
+  assert.doesNotMatch(questionsFacade, /questions\/index\.js\?v=/);
+  assert.match(indexSource, /atomic-number\.js/);
+  assert.doesNotMatch(indexSource, /atomic-number\.js\?v=/);
 });

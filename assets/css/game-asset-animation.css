@@ -163,57 +163,6 @@
   height: clamp(5px, .7vw, 9px);
 }
 
-/*
- * Authored water sprites add texture, but the actual bucket-to-mouth action
- * must remain readable even when a sprite frame is faint on a small phone.
- * These pseudo-elements form a guaranteed bright water ribbon and landing
- * droplets inside the tuned .scene-water-stream corridor.
- */
-.scene-water-stream::after {
-  content: "";
-  position: absolute;
-  left: 2%;
-  top: 56%;
-  width: 96%;
-  height: clamp(4px, .75vw, 8px);
-  border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(235, 253, 255, .98), rgba(109, 221, 244, .9) 46%, rgba(42, 153, 199, .82));
-  box-shadow:
-    0 0 3px rgba(228, 252, 255, .95),
-    0 0 8px rgba(78, 196, 232, .66);
-  opacity: 0;
-  transform: rotate(-6.1deg) scaleX(.05);
-  transform-origin: left center;
-}
-
-.scene-water-stream::before {
-  content: "";
-  position: absolute;
-  z-index: 2;
-  right: 0;
-  top: 17%;
-  width: clamp(20px, 4vw, 42px);
-  height: clamp(18px, 3.5vw, 36px);
-  opacity: 0;
-  background:
-    radial-gradient(circle at 18% 68%, rgba(225, 250, 255, .96) 0 8%, transparent 9%),
-    radial-gradient(circle at 46% 38%, rgba(132, 229, 248, .94) 0 10%, transparent 11%),
-    radial-gradient(circle at 76% 70%, rgba(75, 190, 225, .92) 0 8%, transparent 9%);
-  filter: drop-shadow(0 0 3px rgba(115, 220, 244, .62));
-  transform: translate3d(-10%, 14%, 0) scale(.65);
-}
-
-.scene-layer-stack[data-scene-state="correct"] .scene-water-stream::after,
-.scene-layer-stack[data-scene-state="clear"] .scene-water-stream::after {
-  animation: layered-visible-water-ribbon 1040ms cubic-bezier(.18,.72,.2,1) both;
-}
-
-.scene-layer-stack[data-scene-state="correct"] .scene-water-stream::before,
-.scene-layer-stack[data-scene-state="clear"] .scene-water-stream::before {
-  animation: layered-visible-water-droplets 1040ms ease-out both;
-}
-
 .scene-layer-stack[data-scene-state="correct"] .scene-kongjwi,
 .scene-layer-stack[data-scene-state="correct"] .scene-tool {
   animation: layered-pour-settle 940ms ease-out both;
@@ -234,6 +183,26 @@
 .scene-layer-stack[data-scene-state="wrong"] .scene-toad-expression,
 .scene-layer-stack[data-scene-state="critical"] .scene-toad-expression {
   animation: layered-toad-shake 460ms ease-in-out both;
+}
+
+.scene-layer-stack[data-toad-mode="skin-only"][data-toad-expression="correct"] .scene-toad-skin,
+.scene-layer-stack[data-toad-mode="skin-only"][data-toad-expression="surprised"] .scene-toad-skin {
+  animation: layered-toad-pop 520ms ease-out both;
+}
+
+.scene-layer-stack[data-toad-mode="skin-only"][data-toad-expression="wrong"] .scene-toad-skin,
+.scene-layer-stack[data-toad-mode="skin-only"][data-toad-expression="confused"] .scene-toad-skin,
+.scene-layer-stack[data-toad-mode="skin-only"][data-toad-expression="timeout"] .scene-toad-skin {
+  animation: layered-toad-shake 460ms ease-in-out both;
+}
+
+.scene-layer-stack[data-toad-mode="skin-only"][data-toad-expression="angry"] .scene-toad-skin,
+.scene-layer-stack[data-toad-mode="skin-only"][data-toad-expression="rage"] .scene-toad-skin {
+  animation: layered-toad-rage 380ms ease-in-out 2 both;
+}
+
+.scene-layer-stack[data-toad-mode="skin-only"][data-toad-expression="idle-blink"] .scene-toad-skin {
+  animation: layered-toad-blink 420ms ease-in-out both;
 }
 
 .scene-layer-stack[data-scene-state="fever"] .scene-toad-skin,
@@ -280,31 +249,6 @@
   88% { opacity: 0; transform: rotate(-9deg) scaleX(1.03); }
 }
 
-@keyframes layered-visible-water-ribbon {
-  0%, 8%, 100% {
-    opacity: 0;
-    transform: rotate(-6.1deg) scaleX(.05);
-  }
-  18% {
-    opacity: .98;
-    transform: rotate(-6.1deg) scaleX(.2);
-  }
-  38%, 76% {
-    opacity: 1;
-    transform: rotate(-6.1deg) scaleX(1);
-  }
-  91% {
-    opacity: .45;
-    transform: rotate(-6.1deg) scaleX(1.01);
-  }
-}
-
-@keyframes layered-visible-water-droplets {
-  0%, 32%, 100% { opacity: 0; transform: translate3d(-10%, 14%, 0) scale(.65); }
-  48% { opacity: .95; transform: translate3d(0, 0, 0) scale(1); }
-  78% { opacity: .85; transform: translate3d(8%, 18%, 0) scale(.9); }
-}
-
 @keyframes layered-toad-shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-1.4%); }
@@ -338,22 +282,26 @@
   transition: none !important;
 }
 
-.reduce-motion .scene-layer-stack[data-scene-state="correct"] .scene-water-stream::after,
-.reduce-motion .scene-layer-stack[data-scene-state="clear"] .scene-water-stream::after {
-  opacity: .9;
-  transform: rotate(-6.1deg) scaleX(1);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .scene-layer-stack *,
   .scene-layer-stack {
     animation: none !important;
     transition: none !important;
   }
+}
 
-  .scene-layer-stack[data-scene-state="correct"] .scene-water-stream::after,
-  .scene-layer-stack[data-scene-state="clear"] .scene-water-stream::after {
-    opacity: .9;
-    transform: rotate(-6.1deg) scaleX(1);
-  }
+@keyframes layered-toad-pop {
+  0%, 100% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(-3.5%) scale(1.045); }
+}
+
+@keyframes layered-toad-rage {
+  0%, 100% { transform: translateX(0) scale(1); }
+  35% { transform: translateX(-2.2%) scale(1.025); }
+  70% { transform: translateX(2.2%) scale(1.025); }
+}
+
+@keyframes layered-toad-blink {
+  0%, 100% { transform: scaleY(1); }
+  48%, 58% { transform: scaleY(.94); }
 }

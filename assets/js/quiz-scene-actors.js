@@ -1,4 +1,4 @@
-import { mountGameScene } from "./game-cosmetics-entry.js?v=20260806-layered-scene1";
+import { mountGameScene } from "./game-cosmetics-entry.js";
 
 /**
  * Compatibility bootstrap retained by the current quiz HTML.

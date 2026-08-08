@@ -56,6 +56,30 @@ async function exerciseGameplay(page, name) {
   assert(initial.inputDisabled === false, `${name}: answer input is disabled`);
   assert(initial.submitDisabled === false, `${name}: submit button is disabled`);
 
+  await page.evaluate(() => {
+    const api = globalThis.KongJuiYaGame;
+    const stack = document.getElementById("layeredScene");
+    globalThis.__runtimeInvariantCounts = { correctEvents: 0, recordAnswer: 0, finishRun: 0, waterFeedback: 0 };
+    addEventListener("answer:correct", () => globalThis.__runtimeInvariantCounts.correctEvents += 1);
+    const originalRecordAnswer = api.storage.recordAnswer.bind(api.storage);
+    api.storage.recordAnswer = (...args) => {
+      globalThis.__runtimeInvariantCounts.recordAnswer += 1;
+      return originalRecordAnswer(...args);
+    };
+    const originalFinishRun = api.storage.finishRun.bind(api.storage);
+    api.storage.finishRun = (...args) => {
+      globalThis.__runtimeInvariantCounts.finishRun += 1;
+      return originalFinishRun(...args);
+    };
+    new MutationObserver(records => {
+      for (const record of records) {
+        if (record.attributeName === "data-scene-state" && stack.dataset.sceneState === "correct") {
+          globalThis.__runtimeInvariantCounts.waterFeedback += 1;
+        }
+      }
+    }).observe(stack, { attributes: true, attributeFilter: ["data-scene-state"] });
+  });
+
   await page.evaluate(answer => globalThis.KongJuiYaGame.submit(answer), initial.answer);
   await page.waitForFunction(({ score, correctInStage }) => {
     const state = globalThis.KongJuiYaGame?.game?.state;
@@ -74,6 +98,10 @@ async function exerciseGameplay(page, name) {
   assert(afterCorrect.questionId && afterCorrect.questionId !== initial.questionId, `${name}: next question was not selected`);
   assert(afterCorrect.correctCount >= 1, `${name}: correct UI count did not update`);
   assert(/정답/.test(afterCorrect.feedback || ""), `${name}: correct feedback did not render`);
+  const invariantCounts = await page.evaluate(() => globalThis.__runtimeInvariantCounts);
+  assert(invariantCounts.correctEvents === 1, `${name}: answer:correct fired ${invariantCounts.correctEvents} times`);
+  assert(invariantCounts.recordAnswer === 1, `${name}: recordAnswer ran ${invariantCounts.recordAnswer} times`);
+  assert(invariantCounts.waterFeedback === 1, `${name}: water feedback ran ${invariantCounts.waterFeedback} times`);
 
   const wrongBefore = await page.evaluate(() => ({
     combo: globalThis.KongJuiYaGame.game.state.combo,
@@ -100,6 +128,21 @@ async function exerciseGameplay(page, name) {
   await page.waitForFunction(() => globalThis.KongJuiYaGame?.game?.state?.status === "paused");
   await page.click("#ui-pauseButton");
   await page.waitForFunction(() => globalThis.KongJuiYaGame?.game?.state?.status === "running");
+
+  if (name === "desktop-1366") {
+    await page.evaluate(() => {
+      const api = globalThis.KongJuiYaGame;
+      while (api.game.state.status === "running") api.submit(api.game.question.answers[0]);
+    });
+    const completed = await page.evaluate(() => ({
+      status: globalThis.KongJuiYaGame.game.state.status,
+      finishRun: globalThis.__runtimeInvariantCounts.finishRun,
+      recentRuns: globalThis.KongJuiYaGame.storage.data.recentRuns.length
+    }));
+    assert(completed.status === "cleared", `${name}: game did not clear`);
+    assert(completed.finishRun === 1, `${name}: finishRun ran ${completed.finishRun} times`);
+    assert(completed.recentRuns === 1, `${name}: recentRuns grew ${completed.recentRuns} times`);
+  }
 }
 
 async function exerciseScene(browser, name, viewport, reducedMotion = "no-preference") {
@@ -142,6 +185,7 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
       return { className: element.className, left: box.left, top: box.top, right: box.right, bottom: box.bottom };
     });
     return {
+      runtimeEntries: performance.getEntriesByType("resource").filter(entry => /\/assets\/js\/main\.js(?:\?|$)/.test(entry.name)).length,
       stackCount: stacks.length,
       legacyDisplay: legacyActors ? getComputedStyle(legacyActors).display : "missing",
       stage: { left: stage.left, top: stage.top, right: stage.right, bottom: stage.bottom, width: stage.width, height: stage.height },
@@ -152,6 +196,7 @@ async function exerciseScene(browser, name, viewport, reducedMotion = "no-prefer
 
   const tolerance = 2;
   assert(geometry.stackCount === 1, `${name}: expected one layered scene, found ${geometry.stackCount}`);
+  assert(geometry.runtimeEntries === 1, `${name}: main.js loaded ${geometry.runtimeEntries} times`);
   assert(geometry.legacyDisplay === "none", `${name}: legacy actor scene is visible (${geometry.legacyDisplay})`);
   assert(geometry.stage.width > 0 && geometry.stage.height > 0, `${name}: visual stage has no layout box`);
   assert(geometry.stack.width > 0 && geometry.stack.height > 0, `${name}: layered scene has no layout box`);

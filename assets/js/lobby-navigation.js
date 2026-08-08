@@ -1,5 +1,5 @@
 import { GameStorage } from "./storage.js";
-import "./records-enhancements.js?v=20260807-records-analytics1";
+import "./records-enhancements.js";
 
 const VALID_VIEWS = new Set(["home", "jars", "records"]);
 const viewNodes = [...document.querySelectorAll("[data-app-view]")];
@@ -149,14 +149,14 @@ function installMainCtaFallback() {
 
 async function installOptionalEnhancements() {
   try {
-    const { mountHistoricalBgm } = await import("./historical-bgm.js?v=20260806-lobby-router1");
+    const { mountHistoricalBgm } = await import("./historical-bgm.js");
     bgm = mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ?? 0.5 });
   } catch (error) {
     console.warn("로비 배경음 초기화를 건너뜁니다.", error);
   }
 
   try {
-    const { installLobbyHeroScene } = await import("./lobby-hero-scene.js?v=20260806-lobby-router1");
+    const { installLobbyHeroScene } = await import("./lobby-hero-scene.js");
     installLobbyHeroScene();
   } catch (error) {
     console.warn("로비 배경 장식을 건너뜁니다.", error);

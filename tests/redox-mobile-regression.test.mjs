@@ -27,15 +27,17 @@ test("redox pool contains only complete underlined reaction equations and three 
   }
 });
 
-test("game entry keeps the complete redox question cache chain", () => {
+test("game entry keeps one cache boundary and canonical redox module identities", () => {
   const html = read("콩쥐야_줘때써.html");
   const uiEffects = read("assets/js/ui-effects.js");
   const main = read("assets/js/main.js");
   const questions = read("data/questions.js");
   const questionIndex = read("data/questions/index.js");
-  for (const source of [html, uiEffects, main, questions, questionIndex]) {
-    assert.match(source, /20260805-redox-mobile2/);
-  }
+  assert.match(html, /game-page\.js\?v=/);
+  for (const source of [uiEffects, main]) assert.doesNotMatch(source, /\.js\?v=/);
+  assert.match(questions, /questions\/index\.js/);
+  assert.match(questionIndex, /\.\/redox\.js/);
+  assert.doesNotMatch(questionIndex, /\.\/redox\.js\?v=/);
   assert.match(html, /redox-quiz\.css\?v=20260807-redox-one-line1/);
 });
 
@@ -59,5 +61,6 @@ test("redox mobile layout keeps every reaction equation on one line above three 
   assert.match(fitter, /ResizeObserver/);
   assert.match(fitter, /MutationObserver/);
   assert.match(fitter, /for \(let index = 0; index < 14;/);
-  assert.match(cosmeticsEntry, /redox-single-line\.js\?v=20260806-mobile-scene-fix1/);
+  assert.match(cosmeticsEntry, /redox-single-line\.js/);
+  assert.doesNotMatch(cosmeticsEntry, /redox-single-line\.js\?v=/);
 });

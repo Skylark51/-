@@ -1,4 +1,4 @@
-import { createSceneStateController } from "./scene-state-machine.js?v=20260807-pour-feedback1";
+import { createSceneStateController } from "./scene-state-machine.js";
 
 const MANIFEST_URL = "assets/art/game-scene/manifest.json?v=20260807-underlayer-rig3";
 const RUNTIME_STYLE_ID = "layered-scene-animation-runtime";
@@ -238,6 +238,12 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
     const toolKey = key(current.toolSkin || current.tool || root.dataset.toolSkin, null, "wood");
     const jarKey = key(current.jarSkin || current.jar || root.dataset.jarSkin, ALIAS.jar, "onggi");
     const toadKey = key(current.toadSkin || current.toad || root.dataset.toadSkin, ALIAS.toad, "field-brown");
+    const expressionDefinition = a.effects.toadExpression;
+    const expressionPath = typeof expressionDefinition === "string"
+      ? expressionDefinition
+      : expressionDefinition?.enabled === true
+        ? expressionDefinition.path
+        : null;
 
     const outfitAsset = a.kongjwi[outfit] || a.kongjwi.underlayer;
     const authoredKongjwi = target(manifest, outfitAsset.sheet, outfitAsset.fallback);
@@ -250,7 +256,7 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
       tool: motionRig ? authoredTool : { url: a.tools[toolKey].fallback, authored: false },
       jar: target(manifest, a.jars[jarKey].layers, a.jars[jarKey].fallback),
       toad: target(manifest, a.toads[toadKey].skin),
-      expression: target(manifest, a.effects.toadExpression),
+      expression: target(manifest, expressionPath),
       stream: motionRig ? target(manifest, a.effects.waterStream) : emptyAsset(),
       splash: motionRig ? target(manifest, a.effects.waterSplash) : emptyAsset(),
       leak: target(manifest, a.effects.waterLeak),
@@ -336,6 +342,7 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
     root.dataset.toolRig = stack.dataset.toolRig;
     stack.dataset.jarMode = chosen.jar.authored ? "layers" : "static";
     stack.dataset.toadMode = expressionMode;
+    stack.dataset.toadExpressionAsset = expressionDefinition?.validation || (expressionPath ? "enabled" : "none");
     stack.dataset.assetMode = motionRig && chosen.jar.authored && expressionMode === "overlay"
       ? "authored"
       : "coherent-fallback";

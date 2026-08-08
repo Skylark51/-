@@ -29,14 +29,21 @@ test("default toad uses existing complete expression PNGs instead of a missing f
   }
 });
 
-test("premium toads use their uploaded PNG skin with motion-only reactions", () => {
+test("premium toads keep their uploaded PNG skin and have a validated overlay contract", () => {
   for (const key of ["gold-worker", "jade-guard", "star-night"]) {
     const definition = manifest.assets.toads[key];
     assert.equal(definition.mode, "skin-motion");
     assert.match(definition.skin, new RegExp(`/${key}\\.png$`));
     assert.equal(manifest.availability[definition.skin], true);
   }
-  assert.equal(manifest.assets.effects.toadExpression, undefined);
+  assert.deepEqual(manifest.assets.effects.toadExpression, {
+    path: "assets/art/game-scene/toad/expression-overlay-sheet.png",
+    enabled: false,
+    validation: "truncated-png"
+  });
+  assert.deepEqual(manifest.sprites.toadExpression.cell, { width: 512, height: 384 });
+  assert.equal(manifest.sprites.toadExpression.frames, 10);
+  assert.equal(Object.keys(manifest.frames.toadExpression).length, 10);
 });
 
 test("CSS physically seats existing toad PNGs for each jar and removes duplicate mobile water UI", () => {
@@ -46,6 +53,7 @@ test("CSS physically seats existing toad PNGs for each jar and removes duplicate
 
   assert.match(sceneCss, /data-toad-mode="full-fallback"/);
   assert.match(sceneCss, /data-toad-mode="skin-only"/);
+  assert.match(read("assets/css/game-asset-animation.css"), /data-toad-mode="skin-only"/);
   assert.match(sceneCss, /clip-path:\s*ellipse\(/);
   for (const jar of ["celadon", "moon-white", "night-lacquer"]) {
     assert.match(sceneCss, new RegExp(`data-jar-skin="${jar}"`));

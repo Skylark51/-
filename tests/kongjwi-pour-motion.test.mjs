@@ -17,7 +17,7 @@ function pngSize(file) {
 
 test("underlayer motion manifest is current", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "assets/art/game-scene/manifest.json"), "utf8"));
-  assert.equal(manifest.version, "20260807-underlayer-rig3");
+  assert.equal(manifest.version, "20260808-runtime-ownership1");
   assert.equal(manifest.runtimePolicy.kongjwiMotionPolicy, "source-locked-articulated-underlayer");
   assert.equal(manifest.runtimePolicy.toolMotionPolicy, "equipped-tool-co-registered-with-kongjwi");
   assert.deepEqual(manifest.sprites.kongjwi.cell, { width: 512, height: 768 });
@@ -46,8 +46,8 @@ test("renderer cache-busts scene PNGs from manifest version", () => {
 
 test("correct and wrong states drive character and tool", () => {
   const stateMachine = fs.readFileSync(path.join(root, "assets/js/scene-state-machine.js"), "utf8");
-  assert.ok(stateMachine.includes('playSequence("kongjwi", plan.kongjwi || [2, 3, 4, 5, 6], 1180)'));
-  assert.ok(stateMachine.includes('playSequence("tool", plan.tool || [2, 3, 4, 5, 6], 1180)'));
+  assert.ok(stateMachine.includes('playSequence("kongjwi", plan.kongjwi || [2, 3, 4, 5, 6], 1180, { hold })'));
+  assert.ok(stateMachine.includes('playSequence("tool", plan.tool || [2, 3, 4, 5, 6], 1180, { hold })'));
   assert.ok(stateMachine.includes('case "wrong"'));
   assert.ok(stateMachine.includes('[7]'));
 });
@@ -59,10 +59,10 @@ test("cache chain contains the independent rig3 scene version", () => {
   assert.ok(html.includes("20260807-underlayer-rig3"));
   assert.ok(html.includes("game-asset-animation.css?v=20260807-underlayer-rig3"));
   assert.ok(html.includes("layered-scene-runtime.css?v=20260807-underlayer-rig3"));
-  assert.ok(html.includes("visible-water-pour.js?v=20260807-underlayer-rig3"));
-  assert.ok(html.includes("ui-effects.js?v=20260807-underlayer-rig3"));
+  assert.ok(html.includes("game-page.js?v=20260808-runtime-ownership1"));
+  assert.ok(!html.includes("visible-water-pour.js"));
   assert.ok(runtime.includes("scene-source-aspect-fix.css?v=20260807-underlayer-rig3"));
-  assert.ok(uiEffects.includes('game-cosmetics-entry.js?v=20260807-underlayer-rig3'));
+  assert.ok(uiEffects.includes('game-cosmetics-entry.js'));
 });
 
 test("all Kongjwi sheets remain available", () => {

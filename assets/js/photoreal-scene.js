@@ -1,4 +1,4 @@
-import { mountKongjwiComposer } from "./kongjwi-part-composer.js?v=20260805-outfit-rig1";
+import { mountKongjwiComposer } from "./kongjwi-part-composer.js";
 
 // Compatibility constants retained for the authored-frame contract.  The live
 // renderer now composes coordinate-aligned PNG parts instead of repainting a

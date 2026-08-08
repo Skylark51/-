@@ -1,4 +1,4 @@
-import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical2";
+import { mountHistoricalBgm } from "./historical-bgm.js";
 
 const AUDIO_SETTINGS_KEY = "kongjuiya-audio-settings";
 const DEFAULT_SETTINGS = Object.freeze({

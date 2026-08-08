@@ -10,8 +10,8 @@
  * her hand while preserving a square tool box.
  *
  * The water-stream layer is also repositioned as the geometric corridor from
- * the bucket lip toward the jar mouth. A guaranteed visible water ribbon is
- * rendered by game-asset-animation.css inside this same box.
+ * the bucket lip toward the jar mouth. The authored PNG stream renders inside
+ * this same box.
  *
  * The four jar source pairs were authored on different canvases. Their open
  * source bodies are slightly narrower than the paired no-toad shop masters.

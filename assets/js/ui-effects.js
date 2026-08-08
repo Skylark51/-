@@ -1,16 +1,13 @@
-import { GameStorage } from "./storage.js";
 import { applyDeviceMode, getDeviceMode, syncViewport } from "./device-entry.js";
 import { GAME_TITLE, displayJarName } from "./theme-system.js";
-import { mountHistoricalBgm } from "./historical-bgm.js?v=20260804-historical2";
-import { mountMobileKeypad } from "./mobile-keypad.js?v=20260805-redox-mobile2";
-import { mountGameScene } from "./game-cosmetics-entry.js?v=20260807-underlayer-rig3";
+import { mountHistoricalBgm } from "./historical-bgm.js";
+import { mountMobileKeypad } from "./mobile-keypad.js";
+import { mountGameScene } from "./game-cosmetics-entry.js";
 
 const SELECTION_KEY = "kongjuiya-training-selection";
 const OPENING_COUNTDOWN_TRAININGS = new Set(["atomic_number"]);
 const OPENING_COUNTDOWN_INTRO = "자... 숨 고르시고.. 시작합니다";
 const OPENING_COUNTDOWN_STEPS = Object.freeze([3, 2, 1]);
-const storage = new GameStorage();
-mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ?? 0.5 });
 const byId = id => document.getElementById(id);
 const formatNumber = value => Math.round(Number(value) || 0).toLocaleString("ko-KR");
 const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -35,7 +32,7 @@ function readSelection() {
   }
 }
 
-function applyMotionPreference() {
+function applyMotionPreference(storage) {
   document.documentElement.classList.toggle(
     "reduce-motion",
     storage.data.settings?.animations === false
@@ -108,7 +105,10 @@ async function runOpeningCountdown({ modeId, announce, scene } = {}) {
   delete overlay.dataset.phase;
 }
 
-async function initializeGamePage() {
+export async function initializeGamePage(api = globalThis.KongJuiYaGame) {
+  if (!api) throw new Error("게임 엔진이 준비되지 않았습니다.");
+  const storage = api.storage;
+  mountHistoricalBgm({ initialVolume: storage.data.settings?.volume ?? 0.5 });
   const selection = readSelection();
   const requestedTrainingId = new URLSearchParams(location.search).get("training");
 
@@ -116,10 +116,6 @@ async function initializeGamePage() {
     location.replace("index.html?view=jars");
     return;
   }
-
-  await import("./main.js?v=20260807-metal-reactivity-symbols1");
-  const api = globalThis.KongJuiYaGame;
-  if (!api) throw new Error("게임 엔진을 불러오지 못했습니다.");
 
   const modeById = id => api.TRAINING_MODES.find(item => item.id === id) || null;
   const mode = modeById(requestedTrainingId) || modeById(selection?.trainingId);
@@ -142,7 +138,7 @@ async function initializeGamePage() {
   if (!app) throw new Error("게임 화면 루트가 없습니다.");
   app.dataset.trainingId = mode.id;
 
-  applyMotionPreference();
+  applyMotionPreference(storage);
   syncViewport();
   applyDeviceMode(getDeviceMode() || "auto", { force: true });
   api.selectTraining(mode.id);
@@ -163,8 +159,9 @@ async function initializeGamePage() {
 
   const scene = mountGameScene(app, { storage });
   const removers = [];
-  let questionCount = 1;
-  let correctCount = 0;
+  const targetQuestionCount = api.questionCount;
+  let questionCount = resumeState ? Math.min(targetQuestionCount, Number(resumeState.correctInStage || 0) + 1) : 1;
+  let correctCount = resumeState ? Number(resumeState.correctInStage || 0) : 0;
   let wrongCount = 0;
   let bubbleTimer = 0;
   let feverTimer = 0;
@@ -175,9 +172,22 @@ async function initializeGamePage() {
   }
 
   function updateCounts() {
-    byId("ui-questionCount").textContent = Math.min(10, questionCount);
+    byId("ui-questionCount").textContent = Math.min(targetQuestionCount, questionCount);
     byId("ui-correctCount").textContent = correctCount;
     byId("ui-wrongCount").textContent = wrongCount;
+  }
+
+  function syncQuestionTargetUi() {
+    const progress = document.querySelector(".question-progress-line > span");
+    const index = byId("ui-questionCount");
+    if (progress && index) {
+      progress.replaceChildren(document.createTextNode("문제 "), index, document.createTextNode(` / ${targetQuestionCount}`));
+    }
+    const completed = byId("correctInStage");
+    if (completed?.parentNode) {
+      completed.parentNode.replaceChildren(completed, document.createTextNode(`/${targetQuestionCount}`));
+    }
+    document.documentElement.dataset.defaultQuestionCount = String(targetQuestionCount);
   }
 
   function showToadBubble(detail = {}) {
@@ -340,6 +350,7 @@ async function initializeGamePage() {
   });
 
   updateCounts();
+  syncQuestionTargetUi();
   updatePauseButton(false);
 
   addEventListener("beforeunload", () => {
@@ -352,8 +363,3 @@ async function initializeGamePage() {
 }
 
 setOfficialTitle();
-initializeGamePage().catch(error => {
-  console.error(error);
-  const feedback = byId("feedback");
-  if (feedback) feedback.textContent = "게임을 시작하지 못했습니다. 페이지를 새로고침해 주세요.";
-});

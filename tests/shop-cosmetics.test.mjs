@@ -18,9 +18,9 @@ function gameStorage(beans = 1000) {
 }
 
 test("shop catalog has four complete categories", () => {
-  assert.equal(SHOP_ITEMS.length, 16);
+  assert.equal(SHOP_ITEMS.length, 17);
   assert.deepEqual([...new Set(SHOP_ITEMS.map(item => item.category))].sort(), ["jar", "outfit", "toad", "tool"]);
-  assert.equal(STARTER_COSMETICS.length, 4);
+  assert.equal(STARTER_COSMETICS.length, 5);
 });
 
 test("cosmetic purchase deducts beans, owns and equips item", () => {

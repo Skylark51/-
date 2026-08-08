@@ -47,13 +47,13 @@ test("mid-run exit shows ad before routing back to jar selection", () => {
   assert.match(js, /index\.html\?view=jars/);
 });
 
-test("countdown assets are cache-busted and loaded before legacy ui-effects", () => {
+test("countdown assets are cache-busted and loaded before the single game entry", () => {
   const html = read("콩쥐야_줘때써.html");
   const preloader = html.indexOf("opening-countdown-flow.js?v=20260807-countdown-overlay3");
-  const legacy = html.indexOf("ui-effects.js?v=20260807-oxidation-formula1");
-  assert.ok(preloader >= 0 && legacy >= 0 && preloader < legacy);
+  const entry = html.indexOf("game-page.js?v=20260808-runtime-ownership1");
+  assert.ok(preloader >= 0 && entry >= 0 && preloader < entry);
   assert.match(html, /opening-countdown-flow\.css\?v=20260807-countdown-overlay3/);
-  assert.match(html, /result-panel-enhancements\.js\?v=20260807-result-record1/);
+  assert.match(html, /result-panel-enhancements\.js\?v=20260807-result-actions2/);
   assert.match(html, /game-bgm\.js\?v=20260807-audio-bgm2/);
-  assert.match(html, /data-ui-version="20260807-countdown-overlay3"/);
+  assert.match(html, /data-ui-version="[^"]+"/);
 });

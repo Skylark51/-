@@ -1,14 +1,33 @@
 import { GAME_CONFIG } from "../../data/game-config.js";
 import { BEAN_REWARDS } from "../../data/upgrades.js";
-import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js?v=20260807-metal-reactivity-route1";
-import { QUESTIONS, validateQuestions } from "../../data/questions.js?v=20260807-metal-reactivity-symbols1";
+import { TRAINING_MODES, getTrainingMode } from "../../data/training-modes.js";
+import { QUESTIONS, validateQuestions } from "../../data/questions.js";
 import { QuestionEngine } from "./question-engine.js";
 import { GameCore } from "./game-core.js";
 import { GameStorage } from "./storage.js";
 import { UpgradeSystem } from "./upgrade-system.js";
 import { ActionSystem } from "./action-system.js";
-import { UIAdapter } from "./ui-adapter.js?v=20260805-redox-mobile2";
-import { installMetalReactivityChoiceLabels } from "./metal-reactivity-choice-ui.js?v=20260807-metal-reactivity-symbols1";
+import { UIAdapter } from "./ui-adapter.js";
+import { installMetalReactivityChoiceLabels } from "./metal-reactivity-choice-ui.js";
+
+export const DEFAULT_QUESTION_COUNT = 10;
+export const MIN_QUESTION_COUNT = 5;
+export const MAX_QUESTION_COUNT = 100;
+
+export function clampQuestionCount(value) {
+  const count = Math.round(Number(value));
+  return Number.isFinite(count)
+    ? Math.max(MIN_QUESTION_COUNT, Math.min(MAX_QUESTION_COUNT, count))
+    : DEFAULT_QUESTION_COUNT;
+}
+
+function readSelection() {
+  try { return JSON.parse(sessionStorage.getItem("kongjuiya-training-selection") || "null"); }
+  catch { return null; }
+}
+
+export function bootstrapGameRuntime() {
+if (globalThis.KongJuiYaGame) return globalThis.KongJuiYaGame;
 
 const validationErrors = validateQuestions();
 if (validationErrors.length) {
@@ -16,12 +35,17 @@ if (validationErrors.length) {
 }
 
 const storage = new GameStorage();
+const selection = readSelection();
+const savedQuestionCount = selection?.resume
+  ? Number(storage.data.currentRun?.correctAnswersPerStage || 0)
+  : 0;
+const questionCount = clampQuestionCount(savedQuestionCount || storage.data.settings?.questionCount);
 const upgrades = new UpgradeSystem(storage);
 const questionEngine = new QuestionEngine(QUESTIONS);
 const actions = new ActionSystem({ upgrades, storage });
 const game = new GameCore({
   questionEngine,
-  config: GAME_CONFIG,
+  config: Object.freeze({ ...GAME_CONFIG, correctAnswersToClear: questionCount }),
   upgradeSystem: upgrades,
   actionSystem: actions
 });
@@ -91,7 +115,7 @@ function submit(value) {
       result.question,
       result.correct,
       false,
-      performance.now() - questionStartedAt,
+      result.responseMs,
       game.state.difficulty
     );
     questionStartedAt = performance.now();
@@ -125,7 +149,7 @@ game.on("answer:timeout", detail => {
     detail.question,
     false,
     true,
-    performance.now() - questionStartedAt,
+    detail.responseMs,
     game.state.difficulty
   );
   questionStartedAt = performance.now();
@@ -200,12 +224,13 @@ window.dispatchEvent(new CustomEvent("upgrades:loaded", {
   detail: { upgrades: upgrades.levels() }
 }));
 
-globalThis.KongJuiYaGame = Object.freeze({
+const api = Object.freeze({
   game,
   questionEngine,
   storage,
   upgrades,
   actions,
+  questionCount,
   TRAINING_MODES,
   start,
   submit,
@@ -213,3 +238,7 @@ globalThis.KongJuiYaGame = Object.freeze({
   purchaseUpgrade: id => upgrades.purchase(id),
   getUpgradeCards: shop => upgrades.cards(shop)
 });
+globalThis.KongJuiYaGame = api;
+document.documentElement.dataset.gameRuntime = "ready";
+return api;
+}

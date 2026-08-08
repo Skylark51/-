@@ -1,8 +1,9 @@
 import { defaultUpgradeLevels } from "../../data/upgrades.js";
 
 export const STORAGE_KEY = "kongjuiya-chem-save";
-export const STORAGE_VERSION = 4;
+export const STORAGE_VERSION = 5;
 export const FAST_ANSWER_MS = 2000;
+export const MAX_PLAY_DATES = 365;
 export const DAILY_MISSION_DEFINITIONS = Object.freeze([
   Object.freeze({ type: "correct_answers", target: 10, rewardBeans: 30 }),
   Object.freeze({ type: "fever_starts", target: 2, rewardBeans: 35 }),
@@ -20,7 +21,8 @@ const difficultyKeys = ["easy", "normal", "hard"];
 const emptyMode = () => ({
   plays: 0, correct: 0, wrong: 0, timeout: 0, bestScore: 0, bestCombo: 0,
   bestFeverCount: 0, bestFeverTier: 0, beansEarned: 0, spoonHits: 0, criticalHits: 0,
-  averageResponseMs: 0, responseCount: 0, lastPlayedAt: null, byDifficulty: {}, weakQuestions: {}
+  averageResponseMs: 0, bestResponseMs: 0, responseCount: 0, lastPlayedAt: null,
+  playDates: [], byDifficulty: {}, weakQuestions: {}
 });
 const emptyActions = () => ({
   criticalHits: 0, spoonHits: 0, bucketSmashes: 0, lidDrops: 0, waterCannons: 0,
@@ -54,8 +56,12 @@ const normalizeMode = value => {
     bestCombo: nonNegative(source.bestCombo), bestFeverCount: nonNegative(source.bestFeverCount),
     bestFeverTier: nonNegative(source.bestFeverTier), beansEarned: nonNegative(source.beansEarned),
     spoonHits: nonNegative(source.spoonHits), criticalHits: nonNegative(source.criticalHits),
-    averageResponseMs: nonNegative(source.averageResponseMs), responseCount: nonNegative(source.responseCount),
+    averageResponseMs: nonNegative(source.averageResponseMs), bestResponseMs: nonNegative(source.bestResponseMs),
+    responseCount: nonNegative(source.responseCount),
     lastPlayedAt: typeof source.lastPlayedAt === "string" ? source.lastPlayedAt : null,
+    playDates: Array.isArray(source.playDates)
+      ? source.playDates.filter(value => typeof value === "string" && value).slice(0, MAX_PLAY_DATES)
+      : [],
     byDifficulty, weakQuestions: object(source.weakQuestions)
   };
 };
@@ -240,6 +246,9 @@ export class GameStorage {
     if (Number.isFinite(responseMs) && responseMs >= 0) {
       stats.averageResponseMs = (stats.averageResponseMs * stats.responseCount + responseMs) / (stats.responseCount + 1);
       stats.responseCount++;
+      if (!timeout && (!stats.bestResponseMs || responseMs < stats.bestResponseMs)) {
+        stats.bestResponseMs = Math.round(responseMs);
+      }
     }
     if (!correct) stats.weakQuestions[question.id] = (stats.weakQuestions[question.id] || 0) + 1;
     if (correct) {
@@ -307,6 +316,7 @@ export class GameStorage {
     stats.bestCombo = Math.max(stats.bestCombo, state.bestCombo || state.combo || 0);
     stats.bestFeverCount = Math.max(stats.bestFeverCount, state.feverCount || 0);
     stats.lastPlayedAt = new Date().toISOString();
+    stats.playDates = [stats.lastPlayedAt, ...stats.playDates.filter(Boolean)].slice(0, MAX_PLAY_DATES);
     this.data.overall.bestCombo = Math.max(this.data.overall.bestCombo, stats.bestCombo);
     const byDifficulty = stats.byDifficulty[difficulty] = {
       plays: 0, bestScore: 0, correct: 0, wrong: 0, ...object(stats.byDifficulty[difficulty])
@@ -314,7 +324,10 @@ export class GameStorage {
     byDifficulty.bestScore = Math.max(byDifficulty.bestScore, Math.round(state.score || 0));
     this.data.recentRuns.unshift({
       endedAt: stats.lastPlayedAt, trainingId: state.trainingId, difficulty,
-      score: Math.round(state.score || 0), status: state.status, beansEarned: state.beansEarned || 0
+      score: Math.round(state.score || 0), status: state.status, beansEarned: state.beansEarned || 0,
+      questionCount: Number(state.correctAnswersPerStage || 0),
+      correct: Number(state.correctInStage || 0),
+      bestCombo: Number(state.bestCombo || state.combo || 0)
     });
     this.data.recentRuns = this.data.recentRuns.slice(0, 20);
     this.data.currentRun = null;

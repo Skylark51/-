@@ -1,4 +1,4 @@
-import { isCourtServantMode, playCourtServantPour, resetCourtServantPour } from "./court-servant-effect.js?v=20260808-court-servants1";
+import { isCourtServantMode, playCourtServantPour, resetCourtServantPour } from "./court-servant-effect.js";
 
 const EVENT_TARGET = globalThis;
 const TRANSIENT_FEEDBACK_STATES = new Set(["correct", "wrong", "timeout"]);

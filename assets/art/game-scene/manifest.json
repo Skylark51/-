@@ -1,5 +1,5 @@
 {
-  "version": "20260807-underlayer-rig3",
+  "version": "20260808-runtime-ownership1",
   "logicalSize": {
     "width": 2048,
     "height": 1152
@@ -144,7 +144,12 @@
       "waterStream": "assets/art/game-scene/effects/water-pour-sheet.png",
       "waterSplash": "assets/art/game-scene/effects/water-splash-sheet.png",
       "waterLeak": "assets/art/game-scene/effects/water-leak-sheet.png",
-      "waterSurface": "assets/art/game-scene/effects/water-surface-tile.png"
+      "waterSurface": "assets/art/game-scene/effects/water-surface-tile.png",
+      "toadExpression": {
+        "path": "assets/art/game-scene/toad/expression-overlay-sheet.png",
+        "enabled": false,
+        "validation": "truncated-png"
+      }
     },
     "toadFallback": {
       "default": "assets/images/toad-expressions/기본.png",
@@ -205,6 +210,13 @@
         "height": 512
       },
       "frames": 8
+    },
+    "toadExpression": {
+      "cell": {
+        "width": 512,
+        "height": 384
+      },
+      "frames": 10
     }
   },
   "frames": {
