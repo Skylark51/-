@@ -1,0 +1,31 @@
+name: Diagnose Node regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/diag-node-tests.yml"
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run suite and retain failure output
+        shell: bash
+        run: |
+          set +e
+          node --test tests/*.mjs > /tmp/node-tests.log 2>&1
+          status=$?
+          echo "EXIT_STATUS=$status" > /tmp/node-test-summary.txt
+          grep -n -E 'not ok|AssertionError|ERR_ASSERTION|failure|error:|expected|actual' /tmp/node-tests.log | tail -n 100 >> /tmp/node-test-summary.txt || true
+          tail -n 180 /tmp/node-tests.log >> /tmp/node-test-summary.txt
+          exit 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: node-regression-diagnostic
+          path: /tmp/node-test-summary.txt
+          retention-days: 1
