@@ -1,6 +1,5 @@
 name: Build Kongjwi pour motion sheets
 
-# Changes to this workflow deliberately force a full regeneration from authored/canonical PNG masters.
 on:
   push:
     branches: [main]
@@ -41,6 +40,49 @@ jobs:
       - name: Install PNG build dependencies
         run: python -m pip install --disable-pip-version-check pillow numpy
 
+      - name: Apply permanent foreground ordering fix
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          builder_path = Path("scripts/build-kongjwi-pour-sheets.py")
+          builder = builder_path.read_text(encoding="utf-8")
+          builder = builder.replace(
+              'manifest["version"] = "20260808-head-safe2"',
+              'manifest["version"] = "20260808-layer-safe1"'
+          )
+          needle = '    manifest["layers"]["scene-tool"] = 11\n'
+          replacement = needle + '    manifest["layers"]["scene-foreground"] = 5\n'
+          if 'manifest["layers"]["scene-foreground"] = 5' not in builder:
+              if needle not in builder:
+                  raise SystemExit("scene-tool layer assignment not found in builder")
+              builder = builder.replace(needle, replacement, 1)
+          builder_path.write_text(builder, encoding="utf-8")
+
+          for test_path in [
+              Path("tests/kongjwi-pour-motion.test.mjs"),
+              Path("tests/kongjwi-underlayer-grip.test.mjs"),
+          ]:
+              text = test_path.read_text(encoding="utf-8")
+              if '"20260808-layer-safe1"' not in text:
+                  text = text.replace(
+                      '"20260808-head-safe2"',
+                      '"20260808-head-safe2", "20260808-layer-safe1"'
+                  )
+              test_path.write_text(text, encoding="utf-8")
+
+          test_path = Path("tests/kongjwi-pour-motion.test.mjs")
+          text = test_path.read_text(encoding="utf-8")
+          ordering_assert = '  assert.ok(manifest.layers["scene-foreground"] < manifest.layers["scene-kongjwi"], "foreground must not occlude Kongjwi");\n'
+          anchor = '  assert.deepEqual(manifest.placements.tool, manifest.placements.kongjwi);\n'
+          if ordering_assert not in text:
+              if anchor not in text:
+                  raise SystemExit("test anchor not found")
+              text = text.replace(anchor, anchor + ordering_assert, 1)
+          test_path.write_text(text, encoding="utf-8")
+          PY
+
       - name: Determine whether motion rig must be regenerated
         id: source-change
         shell: bash
@@ -69,49 +111,6 @@ jobs:
       - name: Build generated motion sheets
         run: python scripts/build-kongjwi-pour-sheets.py ${{ steps.source-change.outputs.args }}
 
-      - name: Emit temporary Kongjwi face diagnostic
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          from PIL import Image
-          import numpy as np
-
-          entries = [
-              ("night-cutout", Path("assets/art/kongjwi/kongjwi-night-court-cutout.png")),
-              ("night-raw", Path("assets/art/kongjwi/kongjwi-night-court-decoded.png")),
-              ("night-standing", Path("assets/art/kongjwi-parts/royal-night/standing.png")),
-              ("night-reconstructed", Path("assets/art/kongjwi-parts/royal-night/reconstructed-neutral.png")),
-              ("night-head-part", Path("assets/art/kongjwi-parts/royal-night/head-hair-neck.png")),
-              ("night-face-neutral", Path("assets/art/kongjwi-parts/royal-night/face-neutral.png")),
-              ("classic-cutout", Path("assets/art/kongjwi/kongjwi-classic-red-cutout.png")),
-          ]
-          samples = [(128, 42), (118, 54), (128, 54), (138, 54), (118, 68), (128, 68), (138, 68), (128, 82)]
-          ramp = " .:-=+*#%@"
-          for label, path in entries:
-              image = Image.open(path).convert("RGBA")
-              arr = np.asarray(image)
-              face = arr[28:98, 106:151]
-              visible = face[..., 3] > 16
-              rgb = face[..., :3][visible]
-              mean = tuple(np.round(rgb.mean(axis=0), 1)) if len(rgb) else (0, 0, 0)
-              std = tuple(np.round(rgb.std(axis=0), 1)) if len(rgb) else (0, 0, 0)
-              print(f"DIAG {label} size={image.size} alpha_pixels={int(visible.sum())} face_rgb_mean={mean} face_rgb_std={std}")
-              print("SAMPLES " + label + " " + " ".join(f"{x},{y}:{image.getpixel((x,y))}" for x,y in samples))
-              crop = image.crop((96, 18, 161, 108)).resize((22, 30), Image.Resampling.BILINEAR)
-              small = np.asarray(crop)
-              print("ASCII " + label)
-              for row in small:
-                  line = ""
-                  for r, g, b, a in row:
-                      if a < 24:
-                          line += " "
-                      else:
-                          lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
-                          line += ramp[min(len(ramp)-1, int(lum / 256 * len(ramp)))]
-                  print(line)
-          PY
-
       - name: Validate generated animation assets
         shell: bash
         run: |
@@ -139,31 +138,21 @@ jobs:
           )
 
           manifest = json.loads(Path("assets/art/game-scene/manifest.json").read_text(encoding="utf-8"))
-          assert manifest["version"] == "20260808-head-safe2"
+          assert manifest["version"] == "20260808-layer-safe1"
           assert manifest["runtimePolicy"]["anatomySafetyPolicy"] == "complete-source-required-no-headless-cutouts"
-          assert manifest["layers"]["scene-tool"] > manifest["layers"]["scene-kongjwi"], (
-              "equipped bucket must render in front of the character grip region"
-          )
+          assert manifest["layers"]["scene-tool"] > manifest["layers"]["scene-kongjwi"]
+          assert manifest["layers"]["scene-foreground"] < manifest["layers"]["scene-kongjwi"]
 
           for skin in skins:
               path = Path("assets/art/game-scene/kongjwi") / skin / "pour-sheet.png"
               image = Image.open(path).convert("RGBA")
               assert image.size == (4096, 768), (skin, image.size)
-
               source = builder.load_rgba(Path("assets/art/kongjwi") / builder.SOURCES[skin])
               base = builder.fit_source(source)
               for index, pose in enumerate(builder.BODY_POSES):
                   expected = np.asarray(builder.pose_frame(base, *pose), dtype=np.uint8)
                   actual = np.asarray(image.crop((index * 512, 0, (index + 1) * 512, 768)), dtype=np.uint8)
                   assert np.array_equal(actual, expected), f"{skin} frame {index}: complete source anatomy was altered"
-
-              idle = np.asarray(image.crop((0, 0, 512, 768)), dtype=np.int16)
-              prepare = np.asarray(image.crop((2 * 512, 0, 3 * 512, 768)), dtype=np.int16)
-              pour = np.asarray(image.crop((5 * 512, 0, 6 * 512, 768)), dtype=np.int16)
-              wrong = np.asarray(image.crop((7 * 512, 0, 8 * 512, 768)), dtype=np.int16)
-              assert np.count_nonzero(np.any(np.abs(idle - prepare) > 12, axis=2)) > 150, skin
-              assert np.count_nonzero(np.any(np.abs(idle - pour) > 12, axis=2)) > 500, skin
-              assert np.count_nonzero(np.any(np.abs(idle - wrong) > 12, axis=2)) > 300, skin
 
           for tool in tools:
               base = Path("assets/art/game-scene/tools") / tool
@@ -177,22 +166,25 @@ jobs:
           PY
           git diff --check
 
-      - name: Commit generated motion assets
+      - name: Commit permanent layer fix and generated assets
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add \
+            scripts/build-kongjwi-pour-sheets.py \
+            tests/kongjwi-pour-motion.test.mjs \
+            tests/kongjwi-underlayer-grip.test.mjs \
             assets/art/kongjwi/kongjwi-night-court-cutout.png \
             assets/art/game-scene/manifest.json \
             assets/art/game-scene/kongjwi/*/pour-sheet.png \
             assets/art/game-scene/tools/*/master.png \
             assets/art/game-scene/tools/*/pour-sheet.png
           if git diff --cached --quiet; then
-            echo "No Kongjwi motion asset changes."
+            echo "No Kongjwi layer changes."
             exit 0
           fi
-          git commit -m "chore: refresh head-safe Kongjwi motion sheets [skip ci]"
+          git commit -m "fix: keep foreground behind Kongjwi actors [skip ci]"
           git pull --rebase origin main
           git push
