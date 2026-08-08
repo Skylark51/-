@@ -1,5 +1,6 @@
 name: Build Kongjwi pour motion sheets
 
+# Changes to this workflow deliberately force a full regeneration from authored PNG masters.
 on:
   push:
     branches: [main]
