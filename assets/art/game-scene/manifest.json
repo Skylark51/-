@@ -1,5 +1,5 @@
 {
-  "version": "20260808-head-safe2",
+  "version": "20260808-layer-safe1",
   "logicalSize": {
     "width": 2048,
     "height": 1152
@@ -33,7 +33,7 @@
     "scene-jar-front": 80,
     "scene-water-splash": 90,
     "scene-water-leak": 100,
-    "scene-foreground": 110,
+    "scene-foreground": 5,
     "scene-ui": 120
   },
   "assets": {

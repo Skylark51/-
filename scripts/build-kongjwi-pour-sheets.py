@@ -363,7 +363,7 @@ def build_tool_sheet(root: Path, tool_key: str, hand_points, force: bool = False
 def update_manifest(root: Path):
     path = root / "assets/art/game-scene/manifest.json"
     manifest = json.loads(path.read_text(encoding="utf-8"))
-    manifest["version"] = "20260808-head-safe2"
+    manifest["version"] = "20260808-layer-safe1"
 
     policy = manifest.setdefault("runtimePolicy", {})
     policy["kongjwiMotionPolicy"] = "source-locked-intact-all-outfits"
@@ -382,6 +382,7 @@ def update_manifest(root: Path):
     # behind the character and made it look as if the equipped bucket vanished.
     manifest["layers"]["scene-kongjwi"] = 10
     manifest["layers"]["scene-tool"] = 11
+    manifest["layers"]["scene-foreground"] = 5
     manifest["anchors"]["toolHandle"] = {"x": 560, "y": 671}
     manifest["anchors"]["waterStart"] = {"x": 663, "y": 538}
 

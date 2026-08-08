@@ -18,7 +18,7 @@ function pngSize(file) {
 test("all-outfit motion manifest uses the anatomy-safe uniform scene policy", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "assets/art/game-scene/manifest.json"), "utf8"));
   assert.ok(
-    ["20260808-anatomy-safe1", "20260808-head-safe1", "20260808-head-safe2"].includes(manifest.version),
+    ["20260808-anatomy-safe1", "20260808-head-safe1", "20260808-head-safe2", "20260808-layer-safe1"].includes(manifest.version),
     `unexpected migration version ${manifest.version}`
   );
   assert.equal(manifest.runtimePolicy.kongjwiMotionPolicy, "source-locked-intact-all-outfits");
@@ -38,6 +38,7 @@ test("all bucket sheets remain co-registered", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "assets/art/game-scene/manifest.json"), "utf8"));
   assert.deepEqual(manifest.sprites.tool.cell, { width: 512, height: 768 });
   assert.deepEqual(manifest.placements.tool, manifest.placements.kongjwi);
+  assert.ok(manifest.layers["scene-foreground"] < manifest.layers["scene-kongjwi"], "foreground must not occlude Kongjwi");
   for (const tool of tools) {
     const sheet = manifest.assets.tools[tool].sheet;
     assert.equal(manifest.availability[sheet], true);

@@ -19,7 +19,7 @@ const manifest = JSON.parse(manifestText);
 assert.ok(catalog.includes("outfit_underlayer"));
 assert.ok(shop.includes("kongjwi-underlayer-cutout.png"));
 assert.ok(
-  ["20260808-anatomy-safe1", "20260808-head-safe1", "20260808-head-safe2"].includes(manifest.version),
+  ["20260808-anatomy-safe1", "20260808-head-safe1", "20260808-head-safe2", "20260808-layer-safe1"].includes(manifest.version),
   `unexpected migration version ${manifest.version}`
 );
 assert.equal(manifest.assets.kongjwi.underlayer.integratedTools, undefined);
