@@ -8,14 +8,21 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..");
 const read = file => fs.readFileSync(path.join(root, file), "utf8");
 
-test("scene source aspect correction restores authored Kongjwi ratio and jar source-pair ratios", () => {
-  const css = read("assets/css/scene-source-aspect-fix.css");
-  assert.match(css, /scene-kongjwi\[data-sprite-mode="sheet"\][\s\S]*transform:\s*none/);
-  assert.match(css, /data-jar-skin="celadon"[\s\S]*--jar-source-aspect-x:\s*1\.12102/);
-  assert.match(css, /data-jar-skin="moon-white"[\s\S]*--jar-source-aspect-x:\s*1\.09463/);
-  assert.match(css, /data-jar-skin="onggi"[\s\S]*--jar-source-aspect-x:\s*1\.03462/);
-  assert.match(css, /scene-jar-back[\s\S]*scene-sprite[\s\S]*scaleX\(var\(--jar-source-aspect-x/);
-  assert.match(read("assets/css/layered-scene-runtime.css"), /scene-source-aspect-fix\.css\?v=20260807-underlayer-rig3/);
+test("scene preserves authored actor ratios with one uniform logical scale", () => {
+  const aspectCss = read("assets/css/scene-source-aspect-fix.css");
+  const runtimeCss = read("assets/css/layered-scene-runtime.css");
+  const renderer = read("assets/js/scene-renderer.js");
+
+  assert.match(aspectCss, /scene-kongjwi\[data-sprite-mode="sheet"\][\s\S]*transform:\s*none/);
+  assert.doesNotMatch(aspectCss, /--jar-source-aspect-x/);
+  assert.doesNotMatch(aspectCss, /scaleX\(/);
+  assert.doesNotMatch(aspectCss, /scaleY\(/);
+  assert.match(aspectCss, /scene-jar-back[\s\S]*scene-sprite[\s\S]*transform:\s*none\s*!important/);
+  assert.match(aspectCss, /scene-toad-skin[\s\S]*object-fit:\s*contain\s*!important/);
+  assert.match(runtimeCss, /scene-source-aspect-fix\.css\?v=20260808-motion-polish1/);
+  assert.match(runtimeCss, /scene-motion-polish\.css\?v=20260808-motion-polish1/);
+  assert.match(renderer, /Math\.min\(hostWidth \/ logical\.width, hostHeight \/ logical\.height\)/);
+  assert.match(renderer, /stack\.dataset\.scaleMode = "uniform-contain"/);
 });
 
 test("asset inspector is isolated behind the game entry debug parameter", () => {
