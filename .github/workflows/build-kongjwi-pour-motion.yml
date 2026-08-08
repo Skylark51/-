@@ -69,6 +69,40 @@ jobs:
       - name: Build generated motion sheets
         run: python scripts/build-kongjwi-pour-sheets.py ${{ steps.source-change.outputs.args }}
 
+      - name: Emit temporary Kongjwi source diagnostic
+        shell: bash
+        run: |
+          python - <<'PY'
+          from PIL import Image, ImageDraw, ImageOps
+          from io import BytesIO
+          from pathlib import Path
+          import base64
+
+          entries = [
+              ("cutout", Path("assets/art/kongjwi/kongjwi-night-court-cutout.png"), False),
+              ("raw", Path("assets/art/kongjwi/kongjwi-night-court-decoded.png"), False),
+              ("head-part", Path("assets/art/kongjwi-parts/royal-night/head-hair-neck.png"), False),
+              ("sheet-0", Path("assets/art/game-scene/kongjwi/night-court/pour-sheet.png"), True),
+          ]
+          panel_w, panel_h = 112, 176
+          contact = Image.new("RGB", (panel_w * len(entries), panel_h), "#d9d9d9")
+          draw = ImageDraw.Draw(contact)
+          for index, (label, path, is_sheet) in enumerate(entries):
+              source = Image.open(path).convert("RGBA")
+              if is_sheet:
+                  source = source.crop((0, 0, 512, 768))
+              background = Image.new("RGBA", source.size, (214, 214, 214, 255))
+              background.alpha_composite(source)
+              thumb = ImageOps.contain(background.convert("RGB"), (104, 150), Image.Resampling.LANCZOS)
+              x = index * panel_w + (panel_w - thumb.width) // 2
+              y = 18 + (150 - thumb.height) // 2
+              contact.paste(thumb, (x, y))
+              draw.text((index * panel_w + 3, 3), label, fill="black")
+          output = BytesIO()
+          contact.save(output, format="JPEG", quality=58, optimize=True)
+          print("KONGJWI_DIAG_JPEG_BASE64=" + base64.b64encode(output.getvalue()).decode("ascii"))
+          PY
+
       - name: Validate generated animation assets
         shell: bash
         run: |
