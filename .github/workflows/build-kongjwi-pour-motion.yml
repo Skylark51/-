@@ -58,6 +58,8 @@ jobs:
               'assets/art/kongjwi/*-cutout.png' \
               'assets/art/kongjwi-tools/*.png' \
               'assets/art/game-scene/tools/*/master.png' \
+              'tests/kongjwi-pour-motion.test.mjs' \
+              'tests/kongjwi-underlayer-grip.test.mjs' \
               '.github/workflows/build-kongjwi-pour-motion.yml' | grep -q .; then
               args="--force"
             fi
@@ -75,15 +77,31 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
+          import importlib.util
           import numpy as np
 
           skins = ("underlayer", "classic-red", "blue-scholar", "field-work", "ragged", "night-court")
           tools = ("wood", "brass", "celadon", "moon")
 
+          spec = importlib.util.spec_from_file_location("kongjwi_builder", Path("scripts/build-kongjwi-pour-sheets.py"))
+          builder = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(builder)
+
           for skin in skins:
               path = Path("assets/art/game-scene/kongjwi") / skin / "pour-sheet.png"
               image = Image.open(path).convert("RGBA")
               assert image.size == (4096, 768), (skin, image.size)
+
+              # Anatomy invariant: every generated cell must be exactly the
+              # lossless rigid pose of the complete source cutout. No mask,
+              # limb extraction, neck deletion, or torso surgery is allowed.
+              source = builder.load_rgba(Path("assets/art/kongjwi") / builder.SOURCES[skin])
+              base = builder.fit_source(source)
+              for index, pose in enumerate(builder.BODY_POSES):
+                  expected = np.asarray(builder.pose_frame(base, *pose), dtype=np.uint8)
+                  actual = np.asarray(image.crop((index * 512, 0, (index + 1) * 512, 768)), dtype=np.uint8)
+                  assert np.array_equal(actual, expected), f"{skin} frame {index}: complete source anatomy was altered"
+
               idle = np.asarray(image.crop((0, 0, 512, 768)), dtype=np.int16)
               prepare = np.asarray(image.crop((2 * 512, 0, 3 * 512, 768)), dtype=np.int16)
               pour = np.asarray(image.crop((5 * 512, 0, 6 * 512, 768)), dtype=np.int16)
