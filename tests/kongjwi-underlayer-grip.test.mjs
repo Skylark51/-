@@ -18,9 +18,11 @@ const manifest = JSON.parse(manifestText);
 
 assert.ok(catalog.includes("outfit_underlayer"));
 assert.ok(shop.includes("kongjwi-underlayer-cutout.png"));
-assert.equal(manifest.version, "20260808-motion-polish1");
+assert.equal(manifest.version, "20260808-anatomy-safe1");
 assert.equal(manifest.assets.kongjwi.underlayer.integratedTools, undefined);
-assert.equal(manifest.runtimePolicy.kongjwiMotionPolicy, "source-locked-articulated-all-outfits");
+assert.equal(manifest.runtimePolicy.kongjwiMotionPolicy, "source-locked-intact-all-outfits");
+assert.equal(manifest.runtimePolicy.kongjwiFramePolicy, "source-character-pixels-whole-body-pose-only");
+assert.equal(manifest.runtimePolicy.anatomySafetyPolicy, "never-segment-flattened-character-png");
 assert.equal(manifest.runtimePolicy.toolMotionPolicy, "source-master-grip-pivot-co-registered");
 assert.equal(manifest.runtimePolicy.uniformScalePolicy, "shared-2048x1152-contain");
 assert.deepEqual(manifest.placements.tool, manifest.placements.kongjwi);
@@ -39,11 +41,15 @@ assert.ok(css.includes("--scene-height: 71.18055556%"));
 assert.ok(!css.includes("--jar-source-aspect-x"));
 assert.ok(!css.includes("scaleX(var(--jar-source-aspect-x"));
 
-assert.ok(builder.includes("build_articulated_frames"));
+assert.ok(builder.includes("def build_intact_frames"));
+assert.ok(builder.includes("frames.append(pose_frame(base, body_angle, dx, dy))"));
 assert.ok(builder.includes("rotate_tool_about_grip"));
 assert.ok(builder.includes("TOOL_SOURCES"));
+for (const destructiveToken of ["FOREARM_POLYGON", "FOREARM_ANGLES", "mask_from_polygon", "forearm_mask", "elbow_patch"]) {
+  assert.ok(!builder.includes(destructiveToken), `flattened character art must not use ${destructiveToken}`);
+}
 assert.ok(effects.includes("night-court-moon-aura"));
 assert.ok(effects.includes("moon-silver-stream"));
 assert.ok(uiEffects.includes('game-cosmetics-entry.js'));
 
-console.log("all-outfit articulated grip and uniform scene scaling locked");
+console.log("intact Kongjwi anatomy, bucket grip, and uniform scene scaling locked");
