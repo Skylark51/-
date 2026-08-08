@@ -1,5 +1,5 @@
 {
-  "version": "20260808-anatomy-safe1",
+  "version": "20260808-head-safe2",
   "logicalSize": {
     "width": 2048,
     "height": 1152
@@ -19,12 +19,12 @@
     "uniformScalePolicy": "shared-2048x1152-contain",
     "waterAnimationPolicy": "synchronized-pour-fill-leak",
     "cosmeticFxPolicy": "data-keyed-runtime-effects",
-    "anatomySafetyPolicy": "never-segment-flattened-character-png"
+    "anatomySafetyPolicy": "complete-source-required-no-headless-cutouts"
   },
   "layers": {
     "scene-background": 0,
     "scene-kongjwi": 10,
-    "scene-tool": 9,
+    "scene-tool": 11,
     "scene-water-stream": 30,
     "scene-jar-back": 40,
     "scene-water-fill": 50,
