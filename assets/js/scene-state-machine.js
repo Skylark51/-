@@ -2,6 +2,10 @@ import { isCourtServantMode, playCourtServantPour, resetCourtServantPour } from 
 
 const EVENT_TARGET = globalThis;
 const TRANSIENT_FEEDBACK_STATES = new Set(["correct", "wrong", "timeout"]);
+const POUR_CHARACTER_FRAMES = [2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6];
+const POUR_STREAM_FRAMES = [1, 2, 3, 4, 5, 6, 7];
+const POUR_SPLASH_FRAMES = [1, 2, 3, 4, 5];
+const LEAK_FRAMES = [0, 1, 2, 3, 4, 5, 6, 7];
 
 const EVENT_TO_STATE = Object.freeze({
   "game:start": "idle",
@@ -88,11 +92,11 @@ export class LayeredSceneStateController {
     return timer;
   }
 
-  playSequence(layerName, frames, duration, { loop = false, hold = false } = {}) {
+  playSequence(layerName, frames, duration, { loop = false, hold = false, delay = 0 } = {}) {
     if (!Array.isArray(frames) || !frames.length) return;
     const reduced = reducedMotionRequested();
     if (reduced || frames.length === 1) {
-      this.renderer.setFrame(layerName, frames.at(-1));
+      this.schedule(() => this.renderer.setFrame(layerName, frames.at(-1)), delay);
       return;
     }
 
@@ -102,20 +106,25 @@ export class LayeredSceneStateController {
       this.schedule(() => {
         if (token !== this.animationToken) return;
         this.renderer.setFrame(layerName, frame);
-      }, index * interval);
+      }, delay + index * interval);
     });
 
     if (loop) {
       this.schedule(() => {
         if (token !== this.animationToken) return;
-        this.playSequence(layerName, frames, duration, { loop, hold });
-      }, duration);
+        this.playSequence(layerName, frames, duration, { loop: true, hold, delay: 0 });
+      }, delay + duration);
     } else if (!hold) {
       this.schedule(() => {
         if (token !== this.animationToken) return;
         this.renderer.setFrame(layerName, 0);
-      }, duration + 16);
+      }, delay + duration + 16);
     }
+  }
+
+  startLeakLoop({ energetic = false } = {}) {
+    const sequence = this.manifest.frames?.sequences?.leak || LEAK_FRAMES;
+    this.playSequence("waterLeak", sequence, energetic ? 760 : 1120, { loop: true, hold: true });
   }
 
   playCorrectFeedback(detail = {}, { hold = false } = {}) {
@@ -123,20 +132,27 @@ export class LayeredSceneStateController {
     const plan = sequences.answerCorrect || {};
     const courtMode = isCourtServantMode();
 
+    this.renderer.setFlowPhase("prepare");
+    this.schedule(() => this.renderer.setFlowPhase("pour"), 400);
+    this.schedule(() => this.renderer.setFlowPhase("settle"), 1040);
+    if (!hold) this.schedule(() => this.renderer.setFlowPhase("idle"), 1320);
+
     if (courtMode) {
       playCourtServantPour();
       this.renderer.setFrame("kongjwi", 0);
       this.renderer.setFrame("tool", 0);
-      this.playSequence("waterStream", plan.waterStream || [1, 2, 3, 4, 5, 6, 7], 1040, { hold });
-      this.playSequence("waterSplash", plan.waterSplash || [1, 2, 3, 4, 5], 900, { hold });
+      this.playSequence("waterStream", plan.waterStream || POUR_STREAM_FRAMES, 650, { delay: 410, hold });
+      this.playSequence("waterSplash", plan.waterSplash || POUR_SPLASH_FRAMES, 520, { delay: 540, hold });
+      this.startLeakLoop({ energetic: true });
       return;
     }
 
     resetCourtServantPour();
-    this.playSequence("kongjwi", plan.kongjwi || [2, 3, 4, 5, 6], 1180, { hold });
-    this.playSequence("tool", plan.tool || [2, 3, 4, 5, 6], 1180, { hold });
-    this.playSequence("waterStream", plan.waterStream || [1, 2, 3, 4, 5, 6, 7], 1040, { hold });
-    this.playSequence("waterSplash", plan.waterSplash || [1, 2, 3, 4, 5], 900, { hold });
+    this.playSequence("kongjwi", plan.kongjwiTimeline || POUR_CHARACTER_FRAMES, 1320, { hold });
+    this.playSequence("tool", plan.toolTimeline || POUR_CHARACTER_FRAMES, 1320, { hold });
+    this.playSequence("waterStream", plan.waterStream || POUR_STREAM_FRAMES, 650, { delay: 410, hold });
+    this.playSequence("waterSplash", plan.waterSplash || POUR_SPLASH_FRAMES, 520, { delay: 540, hold });
+    this.startLeakLoop({ energetic: true });
   }
 
   apply(nextState, detail = {}) {
@@ -144,6 +160,7 @@ export class LayeredSceneStateController {
     this.clearTimers();
     this.state = nextState;
     this.renderer.setState(nextState);
+    this.renderer.setFlowPhase("idle");
     this.syncWater(detail);
 
     const sequences = this.manifest.frames?.sequences || {};
@@ -155,6 +172,7 @@ export class LayeredSceneStateController {
         this.renderer.setExpression("default");
         this.playSequence("kongjwi", sequences.idle?.kongjwi || [0, 1, 0], 1800, { loop: true });
         this.playSequence("tool", [0, 1, 0], 1800, { loop: true });
+        this.startLeakLoop();
         break;
 
       case "question":
@@ -162,6 +180,7 @@ export class LayeredSceneStateController {
         this.renderer.setExpression("idle-blink");
         this.playSequence("kongjwi", [0, 1, 0], 620);
         this.playSequence("tool", [0, 1, 0], 620);
+        this.startLeakLoop();
         this.schedule(() => this.renderer.setExpression("default"), 680);
         break;
 
@@ -170,7 +189,7 @@ export class LayeredSceneStateController {
         const combo = Number(detail.combo || detail.streak || 0);
         this.renderer.setExpression(combo >= 3 ? "combo" : "correct");
         this.playCorrectFeedback(detail);
-        this.schedule(() => this.apply("question"), 1240);
+        this.schedule(() => this.apply("question"), 1400);
         break;
       }
 
@@ -182,6 +201,7 @@ export class LayeredSceneStateController {
         );
         this.playSequence("kongjwi", sequences.answerWrong?.kongjwi || [7], 560, { hold: true });
         this.playSequence("tool", [7], 560, { hold: true });
+        this.startLeakLoop({ energetic: true });
         this.schedule(() => this.apply("question"), 680);
         break;
 
@@ -191,20 +211,24 @@ export class LayeredSceneStateController {
         this.renderer.setExpression("timeout");
         this.playSequence("kongjwi", [7], 700, { hold: true });
         this.playSequence("tool", [7], 700, { hold: true });
+        this.startLeakLoop({ energetic: true });
         this.schedule(() => this.apply("question"), 820);
         break;
 
       case "warning":
         this.renderer.setExpression("confused");
+        this.startLeakLoop({ energetic: true });
         break;
 
       case "critical":
         this.renderer.setExpression(this.wrongStreak >= 2 ? "rage" : "angry");
+        this.startLeakLoop({ energetic: true });
         break;
 
       case "fever":
         this.wrongStreak = 0;
         this.renderer.setExpression("combo");
+        this.startLeakLoop({ energetic: true });
         break;
 
       case "clear": {
@@ -220,10 +244,12 @@ export class LayeredSceneStateController {
         this.renderer.setExpression(detail.reason === "timeout" ? "timeout" : "wrong");
         this.playSequence("kongjwi", [7], 700, { hold: true });
         this.playSequence("tool", [7], 700, { hold: true });
+        this.startLeakLoop({ energetic: true });
         break;
 
       case "pause":
         resetCourtServantPour();
+        this.renderer.setFlowPhase("paused");
         this.renderer.setExpression("idle-blink");
         this.renderer.setFrame("kongjwi", 1);
         this.renderer.setFrame("tool", 1);
@@ -232,6 +258,7 @@ export class LayeredSceneStateController {
       default:
         resetCourtServantPour();
         this.renderer.setExpression("default");
+        this.startLeakLoop();
         break;
     }
   }
