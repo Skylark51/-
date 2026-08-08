@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""Build the layered Kongjwi + bucket motion rig from repository PNG masters.
+"""Build the layered Kongjwi + bucket motion rig from authored PNG masters.
 
-The underlayer rig is the first fully articulated outfit. It keeps the source
-Kongjwi pixels and moves only the screen-right forearm plus a very small
-whole-body lean. Buckets remain independent layers, so the equipped wood,
-brass, celadon or moon bucket follows the same hand path without baking a
-specific tool into Kongjwi.
+All outfits share one articulated hand path. Buckets are rebuilt from their
+original high-resolution PNG masters and rotate around the grip point, so no
+previously generated sheet is resampled into another generated sheet.
 """
 from __future__ import annotations
 
@@ -14,10 +12,11 @@ import json
 import math
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 CELL = (512, 768)
 FRAMES = 8
+BODY_PIVOT = (CELL[0] // 2, CELL[1] - 58)
 
 SOURCES = {
     "underlayer": "kongjwi-underlayer-cutout.png",
@@ -27,23 +26,31 @@ SOURCES = {
     "ragged": "kongjwi-ragged-cutout.png",
     "night-court": "kongjwi-night-court-cutout.png",
 }
-TOOLS = ("wood", "brass", "celadon", "moon")
+TOOL_SOURCES = {
+    "wood": "wood.png",
+    "brass": "brass.png",
+    "celadon": "celadon.png",
+    "moon": "moon.png",
+}
 
+# Keep whole-body motion restrained. The hand/forearm provides the readable
+# action while the torso only anticipates and follows through.
 BODY_POSES = (
     (0.0, 0, 0),
     (0.0, 0, -1),
-    (-0.4, 0, 0),
-    (-0.8, 1, -1),
-    (-1.2, 2, -2),
-    (-1.7, 3, -2),
-    (-0.7, 1, -1),
-    (1.4, -3, 6),
+    (-0.2, 0, -1),
+    (-0.45, 1, -2),
+    (-0.75, 2, -3),
+    (-1.05, 3, -3),
+    (-0.4, 1, -1),
+    (0.8, -2, 4),
 )
 
-FOREARM_POLYGON = [(303, 258), (327, 258), (345, 395), (318, 406), (307, 350), (300, 300)]
+FOREARM_POLYGON = [(298, 250), (334, 250), (350, 402), (312, 416), (301, 350), (294, 294)]
 ELBOW = (314, 270)
 HAND = (333, 386)
-FOREARM_ANGLES = (0.0, -2.0, -18.0, -42.0, -68.0, -86.0, -30.0, 8.0)
+FOREARM_ANGLES = (0.0, -3.0, -12.0, -26.0, -42.0, -58.0, -28.0, 6.0)
+TOOL_ANGLES = (0.0, -2.0, -8.0, -18.0, -32.0, -46.0, -20.0, 3.0)
 
 
 def alpha_bbox(image: Image.Image):
@@ -67,35 +74,6 @@ def fit_source(source: Image.Image) -> Image.Image:
     return frame
 
 
-def pose_frame(base: Image.Image, angle: float, dx: int, dy: int) -> Image.Image:
-    rotated = base.rotate(
-        angle,
-        resample=Image.Resampling.BICUBIC,
-        expand=False,
-        center=(CELL[0] // 2, CELL[1] - 58),
-    )
-    frame = Image.new("RGBA", CELL, (0, 0, 0, 0))
-    frame.alpha_composite(rotated, (dx, dy))
-    return frame
-
-
-def build_source_locked_sheet(base: Image.Image) -> Image.Image:
-    sheet = Image.new("RGBA", (CELL[0] * FRAMES, CELL[1]), (0, 0, 0, 0))
-    for index, (angle, dx, dy) in enumerate(BODY_POSES):
-        sheet.alpha_composite(pose_frame(base, angle, dx, dy), (index * CELL[0], 0))
-    return sheet
-
-
-def mask_from_polygon(base: Image.Image, polygon) -> Image.Image:
-    import numpy as np
-    mask = Image.new("L", CELL, 0)
-    ImageDraw.Draw(mask).polygon(polygon, fill=255)
-    return Image.fromarray(
-        np.minimum(np.array(mask, dtype="uint8"), np.array(base.getchannel("A"), dtype="uint8")),
-        "L",
-    )
-
-
 def rotate_point(point, pivot, degrees):
     radians = math.radians(degrees)
     px, py = pivot
@@ -107,14 +85,46 @@ def rotate_point(point, pivot, degrees):
     )
 
 
-def build_underlayer_frames(base: Image.Image):
+def pose_point(point, angle: float, dx: int, dy: int):
+    x, y = rotate_point(point, BODY_PIVOT, angle)
+    return (x + dx, y + dy)
+
+
+def pose_frame(base: Image.Image, angle: float, dx: int, dy: int) -> Image.Image:
+    rotated = base.rotate(
+        angle,
+        resample=Image.Resampling.BICUBIC,
+        expand=False,
+        center=BODY_PIVOT,
+    )
+    frame = Image.new("RGBA", CELL, (0, 0, 0, 0))
+    frame.alpha_composite(rotated, (dx, dy))
+    return frame
+
+
+def mask_from_polygon(base: Image.Image, polygon) -> Image.Image:
+    import numpy as np
+
+    mask = Image.new("L", CELL, 0)
+    ImageDraw.Draw(mask).polygon(polygon, fill=255)
+    clipped = Image.fromarray(
+        np.minimum(np.array(mask, dtype="uint8"), np.array(base.getchannel("A"), dtype="uint8")),
+        "L",
+    )
+    return clipped.filter(ImageFilter.GaussianBlur(1.4))
+
+
+def build_articulated_frames(base: Image.Image):
     forearm_mask = mask_from_polygon(base, FOREARM_POLYGON)
     forearm = Image.new("RGBA", CELL, (0, 0, 0, 0))
     forearm.paste(base, (0, 0), forearm_mask)
+
     body = base.copy()
     body.paste((0, 0, 0, 0), (0, 0, CELL[0], CELL[1]), forearm_mask)
+
     elbow_mask = Image.new("L", CELL, 0)
-    ImageDraw.Draw(elbow_mask).ellipse((299, 251, 335, 287), fill=255)
+    ImageDraw.Draw(elbow_mask).ellipse((297, 249, 337, 289), fill=255)
+    elbow_mask = elbow_mask.filter(ImageFilter.GaussianBlur(1.2))
     elbow_patch = Image.new("RGBA", CELL, (0, 0, 0, 0))
     elbow_patch.paste(base, (0, 0), elbow_mask)
 
@@ -130,10 +140,14 @@ def build_underlayer_frames(base: Image.Image):
         frame = body.copy()
         frame.alpha_composite(arm)
         frame.alpha_composite(elbow_patch)
+
         body_angle, dx, dy = BODY_POSES[index]
         frame = pose_frame(frame, body_angle, dx, dy)
         frames.append(frame)
-        hand_points.append(rotate_point(HAND, ELBOW, arm_angle))
+
+        arm_hand = rotate_point(HAND, ELBOW, arm_angle)
+        hand_points.append(pose_point(arm_hand, body_angle, dx, dy))
+
     return frames, hand_points
 
 
@@ -146,25 +160,26 @@ def write_sheet(frames, output: Path):
 
 
 def build_kongjwi(root: Path, force: bool = False):
-    underlayer_hands = None
+    shared_hand_points = None
     for skin, filename in SOURCES.items():
         source = Image.open(root / "assets/art/kongjwi" / filename).convert("RGBA")
         base = fit_source(source)
+        frames, hand_points = build_articulated_frames(base)
+        if shared_hand_points is None:
+            shared_hand_points = hand_points
+
         output = root / "assets/art/game-scene/kongjwi" / skin / "pour-sheet.png"
         if output.exists() and not force:
             with Image.open(output) as current:
                 if current.size != (CELL[0] * FRAMES, CELL[1]):
                     raise RuntimeError(f"Unexpected {skin} sheet size: {current.size}")
             continue
-        if skin == "underlayer":
-            frames, underlayer_hands = build_underlayer_frames(base)
-            write_sheet(frames, output)
-        else:
-            build_source_locked_sheet(base).save(output, format="PNG", optimize=True, compress_level=9)
-    return underlayer_hands
+        write_sheet(frames, output)
+
+    return shared_hand_points
 
 
-def fit_tool_frame(source: Image.Image) -> Image.Image:
+def fit_tool(source: Image.Image) -> Image.Image:
     crop = source.crop(alpha_bbox(source))
     max_w, max_h = 164, 150
     scale = min(max_w / crop.width, max_h / crop.height)
@@ -172,52 +187,56 @@ def fit_tool_frame(source: Image.Image) -> Image.Image:
     return crop.resize(size, Image.Resampling.LANCZOS)
 
 
-def tool_sheet_is_registered(source: Image.Image, hand_points) -> bool:
-    if source.size != (CELL[0] * FRAMES, CELL[1]):
-        return False
-    for index, hand in enumerate(hand_points):
-        frame = source.crop((index * CELL[0], 0, (index + 1) * CELL[0], CELL[1]))
-        box = alpha_bbox(frame)
-        actual_grip = (
-            box[0] + round((box[2] - box[0]) * 0.12),
-            box[1] + round((box[3] - box[1]) * 0.48),
-        )
-        if abs(actual_grip[0] - hand[0]) > 16 or abs(actual_grip[1] - hand[1]) > 16:
-            return False
-    return True
+def rotate_tool_about_grip(tool: Image.Image, degrees: float):
+    canvas_size = 320
+    pivot = (canvas_size // 2, canvas_size // 2)
+    grip = (round(tool.width * 0.12), round(tool.height * 0.48))
+    canvas = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
+    canvas.alpha_composite(tool, (pivot[0] - grip[0], pivot[1] - grip[1]))
+    rotated = canvas.rotate(
+        degrees,
+        resample=Image.Resampling.BICUBIC,
+        expand=False,
+        center=pivot,
+    )
+    return rotated, pivot
 
 
-def build_tool_sheet(root: Path, tool_key: str, hand_points):
-    path = root / f"assets/art/game-scene/tools/{tool_key}/pour-sheet.png"
-    source = Image.open(path).convert("RGBA")
-    if source.width % FRAMES:
-        raise RuntimeError(f"Unexpected {tool_key} tool sheet width: {source.size}")
-    if tool_sheet_is_registered(source, hand_points):
+def build_tool_sheet(root: Path, tool_key: str, hand_points, force: bool = False):
+    output = root / f"assets/art/game-scene/tools/{tool_key}/pour-sheet.png"
+    if output.exists() and not force:
+        with Image.open(output) as current:
+            if current.size != (CELL[0] * FRAMES, CELL[1]):
+                raise RuntimeError(f"Unexpected {tool_key} tool sheet size: {current.size}")
         return
-    source_cell_w = source.width // FRAMES
-    source_cell_h = source.height
+
+    master_path = root / "assets/art/kongjwi-tools" / TOOL_SOURCES[tool_key]
+    master = Image.open(master_path).convert("RGBA")
+    tool = fit_tool(master)
     frames = []
     for index, hand in enumerate(hand_points):
-        raw = source.crop((index * source_cell_w, 0, (index + 1) * source_cell_w, source_cell_h))
-        tool = fit_tool_frame(raw)
+        rotated, pivot = rotate_tool_about_grip(tool, TOOL_ANGLES[index])
         hx, hy = hand
-        grip = (round(tool.width * 0.12), round(tool.height * 0.48))
         layer = Image.new("RGBA", CELL, (0, 0, 0, 0))
-        layer.alpha_composite(tool, (round(hx - grip[0]), round(hy - grip[1])))
+        layer.alpha_composite(rotated, (round(hx - pivot[0]), round(hy - pivot[1])))
         frames.append(layer)
-    write_sheet(frames, path)
+    write_sheet(frames, output)
 
 
 def update_manifest(root: Path):
     path = root / "assets/art/game-scene/manifest.json"
     manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["version"] = "20260808-motion-polish1"
+
     policy = manifest.setdefault("runtimePolicy", {})
-    policy["kongjwiMotionPolicy"] = "source-locked-articulated-underlayer"
-    policy["kongjwiFramePolicy"] = "source-character-pixels-pose-only"
-    policy["toolMotionPolicy"] = "equipped-tool-co-registered-with-kongjwi"
+    policy["kongjwiMotionPolicy"] = "source-locked-articulated-all-outfits"
+    policy["kongjwiFramePolicy"] = "source-character-pixels-articulated-pose-only"
+    policy["toolMotionPolicy"] = "source-master-grip-pivot-co-registered"
+    policy["uniformScalePolicy"] = "shared-2048x1152-contain"
+    policy["waterAnimationPolicy"] = "synchronized-pour-fill-leak"
+    policy["cosmeticFxPolicy"] = "data-keyed-runtime-effects"
     policy.pop("integratedGripPolicy", None)
-    underlayer = manifest["assets"]["kongjwi"]["underlayer"]
-    underlayer.pop("integratedTools", None)
+
     manifest["sprites"]["tool"]["cell"] = {"width": 512, "height": 768}
     manifest["placements"]["kongjwi"] = {"x": 205, "y": 260, "width": 546, "height": 820}
     manifest["placements"]["tool"] = dict(manifest["placements"]["kongjwi"])
@@ -225,27 +244,43 @@ def update_manifest(root: Path):
     manifest["layers"]["scene-kongjwi"] = 10
     manifest["anchors"]["toolHandle"] = {"x": 560, "y": 671}
     manifest["anchors"]["waterStart"] = {"x": 663, "y": 538}
+
+    sequences = manifest.setdefault("frames", {}).setdefault("sequences", {})
+    correct = sequences.setdefault("answerCorrect", {})
+    correct["kongjwiTimeline"] = [2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6]
+    correct["toolTimeline"] = [2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6]
+    correct["waterStream"] = [1, 2, 3, 4, 5, 6, 7]
+    correct["waterSplash"] = [1, 2, 3, 4, 5]
+    sequences["leak"] = [0, 1, 2, 3, 4, 5, 6, 7]
+
+    responsive = manifest.setdefault("responsive", {})
+    responsive["coordinateSystem"] = "shared-2048x1152"
+    responsive.setdefault("mobile", {})["scaleMode"] = "uniform-contain"
+    responsive.setdefault("desktop", {})["scaleMode"] = "uniform-contain"
+
     availability = manifest.setdefault("availability", {})
     availability.pop("assets/art/game-scene/kongjwi/underlayer/wood-grip-sheet.png", None)
     for skin in SOURCES:
         availability[manifest["assets"]["kongjwi"][skin]["sheet"]] = True
-    for tool in TOOLS:
+    for tool in TOOL_SOURCES:
         availability[manifest["assets"]["tools"][tool]["sheet"]] = True
+
     path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--force", action="store_true", help="Regenerate sheets after an authored Kongjwi source change")
+    parser.add_argument("--force", action="store_true", help="Regenerate all motion sheets from authored PNG masters")
     args = parser.parse_args()
     root = args.root.resolve()
+
     hand_points = build_kongjwi(root, force=args.force)
     if hand_points:
-        for tool in TOOLS:
-            build_tool_sheet(root, tool, hand_points)
+        for tool in TOOL_SOURCES:
+            build_tool_sheet(root, tool, hand_points, force=args.force)
     update_manifest(root)
-    print("Built underlayer articulated pose rig + four co-registered bucket sheets")
+    print("Built articulated all-outfit Kongjwi rig + four source-master bucket sheets")
 
 
 if __name__ == "__main__":
