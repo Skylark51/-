@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Build the layered Kongjwi + bucket motion rig from authored PNG masters.
 
-All outfits share one articulated hand path. Buckets are rebuilt from their
-original high-resolution PNG masters and rotate around the grip point, so no
-previously generated sheet is resampled into another generated sheet.
+All outfits share one articulated hand path. Bucket pixels are preserved in a
+canonical master.png the first time a valid source is available; if a legacy
+static bucket PNG is truncated, frame 0 of the already-valid 4096x768 motion
+sheet is cropped once and becomes that canonical master. Future regenerations
+always start from master.png, so generated sheets are never recursively scaled.
 """
 from __future__ import annotations
 
@@ -12,7 +14,7 @@ import json
 import math
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, UnidentifiedImageError
 
 CELL = (512, 768)
 FRAMES = 8
@@ -58,6 +60,12 @@ def alpha_bbox(image: Image.Image):
     if not box:
         raise RuntimeError("PNG alpha silhouette is empty")
     return box
+
+
+def load_rgba(path: Path) -> Image.Image:
+    with Image.open(path) as source:
+        source.load()
+        return source.convert("RGBA")
 
 
 def fit_source(source: Image.Image) -> Image.Image:
@@ -162,7 +170,7 @@ def write_sheet(frames, output: Path):
 def build_kongjwi(root: Path, force: bool = False):
     shared_hand_points = None
     for skin, filename in SOURCES.items():
-        source = Image.open(root / "assets/art/kongjwi" / filename).convert("RGBA")
+        source = load_rgba(root / "assets/art/kongjwi" / filename)
         base = fit_source(source)
         frames, hand_points = build_articulated_frames(base)
         if shared_hand_points is None:
@@ -179,12 +187,47 @@ def build_kongjwi(root: Path, force: bool = False):
     return shared_hand_points
 
 
-def fit_tool(source: Image.Image) -> Image.Image:
+def prepare_tool_pixels(source: Image.Image) -> Image.Image:
+    """Crop transparent canvas without upscaling or reducing color depth."""
     crop = source.crop(alpha_bbox(source))
     max_w, max_h = 164, 150
-    scale = min(max_w / crop.width, max_h / crop.height)
+    scale = min(1.0, max_w / crop.width, max_h / crop.height)
+    if scale >= 1.0:
+        return crop.copy()
     size = (max(1, round(crop.width * scale)), max(1, round(crop.height * scale)))
     return crop.resize(size, Image.Resampling.LANCZOS)
+
+
+def load_or_create_tool_master(root: Path, tool_key: str) -> Image.Image:
+    generated_dir = root / "assets/art/game-scene/tools" / tool_key
+    canonical = generated_dir / "master.png"
+    if canonical.exists():
+        try:
+            return load_rgba(canonical)
+        except (OSError, UnidentifiedImageError):
+            canonical.unlink(missing_ok=True)
+
+    master_path = root / "assets/art/kongjwi-tools" / TOOL_SOURCES[tool_key]
+    try:
+        tool = prepare_tool_pixels(load_rgba(master_path))
+        source_label = str(master_path.relative_to(root))
+    except (OSError, UnidentifiedImageError) as error:
+        # Some legacy static bucket PNGs have a valid PNG signature but a
+        # truncated image stream. Preserve the already-rendering frame-0 pixels
+        # once, instead of failing or recursively resampling whole sheets.
+        sheet_path = generated_dir / "pour-sheet.png"
+        sheet = load_rgba(sheet_path)
+        if sheet.size != (CELL[0] * FRAMES, CELL[1]):
+            raise RuntimeError(f"Cannot recover {tool_key} master from {sheet_path}: {sheet.size}") from error
+        frame0 = sheet.crop((0, 0, CELL[0], CELL[1]))
+        tool = frame0.crop(alpha_bbox(frame0))
+        source_label = f"{sheet_path.relative_to(root)} frame 0"
+        print(f"{tool_key}: legacy static PNG unreadable; preserving {source_label} as canonical master")
+
+    canonical.parent.mkdir(parents=True, exist_ok=True)
+    canonical.save(canonical, format="PNG", optimize=True, compress_level=9)
+    print(f"{tool_key}: canonical master <- {source_label}")
+    return tool
 
 
 def rotate_tool_about_grip(tool: Image.Image, degrees: float):
@@ -210,9 +253,7 @@ def build_tool_sheet(root: Path, tool_key: str, hand_points, force: bool = False
                 raise RuntimeError(f"Unexpected {tool_key} tool sheet size: {current.size}")
         return
 
-    master_path = root / "assets/art/kongjwi-tools" / TOOL_SOURCES[tool_key]
-    master = Image.open(master_path).convert("RGBA")
-    tool = fit_tool(master)
+    tool = load_or_create_tool_master(root, tool_key)
     frames = []
     for index, hand in enumerate(hand_points):
         rotated, pivot = rotate_tool_about_grip(tool, TOOL_ANGLES[index])
@@ -271,7 +312,7 @@ def update_manifest(root: Path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--force", action="store_true", help="Regenerate all motion sheets from authored PNG masters")
+    parser.add_argument("--force", action="store_true", help="Regenerate all motion sheets from authored/canonical PNG masters")
     args = parser.parse_args()
     root = args.root.resolve()
 
@@ -280,7 +321,7 @@ def main():
         for tool in TOOL_SOURCES:
             build_tool_sheet(root, tool, hand_points, force=args.force)
     update_manifest(root)
-    print("Built articulated all-outfit Kongjwi rig + four source-master bucket sheets")
+    print("Built articulated all-outfit Kongjwi rig + four canonical-master bucket sheets")
 
 
 if __name__ == "__main__":
