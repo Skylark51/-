@@ -1,8 +1,9 @@
 import { createSceneStateController } from "./scene-state-machine.js";
+import { resolveSceneCosmeticEffects } from "./scene-cosmetic-effects.js";
 
-const MANIFEST_URL = "assets/art/game-scene/manifest.json?v=20260807-underlayer-rig3";
+const MANIFEST_URL = "assets/art/game-scene/manifest.json?v=20260808-motion-polish1";
 const RUNTIME_STYLE_ID = "layered-scene-animation-runtime";
-const RUNTIME_STYLE_URL = new URL("../css/game-asset-animation.css?v=20260806-mobile-scene-fix1", import.meta.url).href;
+const RUNTIME_STYLE_URL = new URL("../css/game-asset-animation.css?v=20260808-motion-polish1", import.meta.url).href;
 const ORDER = [
   "scene-background", "scene-kongjwi", "scene-tool", "scene-water-stream",
   "scene-jar-back", "scene-water-fill", "scene-toad-skin", "scene-toad-expression",
@@ -55,6 +56,20 @@ function box(element, value, logical) {
   element.style.setProperty("--scene-y", `${value.y / logical.height * 100}%`);
   element.style.setProperty("--scene-width", `${value.width / logical.width * 100}%`);
   element.style.setProperty("--scene-height", `${value.height / logical.height * 100}%`);
+}
+
+function fitStackToHost(host, stack, logical) {
+  if (!host || !stack || !logical?.width || !logical?.height) return;
+  const hostWidth = Math.max(1, host.clientWidth || host.getBoundingClientRect().width || 1);
+  const hostHeight = Math.max(1, host.clientHeight || host.getBoundingClientRect().height || 1);
+  const scale = Math.min(hostWidth / logical.width, hostHeight / logical.height);
+  const renderWidth = logical.width * scale;
+  const renderHeight = logical.height * scale;
+  stack.style.setProperty("--scene-render-width", `${renderWidth}px`);
+  stack.style.setProperty("--scene-render-height", `${renderHeight}px`);
+  stack.style.setProperty("--scene-uniform-scale", String(scale));
+  stack.dataset.scaleMode = "uniform-contain";
+  stack.dataset.logicalAspect = `${logical.width}:${logical.height}`;
 }
 
 function createStack(host, manifest) {
@@ -146,6 +161,7 @@ function frameOf(node, frame) {
   const count = Math.max(1, Number(spriteNode.style.getPropertyValue("--scene-frame-count")) || 1);
   const next = Math.max(0, Math.min(count - 1, Number(frame) || 0));
   spriteNode.style.backgroundPosition = `${count <= 1 ? 0 : next / (count - 1) * 100}% center`;
+  node.dataset.frame = String(next);
 }
 
 function preload(urls) {
@@ -174,6 +190,7 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
   let manifest;
   let stack;
   let controller;
+  let resizeObserver;
   let disposed = false;
   let current = { ...cosmetics };
   let expression = "default";
@@ -213,6 +230,10 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
       stack?.style.setProperty("--scene-water-level", `${water}%`);
       stack?.setAttribute("data-water-level", String(Math.round(water)));
     },
+    setFlowPhase(next = "idle") {
+      if (stack) stack.dataset.waterFlow = next;
+      root.dataset.waterFlow = next;
+    },
     setState(next = "idle") {
       if (stack) stack.dataset.sceneState = next;
       root.dataset.sceneState = next;
@@ -220,6 +241,8 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
     destroy() {
       disposed = true;
       revision += 1;
+      resizeObserver?.disconnect();
+      resizeObserver = null;
       controller?.destroy();
       root.__layeredSceneRenderer = null;
     }
@@ -234,6 +257,9 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
     const toolKey = key(current.toolSkin || current.tool || root.dataset.toolSkin, null, "wood");
     const jarKey = key(current.jarSkin || current.jar || root.dataset.jarSkin, ALIAS.jar, "onggi");
     const toadKey = key(current.toadSkin || current.toad || root.dataset.toadSkin, ALIAS.toad, "field-brown");
+    const toolAsset = a.tools[toolKey] || a.tools.wood;
+    const jarAsset = a.jars[jarKey] || a.jars.onggi;
+    const toadAsset = a.toads[toadKey] || a.toads["field-brown"];
     const expressionDefinition = a.effects.toadExpression;
     const expressionPath = typeof expressionDefinition === "string"
       ? expressionDefinition
@@ -243,15 +269,15 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
 
     const outfitAsset = a.kongjwi[outfit] || a.kongjwi.underlayer;
     const authoredKongjwi = target(manifest, outfitAsset.sheet, outfitAsset.fallback);
-    const authoredTool = target(manifest, a.tools[toolKey].sheet, a.tools[toolKey].fallback);
+    const authoredTool = target(manifest, toolAsset.sheet, toolAsset.fallback);
     const motionRig = authoredKongjwi.authored && authoredTool.authored;
     const chosen = {
       background: target(manifest, a.background.path, a.background.fallback),
       foreground: target(manifest, a.foreground.path, a.foreground.fallback),
       kongjwi: authoredKongjwi,
-      tool: motionRig ? authoredTool : { url: a.tools[toolKey].fallback, authored: false },
-      jar: target(manifest, a.jars[jarKey].layers, a.jars[jarKey].fallback),
-      toad: target(manifest, a.toads[toadKey].skin),
+      tool: motionRig ? authoredTool : { url: toolAsset.fallback, authored: false },
+      jar: target(manifest, jarAsset.layers, jarAsset.fallback),
+      toad: target(manifest, toadAsset.skin),
       expression: target(manifest, expressionPath),
       stream: motionRig ? target(manifest, a.effects.waterStream) : emptyAsset(),
       splash: motionRig ? target(manifest, a.effects.waterSplash) : emptyAsset(),
@@ -321,17 +347,27 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
     box(layer(stack, "scene-water-stream"), motionRig ? placements.waterStream : fallback.waterStream, logical);
     for (const name of ["scene-jar-back", "scene-jar-front"]) box(layer(stack, name), placements.jar, logical);
     box(fill, placements.waterFill, logical);
-    const toadPlacement = expressionMode === "full-fallback" ? fallback.toad : placements.toad;
+    const composedToad = manifest.jarCompositions?.[jarKey]?.toad || placements.toad;
+    const toadPlacement = expressionMode === "full-fallback" ? (manifest.jarCompositions?.[jarKey]?.toad || fallback.toad) : composedToad;
     for (const name of ["scene-toad-skin", "scene-toad-expression"]) box(layer(stack, name), toadPlacement, logical);
     box(layer(stack, "scene-water-splash"), placements.waterSplash, logical);
     box(layer(stack, "scene-water-leak"), placements.waterLeak, logical);
     applyJarOffset(stack, manifest, jarKey);
 
+    const effects = resolveSceneCosmeticEffects({ outfit, tool: toolKey });
     root.dataset.kongjwiOutfit = outfit;
     root.dataset.toolSkin = toolKey;
     root.dataset.jarSkin = jarKey;
     root.dataset.toadSkin = toadKey;
+    root.dataset.outfitFx = effects.outfitFx;
+    root.dataset.toolFx = effects.toolFx;
     root.dataset.sceneAssetVersion = manifest.version;
+    stack.dataset.kongjwiOutfit = outfit;
+    stack.dataset.toolSkin = toolKey;
+    stack.dataset.jarSkin = jarKey;
+    stack.dataset.toadSkin = toadKey;
+    stack.dataset.outfitFx = effects.outfitFx;
+    stack.dataset.toolFx = effects.toolFx;
     stack.dataset.assetVersion = manifest.version;
     stack.dataset.kongjwiMode = motionRig ? "sheet" : "static";
     stack.dataset.toolRig = motionRig ? "co-registered" : "static";
@@ -342,8 +378,10 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
     stack.dataset.assetMode = motionRig && chosen.jar.authored && expressionMode === "overlay"
       ? "authored"
       : "coherent-fallback";
+    fitStackToHost(host, stack, logical);
     renderer.setWaterLevel(water);
     renderer.setExpression(expression);
+    renderer.setFlowPhase(stack.dataset.waterFlow || "idle");
   }
 
   renderer.ready = (async () => {
@@ -355,6 +393,15 @@ export function mountSceneRenderer(root, { cosmetics = {} } = {}) {
       throw new Error("장면 논리 해상도 불일치");
     }
     stack = createStack(host, manifest);
+    fitStackToHost(host, stack, manifest.logicalSize);
+    if (globalThis.ResizeObserver) {
+      resizeObserver = new ResizeObserver(() => fitStackToHost(host, stack, manifest.logicalSize));
+      resizeObserver.observe(host);
+    } else {
+      const resizeHandler = () => fitStackToHost(host, stack, manifest.logicalSize);
+      globalThis.addEventListener("resize", resizeHandler);
+      resizeObserver = { disconnect: () => globalThis.removeEventListener("resize", resizeHandler) };
+    }
     await load();
     if (disposed) return renderer;
     controller = createSceneStateController(renderer, manifest);
