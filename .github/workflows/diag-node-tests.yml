@@ -21,7 +21,9 @@ jobs:
           node --test tests/*.mjs > /tmp/node-tests.log 2>&1
           status=$?
           echo "EXIT_STATUS=$status" > /tmp/node-test-summary.txt
+          echo "--- FAILURES ---" >> /tmp/node-test-summary.txt
           grep -n -E 'not ok|AssertionError|ERR_ASSERTION|failure|error:|expected|actual' /tmp/node-tests.log | tail -n 100 >> /tmp/node-test-summary.txt || true
+          echo "--- TAIL ---" >> /tmp/node-test-summary.txt
           tail -n 180 /tmp/node-tests.log >> /tmp/node-test-summary.txt
           exit 0
       - uses: actions/upload-artifact@v4
