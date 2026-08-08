@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 """Build the layered Kongjwi + bucket motion rig from authored PNG masters.
 
-All outfits share one articulated hand path. Bucket pixels are preserved in a
-canonical master.png the first time a valid source is available; if a legacy
-static bucket PNG is truncated, frame 0 of the already-valid 4096x768 motion
-sheet is cropped once and becomes that canonical master. Future regenerations
-always start from master.png, so generated sheets are never recursively scaled.
+Flattened character cutouts are treated as indivisible artwork. We never cut a
+limb out of an outfit PNG and rotate it independently: doing that with one fixed
+mask across multiple costumes can remove collar, shoulder, neck, or hair pixels.
+Each Kongjwi frame therefore keeps the entire fitted source image intact and
+uses only a small rigid whole-body pose around the feet. Buckets remain a
+separate layer and rotate around the shared hand anchor.
+
+Bucket pixels are preserved in a canonical master.png the first time a valid
+source is available; if a legacy static bucket PNG is truncated, frame 0 of the
+already-valid 4096x768 motion sheet is cropped once and becomes that canonical
+master. Future regenerations always start from master.png, so generated sheets
+are never recursively scaled.
 """
 from __future__ import annotations
 
@@ -14,7 +21,7 @@ import json
 import math
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, UnidentifiedImageError
+from PIL import Image, UnidentifiedImageError
 
 CELL = (512, 768)
 FRAMES = 8
@@ -35,6 +42,9 @@ TOOL_SOURCES = {
     "moon": "moon.png",
 }
 
+# The source character is kept intact in every frame. These are deliberately
+# small rigid poses around the feet: they create anticipation / pour / recovery
+# without ever separating the head, neck, torso, arms, sleeves, or hair.
 BODY_POSES = (
     (0.0, 0, 0),
     (0.0, 0, -1),
@@ -46,10 +56,9 @@ BODY_POSES = (
     (0.8, -2, 4),
 )
 
-FOREARM_POLYGON = [(298, 250), (334, 250), (350, 402), (312, 416), (301, 350), (294, 294)]
-ELBOW = (314, 270)
+# Shared hand anchor in the normalized 512x768 source frame. The bucket pivots
+# here while the character itself remains a single uncut image.
 HAND = (333, 386)
-FOREARM_ANGLES = (0.0, -3.0, -12.0, -26.0, -42.0, -58.0, -28.0, 6.0)
 TOOL_ANGLES = (0.0, -2.0, -8.0, -18.0, -32.0, -46.0, -20.0, 3.0)
 
 
@@ -108,52 +117,13 @@ def pose_frame(base: Image.Image, angle: float, dx: int, dy: int) -> Image.Image
     return frame
 
 
-def mask_from_polygon(base: Image.Image, polygon) -> Image.Image:
-    import numpy as np
-
-    mask = Image.new("L", CELL, 0)
-    ImageDraw.Draw(mask).polygon(polygon, fill=255)
-    clipped = Image.fromarray(
-        np.minimum(np.array(mask, dtype="uint8"), np.array(base.getchannel("A"), dtype="uint8")),
-        "L",
-    )
-    return clipped.filter(ImageFilter.GaussianBlur(1.4))
-
-
-def build_articulated_frames(base: Image.Image):
-    forearm_mask = mask_from_polygon(base, FOREARM_POLYGON)
-    forearm = Image.new("RGBA", CELL, (0, 0, 0, 0))
-    forearm.paste(base, (0, 0), forearm_mask)
-
-    body = base.copy()
-    body.paste((0, 0, 0, 0), (0, 0, CELL[0], CELL[1]), forearm_mask)
-
-    elbow_mask = Image.new("L", CELL, 0)
-    ImageDraw.Draw(elbow_mask).ellipse((297, 249, 337, 289), fill=255)
-    elbow_mask = elbow_mask.filter(ImageFilter.GaussianBlur(1.2))
-    elbow_patch = Image.new("RGBA", CELL, (0, 0, 0, 0))
-    elbow_patch.paste(base, (0, 0), elbow_mask)
-
+def build_intact_frames(base: Image.Image):
+    """Create eight poses without deleting or segmenting any character pixels."""
     frames = []
     hand_points = []
-    for index, arm_angle in enumerate(FOREARM_ANGLES):
-        arm = forearm.rotate(
-            arm_angle,
-            resample=Image.Resampling.BICUBIC,
-            expand=False,
-            center=ELBOW,
-        )
-        frame = body.copy()
-        frame.alpha_composite(arm)
-        frame.alpha_composite(elbow_patch)
-
-        body_angle, dx, dy = BODY_POSES[index]
-        frame = pose_frame(frame, body_angle, dx, dy)
-        frames.append(frame)
-
-        arm_hand = rotate_point(HAND, ELBOW, arm_angle)
-        hand_points.append(pose_point(arm_hand, body_angle, dx, dy))
-
+    for body_angle, dx, dy in BODY_POSES:
+        frames.append(pose_frame(base, body_angle, dx, dy))
+        hand_points.append(pose_point(HAND, body_angle, dx, dy))
     return frames, hand_points
 
 
@@ -170,7 +140,7 @@ def build_kongjwi(root: Path, force: bool = False):
     for skin, filename in SOURCES.items():
         source = load_rgba(root / "assets/art/kongjwi" / filename)
         base = fit_source(source)
-        frames, hand_points = build_articulated_frames(base)
+        frames, hand_points = build_intact_frames(base)
         if shared_hand_points is None:
             shared_hand_points = hand_points
 
@@ -209,6 +179,9 @@ def load_or_create_tool_master(root: Path, tool_key: str) -> Image.Image:
         tool = prepare_tool_pixels(load_rgba(master_path))
         source_label = str(master_path.relative_to(root))
     except (OSError, UnidentifiedImageError) as error:
+        # Some legacy static bucket PNGs have a valid PNG signature but a
+        # truncated image stream. Preserve the already-rendering frame-0 pixels
+        # once, instead of failing or recursively resampling whole sheets.
         sheet_path = generated_dir / "pour-sheet.png"
         sheet = load_rgba(sheet_path)
         if sheet.size != (CELL[0] * FRAMES, CELL[1]):
@@ -261,11 +234,12 @@ def build_tool_sheet(root: Path, tool_key: str, hand_points, force: bool = False
 def update_manifest(root: Path):
     path = root / "assets/art/game-scene/manifest.json"
     manifest = json.loads(path.read_text(encoding="utf-8"))
-    manifest["version"] = "20260808-motion-polish1"
+    manifest["version"] = "20260808-anatomy-safe1"
 
     policy = manifest.setdefault("runtimePolicy", {})
-    policy["kongjwiMotionPolicy"] = "source-locked-articulated-all-outfits"
-    policy["kongjwiFramePolicy"] = "source-character-pixels-articulated-pose-only"
+    policy["kongjwiMotionPolicy"] = "source-locked-intact-all-outfits"
+    policy["kongjwiFramePolicy"] = "source-character-pixels-whole-body-pose-only"
+    policy["anatomySafetyPolicy"] = "never-segment-flattened-character-png"
     policy["toolMotionPolicy"] = "source-master-grip-pivot-co-registered"
     policy["uniformScalePolicy"] = "shared-2048x1152-contain"
     policy["waterAnimationPolicy"] = "synchronized-pour-fill-leak"
@@ -315,7 +289,7 @@ def main():
         for tool in TOOL_SOURCES:
             build_tool_sheet(root, tool, hand_points, force=args.force)
     update_manifest(root)
-    print("Built articulated all-outfit Kongjwi rig + four canonical-master bucket sheets")
+    print("Built anatomy-safe intact Kongjwi poses + four canonical-master bucket sheets")
 
 
 if __name__ == "__main__":
