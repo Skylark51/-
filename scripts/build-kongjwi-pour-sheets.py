@@ -8,6 +8,12 @@ Each Kongjwi frame therefore keeps the entire fitted source image intact and
 uses only a small rigid whole-body pose around the feet. Buckets remain a
 separate layer and rotate around the shared hand anchor.
 
+The royal-night source was originally decoded from an opaque PNG and then
+background-matted. If that matte drops the head, the "intact source" invariant
+would faithfully preserve a headless character. Before building the motion
+sheet, repair only missing head alpha from the aligned classic-red silhouette
+while taking every restored RGB pixel from the authored royal-night source.
+
 Bucket pixels are preserved in a canonical master.png the first time a valid
 source is available; if a legacy static bucket PNG is truncated, frame 0 of the
 already-valid 4096x768 motion sheet is cropped once and becomes that canonical
@@ -21,7 +27,7 @@ import json
 import math
 from pathlib import Path
 
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageChops, ImageDraw, UnidentifiedImageError
 
 CELL = (512, 768)
 FRAMES = 8
@@ -41,6 +47,18 @@ TOOL_SOURCES = {
     "celadon": "celadon.png",
     "moon": "moon.png",
 }
+
+NIGHT_RAW_SOURCE = "kongjwi-night-court-decoded.png"
+NIGHT_HEAD_DONOR = "kongjwi-classic-red-cutout.png"
+# Same 256x384 authored coordinate space used by the outfit-rig builder.
+NIGHT_HEAD_POLYGON = (
+    (92, 12), (164, 12), (174, 31), (174, 84), (169, 113),
+    (176, 149), (164, 181), (148, 170), (143, 107), (113, 107),
+    (108, 170), (92, 181), (80, 149), (87, 111), (92, 83),
+)
+NIGHT_HEAD_DONOR_SHIFT = (0, -1)
+NIGHT_HEAD_MIN_DONOR_COVERAGE = 1200
+NIGHT_HEAD_REQUIRED_RATIO = 0.72
 
 # The source character is kept intact in every frame. These are deliberately
 # small rigid poses around the feet: they create anticipation / pour / recovery
@@ -73,6 +91,106 @@ def load_rgba(path: Path) -> Image.Image:
     with Image.open(path) as source:
         source.load()
         return source.convert("RGBA")
+
+
+def alpha_coverage(mask: Image.Image, threshold: int = 16) -> int:
+    return sum(1 for value in mask.getdata() if value > threshold)
+
+
+def polygon_mask(size: tuple[int, int], points) -> Image.Image:
+    mask = Image.new("L", size, 0)
+    ImageDraw.Draw(mask).polygon(points, fill=255)
+    return mask
+
+
+def shifted_alpha(alpha: Image.Image, dx: int, dy: int) -> Image.Image:
+    shifted = Image.new("L", alpha.size, 0)
+    shifted.paste(alpha, (dx, dy))
+    return shifted
+
+
+def night_head_coverage(root: Path) -> tuple[int, int]:
+    """Return current and donor head alpha coverage in the authored 256x384 space."""
+    source_dir = root / "assets/art/kongjwi"
+    current = load_rgba(source_dir / SOURCES["night-court"])
+    donor = load_rgba(source_dir / NIGHT_HEAD_DONOR)
+    if current.size != donor.size:
+        raise RuntimeError(f"Night-court/donor size mismatch: {current.size} vs {donor.size}")
+
+    head_window = polygon_mask(current.size, NIGHT_HEAD_POLYGON)
+    donor_alpha = shifted_alpha(
+        donor.getchannel("A"),
+        NIGHT_HEAD_DONOR_SHIFT[0],
+        NIGHT_HEAD_DONOR_SHIFT[1],
+    )
+    donor_head = ImageChops.multiply(donor_alpha, head_window)
+    current_head = ImageChops.multiply(current.getchannel("A"), head_window)
+    return alpha_coverage(current_head), alpha_coverage(donor_head)
+
+
+def ensure_night_court_head(root: Path) -> tuple[int, int, bool]:
+    """Repair a dropped royal-night head matte without repainting source RGB pixels."""
+    source_dir = root / "assets/art/kongjwi"
+    cutout_path = source_dir / SOURCES["night-court"]
+    raw_path = source_dir / NIGHT_RAW_SOURCE
+    donor_path = source_dir / NIGHT_HEAD_DONOR
+
+    current = load_rgba(cutout_path)
+    raw = load_rgba(raw_path)
+    donor = load_rgba(donor_path)
+    if raw.size != current.size or donor.size != current.size:
+        raise RuntimeError(
+            f"Night-court repair source sizes must match: "
+            f"cutout={current.size}, raw={raw.size}, donor={donor.size}"
+        )
+
+    head_window = polygon_mask(current.size, NIGHT_HEAD_POLYGON)
+    donor_alpha = shifted_alpha(
+        donor.getchannel("A"),
+        NIGHT_HEAD_DONOR_SHIFT[0],
+        NIGHT_HEAD_DONOR_SHIFT[1],
+    )
+    donor_head = ImageChops.multiply(donor_alpha, head_window)
+    current_alpha = current.getchannel("A")
+    current_head = ImageChops.multiply(current_alpha, head_window)
+
+    donor_coverage = alpha_coverage(donor_head)
+    current_coverage = alpha_coverage(current_head)
+    if donor_coverage < NIGHT_HEAD_MIN_DONOR_COVERAGE:
+        raise RuntimeError(
+            f"Night-court head donor is unexpectedly sparse: {donor_coverage} pixels"
+        )
+
+    minimum = round(donor_coverage * NIGHT_HEAD_REQUIRED_RATIO)
+    if current_coverage >= minimum:
+        return current_coverage, donor_coverage, False
+
+    # Add only alpha that is missing from the night-court cutout. The colour for
+    # every restored pixel comes from the authored royal-night decoded source;
+    # the donor contributes silhouette alpha only.
+    added_alpha = ImageChops.subtract(donor_head, current_alpha)
+    repair_layer = raw.copy()
+    repair_layer.putalpha(added_alpha)
+
+    repaired = current.copy()
+    repaired.alpha_composite(repair_layer)
+    repaired_alpha = ImageChops.lighter(current_alpha, donor_head)
+    repaired.putalpha(repaired_alpha)
+
+    repaired_head = ImageChops.multiply(repaired_alpha, head_window)
+    repaired_coverage = alpha_coverage(repaired_head)
+    if repaired_coverage < minimum:
+        raise RuntimeError(
+            f"Night-court head repair failed: {repaired_coverage} < {minimum} pixels"
+        )
+
+    repaired.save(cutout_path, format="PNG", optimize=True, compress_level=9)
+    print(
+        "night-court: restored missing head alpha "
+        f"{current_coverage}->{repaired_coverage} pixels "
+        f"(donor reference {donor_coverage})"
+    )
+    return repaired_coverage, donor_coverage, True
 
 
 def fit_source(source: Image.Image) -> Image.Image:
@@ -136,6 +254,7 @@ def write_sheet(frames, output: Path):
 
 
 def build_kongjwi(root: Path, force: bool = False):
+    ensure_night_court_head(root)
     shared_hand_points = None
     for skin, filename in SOURCES.items():
         source = load_rgba(root / "assets/art/kongjwi" / filename)
@@ -234,12 +353,12 @@ def build_tool_sheet(root: Path, tool_key: str, hand_points, force: bool = False
 def update_manifest(root: Path):
     path = root / "assets/art/game-scene/manifest.json"
     manifest = json.loads(path.read_text(encoding="utf-8"))
-    manifest["version"] = "20260808-anatomy-safe1"
+    manifest["version"] = "20260808-head-safe1"
 
     policy = manifest.setdefault("runtimePolicy", {})
     policy["kongjwiMotionPolicy"] = "source-locked-intact-all-outfits"
     policy["kongjwiFramePolicy"] = "source-character-pixels-whole-body-pose-only"
-    policy["anatomySafetyPolicy"] = "never-segment-flattened-character-png"
+    policy["anatomySafetyPolicy"] = "complete-source-required-no-headless-cutouts"
     policy["toolMotionPolicy"] = "source-master-grip-pivot-co-registered"
     policy["uniformScalePolicy"] = "shared-2048x1152-contain"
     policy["waterAnimationPolicy"] = "synchronized-pour-fill-leak"
@@ -249,8 +368,10 @@ def update_manifest(root: Path):
     manifest["sprites"]["tool"]["cell"] = {"width": 512, "height": 768}
     manifest["placements"]["kongjwi"] = {"x": 205, "y": 260, "width": 546, "height": 820}
     manifest["placements"]["tool"] = dict(manifest["placements"]["kongjwi"])
-    manifest["layers"]["scene-tool"] = 9
+    # The bucket must be in front of the dress/hand region; z=9 placed it fully
+    # behind the character and made it look as if the equipped bucket vanished.
     manifest["layers"]["scene-kongjwi"] = 10
+    manifest["layers"]["scene-tool"] = 11
     manifest["anchors"]["toolHandle"] = {"x": 560, "y": 671}
     manifest["anchors"]["waterStart"] = {"x": 663, "y": 538}
 
@@ -289,7 +410,7 @@ def main():
         for tool in TOOL_SOURCES:
             build_tool_sheet(root, tool, hand_points, force=args.force)
     update_manifest(root)
-    print("Built anatomy-safe intact Kongjwi poses + four canonical-master bucket sheets")
+    print("Built head-safe intact Kongjwi poses + four canonical-master bucket sheets")
 
 
 if __name__ == "__main__":

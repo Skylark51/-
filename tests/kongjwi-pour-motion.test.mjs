@@ -17,10 +17,16 @@ function pngSize(file) {
 
 test("all-outfit motion manifest uses the anatomy-safe uniform scene policy", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "assets/art/game-scene/manifest.json"), "utf8"));
-  assert.equal(manifest.version, "20260808-anatomy-safe1");
+  assert.ok(
+    ["20260808-anatomy-safe1", "20260808-head-safe1"].includes(manifest.version),
+    `unexpected migration version ${manifest.version}`
+  );
   assert.equal(manifest.runtimePolicy.kongjwiMotionPolicy, "source-locked-intact-all-outfits");
   assert.equal(manifest.runtimePolicy.kongjwiFramePolicy, "source-character-pixels-whole-body-pose-only");
-  assert.equal(manifest.runtimePolicy.anatomySafetyPolicy, "never-segment-flattened-character-png");
+  assert.ok(
+    ["never-segment-flattened-character-png", "complete-source-required-no-headless-cutouts"]
+      .includes(manifest.runtimePolicy.anatomySafetyPolicy)
+  );
   assert.equal(manifest.runtimePolicy.toolMotionPolicy, "source-master-grip-pivot-co-registered");
   assert.equal(manifest.runtimePolicy.uniformScalePolicy, "shared-2048x1152-contain");
   assert.equal(manifest.runtimePolicy.waterAnimationPolicy, "synchronized-pour-fill-leak");
@@ -52,15 +58,20 @@ test("correct state stages character, stream, splash and leak", () => {
   const stateMachine = fs.readFileSync(path.join(root, "assets/js/scene-state-machine.js"), "utf8");
   assert.ok(stateMachine.includes("POUR_CHARACTER_FRAMES"));
   assert.ok(stateMachine.includes('setFlowPhase("pour")'));
-  assert.ok(stateMachine.includes('playSequence("waterStream"'));
-  assert.ok(stateMachine.includes('playSequence("waterSplash"'));
-  assert.ok(stateMachine.includes('playSequence("waterLeak"'));
+  assert.ok(stateMachine.includes('playSequence("waterStream")'));
+  assert.ok(stateMachine.includes('playSequence("waterSplash")'));
+  assert.ok(stateMachine.includes('playSequence("waterLeak")'));
   assert.ok(stateMachine.includes("delay: 410"));
   assert.ok(stateMachine.includes("startLeakLoop"));
 });
 
-test("builder preserves each flattened outfit as one intact image", () => {
+test("builder preserves complete flattened outfits and repairs a dropped night-court head matte", () => {
   const builder = fs.readFileSync(path.join(root, "scripts/build-kongjwi-pour-sheets.py"), "utf8");
+  assert.ok(builder.includes("def ensure_night_court_head"));
+  assert.ok(builder.includes("ensure_night_court_head(root)"));
+  assert.ok(builder.includes("NIGHT_HEAD_REQUIRED_RATIO"));
+  assert.ok(builder.includes("added_alpha = ImageChops.subtract(donor_head, current_alpha)"));
+  assert.ok(builder.includes('manifest["layers"]["scene-tool"] = 11'));
   assert.ok(builder.includes("def build_intact_frames"));
   assert.ok(builder.includes("frames, hand_points = build_intact_frames(base)"));
   assert.ok(builder.includes("frames.append(pose_frame(base, body_angle, dx, dy))"));

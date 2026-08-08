@@ -79,6 +79,7 @@ jobs:
           from PIL import Image
           import importlib.util
           import numpy as np
+          import json
 
           skins = ("underlayer", "classic-red", "blue-scholar", "field-work", "ragged", "night-court")
           tools = ("wood", "brass", "celadon", "moon")
@@ -87,14 +88,28 @@ jobs:
           builder = importlib.util.module_from_spec(spec)
           spec.loader.exec_module(builder)
 
+          current_head, donor_head = builder.night_head_coverage(Path("."))
+          minimum_head = round(donor_head * builder.NIGHT_HEAD_REQUIRED_RATIO)
+          assert donor_head >= builder.NIGHT_HEAD_MIN_DONOR_COVERAGE, donor_head
+          assert current_head >= minimum_head, (
+              f"night-court head alpha is incomplete: {current_head} < {minimum_head}"
+          )
+
+          manifest = json.loads(Path("assets/art/game-scene/manifest.json").read_text(encoding="utf-8"))
+          assert manifest["version"] == "20260808-head-safe1"
+          assert manifest["runtimePolicy"]["anatomySafetyPolicy"] == "complete-source-required-no-headless-cutouts"
+          assert manifest["layers"]["scene-tool"] > manifest["layers"]["scene-kongjwi"], (
+              "equipped bucket must render in front of the character grip region"
+          )
+
           for skin in skins:
               path = Path("assets/art/game-scene/kongjwi") / skin / "pour-sheet.png"
               image = Image.open(path).convert("RGBA")
               assert image.size == (4096, 768), (skin, image.size)
 
               # Anatomy invariant: every generated cell must be exactly the
-              # lossless rigid pose of the complete source cutout. No mask,
-              # limb extraction, neck deletion, or torso surgery is allowed.
+              # rigid pose of the complete, validated source cutout. No limb
+              # extraction, neck deletion, torso surgery, or headless source is allowed.
               source = builder.load_rgba(Path("assets/art/kongjwi") / builder.SOURCES[skin])
               base = builder.fit_source(source)
               for index, pose in enumerate(builder.BODY_POSES):
@@ -129,6 +144,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add \
+            assets/art/kongjwi/kongjwi-night-court-cutout.png \
             assets/art/game-scene/manifest.json \
             assets/art/game-scene/kongjwi/*/pour-sheet.png \
             assets/art/game-scene/tools/*/master.png \
@@ -137,6 +153,6 @@ jobs:
             echo "No Kongjwi motion asset changes."
             exit 0
           fi
-          git commit -m "chore: refresh Kongjwi motion sheets [skip ci]"
+          git commit -m "chore: refresh head-safe Kongjwi motion sheets [skip ci]"
           git pull --rebase origin main
           git push
